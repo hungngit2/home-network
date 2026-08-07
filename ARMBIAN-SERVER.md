@@ -77,7 +77,6 @@ These are installed via curl-pipe-to-shell scripts or Docker, so they don't get 
 | Jellyfin | 10.11.5 | 10.11.11 | ⚠️ 6 patch releases behind |
 | [rtp2httpd](https://github.com/hungngit2/rtp2httpd) | 1.0.4 | v1.0.4 | ✅ current |
 | OwnTone ([fork](https://github.com/hungngit2/owntone-server)) | 29.3 | 29.3 (upstream [owntone/owntone-server](https://github.com/owntone/owntone-server)) | ✅ current |
-| udpxy | 1.0-25.1 | — (project unmaintained since ~2015; 1.0-25.1 is the long-standing final build) | ✅ effectively current |
 | Docker Engine | 29.1.4 | v29.7.2 | ⚠️ several releases behind |
 | Home Assistant (container, `:latest` tag) | 2026.4.2 | 2026.7.4 | ⚠️ 3 months behind — the `:latest` tag only moves when the container is re-pulled; it isn't auto-updating |
 
@@ -202,15 +201,16 @@ WantedBy = multi-user.target
 
 ## IPTV stack
 
-Three cooperating pieces convert multicast IPTV feeds to HTTP for clients that can't join multicast:
+Two cooperating pieces convert multicast IPTV feeds to HTTP for clients that can't join multicast:
 
 - **[rtp2httpd](https://github.com/hungngit2/rtp2httpd)** — RTP/UDP/RTSP-to-HTTP gateway with an FCC (Fast Channel Change) mode tuned for Chinese IPTV, HLS reverse-proxying, Reed-Solomon FEC for packet-loss resilience, M3U playlist rewriting, and a web player/EPG. A lightweight (~450KB) dependency-free C binary using epoll + multi-worker I/O — well suited to this box's limited RAM. Runs as a systemd service on `:5140`, proxied at `/tv/` by nginx:
   ```bash
   curl -fsSL https://raw.githubusercontent.com/hungngit2/rtp2httpd/main/scripts/install-armbian.sh | sudo sh
   ```
   Config at `/etc/rtp2httpd.conf`: `maxclients=5`, `workers=1`, external M3U published at `http://10.0.0.100/iptv` (refreshed every 2h), status/player/setting pages under `/tv/status`, `/tv/player`, `/tv/setting`, and basic-auth-protected (credentials in the config file — not reproduced here).
-- **udpxy** — a second, simpler multicast→HTTP relay, systemd service on `:8089`, running as `nobody`. Not mentioned in the original notes; likely a fallback/alternate path to rtp2httpd for specific streams.
 - **go2rtc** — running as an ad-hoc process (`/bin/go2rtc -c /tmp/go2rtc-.../go2rtc_....yaml`), not a systemd unit. This is spawned on-demand by Home Assistant's built-in camera streaming (go2rtc has shipped bundled with HA core since 2024) rather than being an independent service — expect its process/config path to change across HA restarts.
+
+> **Removed live (2026-08-07)**: `udpxy` used to run alongside rtp2httpd as a second, simpler multicast→HTTP relay on `:8089`. Superseded by rtp2httpd — `iptv/index.php`'s own URL-building already defaulted to rtp2httpd's port (`5140`), and nothing else referenced `:8089` — so it was fully decommissioned: `systemctl stop`/`disable`, then the binary (`/usr/local/bin/udpxy`, a manual install — not an apt package) and its systemd unit were deleted, and `configs/chainedbox/udpxy.service` was removed from this archive to match.
 
 ## Downloads — Aria2
 

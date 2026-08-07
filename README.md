@@ -43,7 +43,7 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
           |        |    | avahi-daemon  -- mDNS reflect: end0(LAN) <-> end0.10(IoT)   |
           |        |    | Jellyfin :8096  -- media library                           |
           |        |    | OwnTone :3689/:3688/:6600 -- music/DAAP/AirPlay             |
-          |        |    | rtp2httpd + udpxy + go2rtc -- IPTV relay + HA camera stream |
+          |        |    | rtp2httpd + go2rtc -- IPTV relay + HA camera stream         |
           |        |    | Aria2 :6800  -- downloads -> nasdata                        |
           |        |    | Home Assistant (Docker, host-net) :8123 -- smart home       |
           |        |    | Samba (smbd/nmbd) -- apps/docs/downloads/media shares       |
@@ -106,7 +106,7 @@ Chainedbox is the only server dual-homed onto two of these (`end0`=LAN, `end0.10
 ## Documentation
 
 - **[MIKROTIK-HEXS.md](MIKROTIK-HEXS.md)** — router config: VLANs, dual-WAN policy routing, VPN (WireGuard ×3 + OpenVPN), firewall, DNS, IGMP/multicast, scheduler scripts. Read from a static `/export` (SSH is deliberately disabled on the router) — not live-verified.
-- **[ARMBIAN-SERVER.md](ARMBIAN-SERVER.md)** — full service inventory for Chainedbox: storage layout, every service (nginx, AdGuard Home, Unbound, avahi, Jellyfin, OwnTone, rtp2httpd/udpxy/go2rtc, Aria2, Home Assistant, Samba), package/version audit, network/VLAN wiring. Live-verified via SSH.
+- **[ARMBIAN-SERVER.md](ARMBIAN-SERVER.md)** — full service inventory for Chainedbox: storage layout, every service (nginx, AdGuard Home, Unbound, avahi, Jellyfin, OwnTone, rtp2httpd/go2rtc, Aria2, Home Assistant, Samba), package/version audit, network/VLAN wiring. Live-verified via SSH.
 - **[WIFI-APS.md](WIFI-APS.md)** — the 4-AP fleet: VLAN/SSID scheme, mesh backhaul, roaming, per-AP config drift, OpenWrt version audit. Live-verified via SSH, including 3 corrections after the original backup snapshot (`dawn`, `mdns_repeater`, `rtp2httpd` removed live from the APs — that functionality now lives solely on Chainedbox).
 - **[configs/chainedbox/](configs/chainedbox/)** — the actual raw config files pulled live from Chainedbox (nginx vhost, systemd units, `aria2.conf`, `smb.conf`, `AdGuardHome.yaml`, `avahi-daemon.conf`, Unbound conf.d, `docker/daemon.json`, netplan, crontab, etc.), archived here specifically so a future reinstall/migration doesn't have to reverse-engineer this server from scratch the way this doc set did. **Secrets redacted** — see below. The router and APs aren't archived this way since both have a proper built-in config-export feature you can always regenerate (`/export` on RouterOS, `sysupgrade` backup on OpenWrt).
 
