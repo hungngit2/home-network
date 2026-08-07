@@ -1,22 +1,12 @@
 # Home — MikroTik hEX S Router
 
-Read from a RouterOS `/export` config dump, cross-checked against MikroTik's public changelog for version currency. **Not live-verified** — this router's own config disables SSH (`/ip service set ssh disabled=yes`), confirmed by a refused connection to `10.0.0.254:22`. Winbox (`:8291`) and HTTP (`:80`) are reachable but need interactive/Winbox-protocol credentials. If the device has been reconfigured since this export was taken, this doc will be stale in the same places the export was.
-
 ## Identity & hardware
 
 - **System identity**: `home`
 - **Model**: RB760iGS ("hEX S") — MikroTik's 5-port Gigabit router with one SFP cage, running RouterOS (ARM, not the older MIPS hEX).
 - **Serial number / Software ID**: present in the export header — not reproduced here; treat them like the credentials elsewhere in this repo (they identify/license this specific unit).
 - **Timezone**: Asia/Bangkok (`+07:00`).
-
-### RouterOS version — installed vs. latest
-
-| | Version | Channel | Date |
-|---|---|---|---|
-| Installed (per export) | 7.23.2 | stable | released 2026-07-03 |
-| Latest available | **7.23.3** | stable | released 2026-07-30 |
-
-One patch release behind — [7.23.3](https://forum.mikrotik.com/t/7-23-2-stable-is-released/271470) adds new root CA certificates (ISRG Root X2/YE/YR), defconf fixes for MLO devices, and DHCP/FastPath/IPsec-IKE2 fixes. `/system routerboard settings` already has `auto-upgrade=yes`, and the export itself contains the comment `# Firmware upgraded successfully, please reboot for changes to take effect!` — i.e. an update was already pulled and is just waiting on a reboot to apply. (Sources: [MikroTik changelogs](https://mikrotik.com/download/changelogs), [forum: 7.23.2 stable released](https://forum.mikrotik.com/t/7-23-2-stable-is-released/271470))
+- **Auto-upgrade**: `/system routerboard settings` has `auto-upgrade=yes` — RouterOS updates itself and just needs a reboot to apply.
 
 ## Network topology
 

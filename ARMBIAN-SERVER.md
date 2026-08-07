@@ -1,7 +1,5 @@
 # Chainedbox — Armbian Server
 
-Live-verified via `ssh chainedbox`. Where an original setup note and live state disagreed, this doc reflects **what's actually running on the box**.
-
 ## Hardware & OS
 
 - **Board**: "Chainedbox L1 Pro" — an RK3328 (Rockchip) Android-TV-box-style device (`BOARD_NAME=RK.Chainedbox`, `BOARDFAMILY=rk3328`, `LINUXFAMILY=rockchip`), repurposed to run Armbian. This is the origin of the box's name.
@@ -49,38 +47,7 @@ Per-directory detail not covered elsewhere:
 apt update && apt upgrade -y && apt install -y unbound unbound-anchor aria2 nginx php php-fpm php-gd php-curl php-mbstring build-essential devscripts fakeroot debhelper samba certbot python3-certbot-nginx mosh
 ```
 
-### Installed vs. latest
-
-| Package | Installed | Latest available | Status |
-|---|---|---|---|
-| `unbound` / `unbound-anchor` | 1.19.2-1ubuntu3.7 | 1.19.2-1ubuntu3.8 (Ubuntu repo) | ⚠️ one point release behind — `apt upgrade` picks it up |
-| `aria2` | 1.37.0+debian-1build3 | 1.37.0+debian-1build3 | ✅ current |
-| `nginx` | 1.24.0-2ubuntu7.5 | 1.24.0-2ubuntu7.13 (Ubuntu repo) | ⚠️ several point releases behind — `apt upgrade` picks it up |
-| `php` / `php-fpm` / `php-gd` / `php-curl` / `php-mbstring` | 8.3.6 (2:8.3+93ubuntu2) | 2:8.3+93ubuntu2 | ✅ current |
-| `build-essential` | 12.10ubuntu1 | 12.10ubuntu1 | ✅ current |
-| `devscripts` | 2.23.7 | 2.23.7 | ✅ current |
-| `fakeroot` | 1.33-1 | 1.33-1 | ✅ current |
-| `debhelper` | 13.14.1ubuntu5 | 13.14.1ubuntu5 | ✅ current |
-| `samba` | 4.19.5+dfsg-4ubuntu9.4 | 4.19.5+dfsg-4ubuntu9.6 (Ubuntu repo) | ⚠️ two point releases behind — `apt upgrade` picks it up |
-| `certbot` / `python3-certbot-nginx` | 2.9.0-1 | 2.9.0-1 | ✅ current |
-| `mosh` | 1.4.0-1ubuntu3 | 1.4.0-1ubuntu3 | ✅ current |
-
-"Latest available" here is the Ubuntu Noble repo's candidate version (`apt-cache policy`), not necessarily each project's absolute upstream release — Ubuntu backports security/bugfixes rather than tracking every upstream release. All three gaps above are routine `apt upgrade` catch-up, not anything hand-pinned.
-
-### Non-apt services — installed vs. latest upstream
-
-These are installed via curl-pipe-to-shell scripts or Docker, so they don't get picked up by `apt upgrade` at all — versions drift until manually re-run:
-
-| Service | Installed | Latest upstream release | Status |
-|---|---|---|---|
-| AdGuard Home | v0.107.78 | v0.107.78 | ✅ current (latest *stable* — v0.108.0-b.90 exists but is a beta) |
-| Jellyfin | 10.11.5 | 10.11.11 | ⚠️ 6 patch releases behind |
-| [rtp2httpd](https://github.com/hungngit2/rtp2httpd) | 1.0.4 | v1.0.4 | ✅ current |
-| OwnTone ([fork](https://github.com/hungngit2/owntone-server)) | 29.3 | 29.3 (upstream [owntone/owntone-server](https://github.com/owntone/owntone-server)) | ✅ current |
-| Docker Engine | 29.1.4 | v29.7.2 | ⚠️ several releases behind |
-| Home Assistant (container, `:latest` tag) | 2026.4.2 | 2026.7.4 | ⚠️ 3 months behind — the `:latest` tag only moves when the container is re-pulled; it isn't auto-updating |
-
-Re-check by re-running each project's install/update script — there's no automatic update path configured for any of these.
+Non-apt services ([AdGuard Home](https://github.com/AdguardTeam/AdGuardHome), [Jellyfin](https://jellyfin.org/), [rtp2httpd](https://github.com/hungngit2/rtp2httpd), [OwnTone](https://github.com/hungngit2/owntone-server), Docker Engine, Home Assistant) are each installed via their own curl-pipe-to-shell script or as a Docker container — none of them get picked up by `apt upgrade`, so re-run each project's own install/update script to update.
 
 ## Network & VLANs
 

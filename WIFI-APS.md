@@ -1,7 +1,5 @@
 # Home — Wi-Fi Access Points (OpenWrt fleet)
 
-Live-verified via SSH. Where the original config export and live state disagreed, live state is reflected below.
-
 ## Fleet overview
 
 | Hostname | Model | Mikrotik DHCP lease | Role |
@@ -55,7 +53,7 @@ All client SSIDs share: 802.11r fast roaming (`ieee80211r`, shared `mobility_dom
 - **`dnsmasq` disabled** on all 4 (via `/etc/uci-defaults/10_disable_services`) — no local DHCP or caching resolver competing with the router.
 - **Unbound** (validating recursive resolver, port 53, `localservice=1`, all 4 configs byte-identical/all-defaults) — [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md#dns--mdns) shows AdGuard Home's `upstream_dns` list includes all 4 APs (`10.0.0.200`–`.203`) alongside Chainedbox's own Unbound and public fallbacks — so each AP's local resolver is a redundant upstream DNS path for the whole LAN.
 - **`odhcpd`** (IPv6 DHCP/RA) present but `maindhcp=0` — passive/relay role only, consistent with MikroTik being DHCPv4/v6 authority.
-- `redmi-rm2100-f0` has an `unbound-opkg` config file sitting alongside the live `unbound` config, with different settings — a leftover from this fleet's `opkg`→`apk` package-manager migration (see [Version](#version) below), not a second active instance. Safe to remove once confirmed unused.
+- `redmi-rm2100-f0` has an `unbound-opkg` config file sitting alongside the live `unbound` config, with different settings — a leftover from this fleet's `opkg`→`apk` package-manager migration, not a second active instance. Safe to remove once confirmed unused.
 
 ## IPTV support services
 
@@ -68,19 +66,6 @@ Neither `udpxy` nor `rtp2httpd` is installed on any of the 4 APs — IPTV multic
 - **RADIUS** (802.1X/enterprise Wi-Fi auth): configured but `disabled=1` on every unit, with template/placeholder credentials (`clients` file just has the default `0.0.0.0/0 radius` shared secret, `users` file is an empty PEAP wildcard template) — not a live secret, just an unused feature left in its default state.
 - **Nightly reboot**, staggered by a couple minutes across the fleet (`jcg-q20-f1` at 04:02, the other three at 04:00) — same "reboot on a schedule" pattern seen on [Chainedbox](ARMBIAN-SERVER.md#scheduled-tasks), suggesting a house-wide habit of nightly reboots for stability rather than anything specific to one device's constraints.
 - **`attendedsysupgrade`** client is configured (points at `https://sysupgrade.openwrt.org`) — the mechanism for pulling a browser/LuCI-initiated firmware rebuild-and-flash, not an auto-updater.
-
-## Version
-
-Per `/etc/openwrt_release` (ramips/mt7621 target, mipsel_24kc):
-
-| AP | Installed | Latest stable |
-|---|---|---|
-| `redmi-rm2100-f0` | 25.12.5 | 25.12.5 | ✅ current |
-| `jcg-q20-f1` | 25.12.5 | 25.12.5 | ✅ current |
-| `jcg-q20-f2` | 25.12.5 | 25.12.5 | ✅ current |
-| `jcg-q20-f3` | **25.12.4** | 25.12.5 | ⚠️ one service release behind |
-
-All 4 are on the **25.12 "Dave's Guitar"** series — this is also where OpenWrt switched its default package manager from `opkg` to `apk` (matching the `-opkg`-suffixed leftover config files noted above). (Source: [OpenWrt 25.12.5 service release announcement](https://forum.openwrt.org/t/openwrt-25-12-5-service-release/251479))
 
 ## Notes
 
