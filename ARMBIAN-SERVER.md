@@ -37,7 +37,7 @@ Root filesystem is the onboard eMMC (`/dev/mmcblk0p2`, 6.6G, 65% used) — small
 
 Per-directory detail not covered elsewhere:
 
-- **`docker/`** — this *is* Docker's `data-root`, redirected off the small eMMC rootfs via `/etc/docker/daemon.json` (`"data-root": "/mnt/appsrv/docker"`, plus a custom bridge subnet `172.31.0.1/24` and China-based registry mirrors — `mirror.baidubce.com`, `hub-mirror.c.163.com` — probably left over from pulling images from a network where Docker Hub is slow/blocked). `/opt/docker` is a symlink to this same directory, which is how Home Assistant's compose-style bind mounts (`/opt/docker/homeassistant/config`, `/opt/docker/homeassistant/media`) resolve here too. Also contains a stale `docker/owntone/` directory with old `docker-compose.yml` / `.bak` / `.premigrate-bak` files — OwnTone used to run as a Docker container (`owntone/owntone:latest`, host networking, `/dev/snd` passthrough) before being migrated to the native systemd install described in [Music — OwnTone](#music--owntone), matching that fork's documented Docker→native migration script. Safe to archive/remove once confirmed unused.
+- **`docker/`** — this *is* Docker's `data-root`, redirected off the small eMMC rootfs via `/etc/docker/daemon.json` (`"data-root": "/mnt/appsrv/docker"`, plus a custom bridge subnet `172.31.0.1/24` and China-based registry mirrors — `mirror.baidubce.com`, `hub-mirror.c.163.com` — probably left over from pulling images from a network where Docker Hub is slow/blocked). `/opt/docker` is a symlink to this same directory, which is how Home Assistant's compose-style bind mounts (`/opt/docker/homeassistant/config`, `/opt/docker/homeassistant/media`) resolve here too.
 - **`samba/smb.conf`** — the real Samba config; `/etc/samba/smb.conf` is just a symlink to it (same pattern as nginx/AdGuard Home/aria2 — config kept on `appsrv` so it survives an OS reflash).
 - **`ytb-owntone/`** — runtime state for the dashboard/OwnTone integration: `pipes/youtube.fifo` (a named pipe OwnTone reads as an audio source — likely fed by a `yt-dlp`-style downloader driven by `backend.php`/`queue-daemon.php`), `cache/` (downloaded audio, e.g. `dUkGrSPbSOE.audio`), and `data/` (`queue_state.json`, `playlist.json`, `confirmed_playing.json`, `resolved_stream.json`, `last_search.json`, `playback.lock` — the lock file the nginx `fastcgi_ignore_client_abort` comment refers to). This is the actual bridge between the web dashboard and OwnTone's playback.
 
@@ -136,7 +136,7 @@ Other loose files at the web root: `c.m3u` / `r.m3u` (IPTV playlists), `unbound.
 
 Lives at `/mnt/appsrv/www/ytb/`, owned by `www-data`: `app.js`, `backend.php`, `index.php`, `config.js`, `style.css`, plus `dashboard-auth.php` / `owntone-auth.php` (auth) and `queue-daemon.php`. This is the deploy target for this project — `scp` the built files here, then `chown www-data:www-data ... && systemctl reload php8.3-fpm.service`.
 
-Backed by **OwnTone** (music server — see below); the dashboard's own GitHub repo (`ytb-owntone-dashboard`, referenced in the original notes) currently 404s / isn't publicly visible — likely private or renamed. This local repo (`home-network`) appears to be its deploy-side counterpart.
+Backed by **OwnTone** (music server — see below); the dashboard's own GitHub repo [ytb-owntone-dashboard](https://github.com/hungngit2/ytb-owntone-dashboard). This local repo (`home-network`) appears to be its deploy-side counterpart.
 
 ## Media server — Jellyfin
 
@@ -230,11 +230,6 @@ Systemd unit at `/usr/lib/systemd/system/owntone.service`, capped at `MemoryMax=
 | `media` | `/mnt/nasdata/media` |
 
 Plus the standard `[homes]`, `[printers]`, `[print$]` shares (unused — no printer configured).
-
-## Remote access
-
-- `mosh` installed for a more resilient shell over lossy LAN Wi-Fi links, alongside standard `sshd`.
-- SSH via the `chainedbox` alias (`~/.ssh/config` on the client) — LAN-only, key-based (`id_ed25519_chainedbox`), user `root`.
 
 ## Scheduled tasks
 
