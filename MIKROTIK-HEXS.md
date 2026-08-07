@@ -1,89 +1,33 @@
 # Home — MikroTik hEX S Router
 
-## Identity & hardware
+**Role**: core router — DHCP, DNS forwarding, firewall, dual-WAN, VPN.
 
-- **System identity**: `home`
-- **Model**: RB760iGS ("hEX S") — MikroTik's 5-port Gigabit router with one SFP cage, running RouterOS (ARM, not the older MIPS hEX).
-- **Serial number / Software ID**: present in the export header — not reproduced here; treat them like the credentials elsewhere in this repo (they identify/license this specific unit).
-- **Timezone**: Asia/Bangkok (`+07:00`).
-- **Auto-upgrade**: `/system routerboard settings` has `auto-upgrade=yes` — RouterOS updates itself and just needs a reboot to apply.
+## Identity
 
-## Network topology
+- System identity: `home`
+- Model: RB760iGS ("hEX S")
+- Timezone: Asia/Bangkok
 
-Three physical LAN segments plus a VPN-delivered "LAN" segment, layered over 5 Ethernet ports, 1 SFP, 1 LTE modem, and a PPPoE WAN:
+## Topology
 
-| Bridge | Purpose | Members | Subnet |
+| Bridge | VLAN | Subnet | Ports |
 |---|---|---|---|
-| `br-lan` | Trusted home LAN | `ether1` (Switch), `ether2` (Wifi), `ether3` (**Chainedbox**, `10.0.0.100`), `ether4` | `10.0.0.0/24` (`.1`–`.210` pool, `.254` gateway) |
-| `br-iot` | IoT / cameras / NVR — isolated from LAN | `ether5` ("IoT - NVR"), `vlan-e1.10`, `vlan-e2.10`, `vlan-e3.10` | `10.0.1.0/24` |
-| `br-guest` | Guest Wi-Fi — isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
-| `br-iptv` | ISP multicast IPTV feed | `vlan-sfp1.99`, `vlan-sfp1.1100` (trusted, unicast/multicast flood off) | DHCP client (`IPTV`), no default route |
+| `br-lan` | 1 | `10.0.0.0/24` | `ether1` (Switch), `ether2` (Wifi), `ether3` (Chainedbox), `ether4` |
+| `br-iot` | 10 | `10.0.1.0/24` | `ether5` (IoT/NVR), tagged on `ether1`/`ether2`/`ether3` |
+| `br-guest` | 12 | `192.168.12.0/24` | tagged on `ether1`/`ether2` |
+| `br-iptv` | — | ISP-assigned | tagged on `sfp1` |
 
-`ether1` and `ether2` are trunked (carry VLANs 10 and 12 for IoT/Guest respectively, alongside their default untagged LAN membership) — i.e. the same physical switch port to the AP/Wi-Fi gear back-hauls all three segments via VLAN tags. `sfp1` (comment: "SFP - Hisense LTE3415-SCA+") carries the PPPoE VLAN (10), the IPTV VLAN (1100), and a management VLAN (99).
+WAN:
+- **WAN 1** — PPPoE over `sfp1` (VNPT, via a Hisense LTE3415-SCA+ bridge modem)
+- **WAN 2** — built-in LTE modem (`lte1`, Vinaphone)
 
-WAN: **dual-WAN with failover/load-balancing**:
-- **WAN 1** — PPPoE (`pppoe-out1`, user redacted) over `vlan-sfp1.10`, via VNPT (Vietnamese ISP), through the SFP-connected Hisense LTE3415 (an LTE-to-Ethernet/SFP bridge device, despite the "SFP" naming — it's actually another modem, not a fiber ONT).
-- **WAN 2** — the router's built-in LTE modem (`lte1`), carrier Vinaphone, roaming allowed — a cellular failover path.
+Both WANs are load-balanced across connections (PCC), with automatic failover.
 
-## Multi-WAN routing & policy routing (the interesting part)
+## Installed / configured
 
-This is the most involved piece of the config — several routing tables plus a mangle chain implement per-connection load balancing across WAN 1/WAN 2, with two carve-outs on top:
-
-1. **Vietnam-vs-rest split (implicit)**: `to-wan1`/`to-wan2` routing tables both default-route out their respective WAN, selected via connection marks (`wan1`/`wan2`) that mangle assigns per-connection using `per-connection-classifier` (an 7:1-ish hash-based split across both WANs — "Connection 1"–"Connection 7" rules). This is standard PCC load-balancing, not literally IP-based.
-2. **"Unblock Sites" → forced through VPN-out**: a `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list — BBC's IP ranges and a Medium.com IP) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP.
-3. **The giant `Vietnam` address-list** (line ~271, hundreds of CIDR blocks covering Vietnamese ISP/hosting IP space) — **defined but not referenced by any live mangle/routing rule** in this export. The two mangle rules that would have used it (`"To Wan 2"`, `"To VPN"`, both `disabled=yes`) are disabled. This looks like leftover infrastructure for a "Vietnam traffic stays on local ISP, everything else via VPN" policy that either hasn't been turned on yet or was superseded by the PCC load-balancing approach — worth clarifying intent before deleting the list, since it's clearly maintained (recently-dated ranges) despite being unused.
-
-Static/recursive routes handle the two check-gateway targets for each WAN (so failover actually triggers on ping loss) and recursive routes for the WireGuard "VPN out" tunnels' endpoint reachability.
-
-## VPN
-
-- **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access VPN. 3 peers configured, each `/32` on `10.0.100.x`. Public keys are in the export (not private — safe); no other secrets here.
-- **WireGuard outbound ×2** — `vpn-out1` ("VPN → SG") and `vpn-out2` ("VPN → HK") — these are the tunnels traffic gets routed into for the geo-unblocking rule above.
-- **OpenVPN server** (`ovpn-server1`, UDP, client-cert required) — a second, separate remote-access VPN path alongside WireGuard.
-- IPsec is present only as defaults/DPD tuning (`dpd-interval=2m`) — no active IPsec peers configured in this export.
-
-## DNS
-
-- **Upstream servers**: `10.0.0.100` (Chainedbox/AdGuard Home — see [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md)) listed first, then the 4 OpenWrt APs (`10.0.0.200`–`.203`), then public fallbacks (`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`).
-- **`cache-max-ttl=1m`** — deliberately tiny, so the router's own cache doesn't paper over AdGuard Home being down (pairs with the scheduler script below).
-- **Split DNS for IPTV**: a static DNS rule forwards anything matching `*.vmp.tv` to a dedicated forwarder (`mytv-dns` → `172.16.3.246`/`172.16.3.247`, DoH-cert-check disabled) — routes the ISP's IPTV EPG/portal domain to the ISP's own resolvers instead of the normal upstream chain, matching the `iptv/fetchNewList.php` EPG scraper seen on Chainedbox.
-- **A disabled scheduler script** (`Check-AGHome`, currently off) implements automatic DNS failover: every minute, if the router is using Chainedbox as DNS and a test resolve fails, it fails over to the 4 AP IPs as backup DNS; if already on the backup, it tries switching back. Worth knowing this exists even though it's off — flip `disabled=yes`→`no` if AdGuard Home outages become a recurring LAN-DNS problem.
-
-## Firewall
-
-Standard MikroTik default-configuration baseline (established/related/untracked accept, drop-invalid, drop-from-WAN-unless-DSTNATed) plus:
-
-- **IGMP/UDP accepted inbound from `br-iptv`** — lets the ISP's multicast IPTV stream traffic actually reach the router.
-- **WireGuard inbound port (`13231`) accepted** from the WAN IP address-list.
-- **IoT isolation**: IoT can reach Chainedbox (`10.0.0.100`) directly, and can resolve DNS out to `private` interfaces, but is otherwise blocked from reaching LAN — enforced by explicit drop rules for both `br-iot`→`private` and `br-guest`→`private`.
-- **NAT**: standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`) — this is how `REDACTED-domain` in the [Armbian doc](ARMBIAN-SERVER.md#web-server--nginx--php-fpm) actually reaches nginx from outside. A `torrent` DNAT rule (port 6889→Chainedbox) exists but is disabled.
-- **IPv6 firewall** mirrors the IPv4 baseline (RFC-recommended defconf: drop bad/bogon ranges, accept ICMPv6/IKE/IPsec, drop everything not from a `private`-listed interface) plus the same WireGuard-inbound and `dst-nat` port-forward rules (`www`, to a `/128` derived at runtime — see next section).
-
-## Scheduler & scripts
-
-- **`update-ipv6-nat-www`** (manual/on-demand, not on a schedule) — the router's IPv6 prefix from the ISP changes, so this script re-derives the `::100/128` host address from whatever the current `br-lan` IPv6 prefix is and updates the IPv6 DNAT rule (`www`) to point there — keeps the port-forward to Chainedbox valid across IPv6 prefix changes.
-- **`IGMP-Proxy-Fix`** (every 8h) — disables then re-enables the `br-lan` IGMP-proxy interface. A recurring workaround, which usually means IGMP proxying silently wedges over time on this platform — if IPTV/multicast-to-LAN issues ever come up, this is the known mitigation already in place.
-- **`Reboot-Weekly`** — exists but disabled. (Interesting contrast with Chainedbox's *enabled* nightly reboot — the router isn't rebooted on a schedule, only Chainedbox is.)
-- **`Check-AGHome`** — see [DNS](#dns) above; exists but disabled.
-
-## IGMP / multicast (IPTV)
-
-- `br-iptv` is the multicast querier/IGMP-proxy upstream (`alternative-subnets=0.0.0.0/0`), `br-lan` is a downstream proxy interface — this is what lets IPTV multicast groups actually traverse from the ISP feed to LAN clients (and ultimately to rtp2httpd on Chainedbox, per the [Armbian doc](ARMBIAN-SERVER.md#iptv-stack)).
-- A bridge filter explicitly **drops multicast forwarded out `br-iptv`** (prevents LAN-sourced multicast leaking upstream to the ISP) while still accepting mDNS (`224.0.0.251`) and SSDP (`239.255.255.250`) forwarding elsewhere — so local service discovery (Chromecast, etc.) still works across the LAN/other bridges.
-
-## Services
-
-| Service | State |
-|---|---|
-| SSH, FTP, Telnet, API, API-SSL | **disabled** |
-| WWW (HTTP config UI), Winbox | enabled, restricted to `10.0.0.0/24` + `10.0.100.0/24` (LAN + WireGuard-in) |
-| SMB (file sharing on the router itself) | disabled |
-| NTP client | enabled; NTP server also enabled (broadcast/multicast, `local-clock-stratum=10`) — the router serves time to the LAN in addition to syncing itself against Cloudflare/`vn.pool.ntp.org`/`asia.pool.ntp.org` |
-| `/tool sniffer` | pre-configured to filter on `10.0.0.6/32` — a packet-capture filter left set up, presumably for a specific past troubleshooting session (not currently running) |
-| Kid Control | one profile, `Tony`, defined with no further restrictions attached in this export |
-
-## Notes
-
-- **Can't verify live drift the way Chainedbox was verified** — SSH is deliberately off on this device (reasonable hardening for an edge router), so unlike the Armbian doc this one can't cross-check "what's actually running" against the export. If you want live verification, either temporarily enable SSH/API from a LAN host, or pull a fresh `/export` next time you're in Winbox and diff it against this document.
-- **The `Vietnam` address-list is unused** (see [Multi-WAN routing](#multi-wan-routing--policy-routing-the-interesting-part)) — confirm intent before trusting it to do anything today.
-- **Software ID / serial number** appear in the raw `.rsc` file's header comment — flagged, not reproduced, same treatment as the credentials found in the Chainedbox docs.
+- **VPN**: WireGuard inbound (remote-access, 3 peers), WireGuard outbound ×2 (routes a small allowlist of sites through instead of the local ISP path), OpenVPN server (remote-access, cert auth)
+- **DNS**: forwards to Chainedbox (AdGuard Home) first, then the 4 APs, then public resolvers; one domain-specific override for the ISP's IPTV portal
+- **Firewall**: default-deny from WAN, IoT/Guest isolated from LAN, Chainedbox reachable from IoT, IGMP/multicast allowed in from the IPTV VLAN
+- **IGMP proxy**: bridges ISP multicast IPTV from `br-iptv` into `br-lan`
+- **Services**: Winbox + HTTP admin UI (LAN-only), NTP client + server; SSH/FTP/Telnet/API/SMB all disabled
+- **Scheduler scripts**: IPv6 DNAT auto-update (keeps a port-forward valid across ISP prefix changes), periodic IGMP-proxy restart, a disabled DNS-failover script, a disabled weekly-reboot script
