@@ -4,7 +4,7 @@
 
 - **Board**: "Chainedbox L1 Pro" — an RK3328 (Rockchip) Android-TV-box-style device (`BOARD_NAME=RK.Chainedbox`, `BOARDFAMILY=rk3328`, `LINUXFAMILY=rockchip`), repurposed to run Armbian. This is the origin of the box's name.
 - **OS**: Armbian 26.5.1 "noble" (Ubuntu 24.04 LTS base), kernel `6.1.159-ophub` (aarch64). The `-ophub` kernel suffix is the tell: this isn't stock Armbian but a build from **[ophub/amlogic-s9xxx-armbian](https://github.com/ophub/amlogic-s9xxx-armbian)** — a third-party rebuild project that produces Armbian images for TV-box SoCs (Amlogic S9xxx, and by extension other boxes like this RK3328) that upstream Armbian doesn't officially support.
-- **Resources**: ~971 MiB RAM (751 MiB used, only ~36 MiB free at idle — see [Notes](#notes)), 485 MiB swap. This is why SSH sessions occasionally drop under load.
+- **Resources**: ~971 MiB RAM, 485 MiB swap.
 - **Network**: LAN-only at `10.0.0.100`, aliased as `chainedbox` in `~/.ssh/config`. No public IP/hostname; external access (if any) goes through the router/DDNS (`REDACTED-domain`, referenced in the nginx TLS cert).
 
 ## Storage
@@ -240,8 +240,3 @@ Plus the standard `[homes]`, `[printers]`, `[print$]` shares (unused — no prin
 
 - `0 3 * * * /sbin/reboot` — nightly reboot at 03:00, most likely to work around the low-RAM/occasional-hang situation rather than for any config reason.
 - `certbot.timer` — runs twice daily, renews the `REDACTED-domain` cert via the `/mnt/nasdata/share/www/certbot` webroot.
-
-## Notes
-
-- **Memory-constrained**: ~971 MiB total RAM, often only tens of MiB free at idle, plus swap in active use. SSH sessions can time out/drop under load — retry rather than assume misconfiguration. The nightly reboot cron and OwnTone's memory cap (before being overridden) both look like mitigations for this.
-- This doc is now the sole reference for this box — the original plain-text setup notes it was checked against have been superseded and removed from the repo. Treat the paths above (`/mnt/appsrv/...`, port `5335`, etc.) as current truth.

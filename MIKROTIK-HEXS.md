@@ -81,9 +81,3 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 | NTP client | enabled; NTP server also enabled (broadcast/multicast, `local-clock-stratum=10`) — the router serves time to the LAN in addition to syncing itself against Cloudflare/`vn.pool.ntp.org`/`asia.pool.ntp.org` |
 | `/tool sniffer` | pre-configured to filter on `10.0.0.6/32` — a packet-capture filter left set up, presumably for a specific past troubleshooting session (not currently running) |
 | Kid Control | one profile, `Tony`, defined with no further restrictions attached in this export |
-
-## Notes
-
-- **Can't verify live drift the way Chainedbox was verified** — SSH is deliberately off on this device (reasonable hardening for an edge router), so unlike the Armbian doc this one can't cross-check "what's actually running" against the export. If you want live verification, either temporarily enable SSH/API from a LAN host, or pull a fresh `/export` next time you're in Winbox and diff it against this document.
-- **The `Vietnam` address-list is unused** (see [Multi-WAN routing](#multi-wan-routing--policy-routing-the-interesting-part)) — confirm intent before trusting it to do anything today.
-- **Software ID / serial number** appear in the raw `.rsc` file's header comment — flagged, not reproduced, same treatment as the credentials found in the Chainedbox docs.
