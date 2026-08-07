@@ -1,0 +1,18 @@
+network:
+  version: 2
+  vlans:
+    end0.10:
+      renderer: NetworkManager
+      dhcp4: true
+      dhcp6: true
+      id: 10
+      link: "end0"
+      networkmanager:
+        uuid: "f4e8c7b4-f994-4e48-b1d7-747a4e73739f"
+        name: "vlan10"
+        passthrough:
+          ethernet._: ""
+          vlan.flags: "1"
+          ipv6.addr-gen-mode: "default"
+          ipv6.ip6-privacy: "-1"
+          proxy._: ""

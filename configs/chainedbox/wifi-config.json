@@ -1,0 +1,26 @@
+[
+    {
+        "name": "redmi-rm2100-f0",
+        "url": "http:\/\/10.0.0.200",
+        "username": "root",
+        "password": "<REDACTED>"
+    },
+    {
+        "name": "jcg-q20-f1",
+        "url": "http:\/\/10.0.0.201",
+        "username": "root",
+        "password": "<REDACTED>"
+    },
+    {
+        "name": "jcg-q20-f2",
+        "url": "http:\/\/10.0.0.202",
+        "username": "root",
+        "password": "<REDACTED>"
+    },
+    {
+        "name": "jcg-q20-f3",
+        "url": "http:\/\/10.0.0.203",
+        "username": "root",
+        "password": "<REDACTED>"
+    }
+]

@@ -1,0 +1,13 @@
+[Unit]
+Description=rtp2httpd IPTV multicast to HTTP gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rtp2httpd --config /etc/rtp2httpd.conf
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

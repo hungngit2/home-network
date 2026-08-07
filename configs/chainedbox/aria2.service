@@ -1,0 +1,11 @@
+[Unit]
+Description=Aria2 Download Accelerator
+ConditionPathIsMountPoint=/mnt/appsrv
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/aria2c --conf-path /mnt/appsrv/aria2/aria2.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
