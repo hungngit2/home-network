@@ -1,6 +1,6 @@
 # Chainedbox — Armbian Server
 
-Live-verified via `ssh chainedbox` on 2026-08-07. Originally checked against the user's own setup notes (a plain-text install log, since superseded by this document and removed from the repo) — where the two disagreed, this doc reflects **what's actually running on the box**, with the discrepancy called out.
+Live-verified via `ssh chainedbox`. Where an original setup note and live state disagreed, this doc reflects **what's actually running on the box**.
 
 ## Hardware & OS
 
@@ -49,7 +49,7 @@ Per-directory detail not covered elsewhere:
 apt update && apt upgrade -y && apt install -y unbound unbound-anchor aria2 nginx php php-fpm php-gd php-curl php-mbstring build-essential devscripts fakeroot debhelper samba certbot python3-certbot-nginx mosh
 ```
 
-### Installed vs. latest (checked 2026-08-07)
+### Installed vs. latest
 
 | Package | Installed | Latest available | Status |
 |---|---|---|---|
@@ -210,7 +210,7 @@ Two cooperating pieces convert multicast IPTV feeds to HTTP for clients that can
   Config at `/etc/rtp2httpd.conf`: `maxclients=5`, `workers=1`, external M3U published at `http://10.0.0.100/iptv` (refreshed every 2h), status/player/setting pages under `/tv/status`, `/tv/player`, `/tv/setting`, and basic-auth-protected (credentials in the config file — not reproduced here).
 - **go2rtc** — running as an ad-hoc process (`/bin/go2rtc -c /tmp/go2rtc-.../go2rtc_....yaml`), not a systemd unit. This is spawned on-demand by Home Assistant's built-in camera streaming (go2rtc has shipped bundled with HA core since 2024) rather than being an independent service — expect its process/config path to change across HA restarts.
 
-> **Removed live (2026-08-07)**: `udpxy` used to run alongside rtp2httpd as a second, simpler multicast→HTTP relay on `:8089`. Superseded by rtp2httpd — `iptv/index.php`'s own URL-building already defaulted to rtp2httpd's port (`5140`), and nothing else referenced `:8089` — so it was fully decommissioned: `systemctl stop`/`disable`, then the binary (`/usr/local/bin/udpxy`, a manual install — not an apt package) and its systemd unit were deleted, and `configs/chainedbox/udpxy.service` was removed from this archive to match.
+`udpxy` is not installed on this box — `rtp2httpd` covers multicast→HTTP relay on its own (`iptv/index.php`'s URL-building already defaults to rtp2httpd's port, `5140`).
 
 ## Downloads — Aria2
 

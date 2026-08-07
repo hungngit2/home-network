@@ -1,6 +1,6 @@
 # Home — MikroTik hEX S Router
 
-Read from a RouterOS `/export` config dump (dated 2026-08-03; the raw `.rsc` file has since been superseded by this document and removed from the repo). **Could not live-verify by SSH** the way [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md) was — this router's own config disables SSH (`/ip service set ssh disabled=yes`), confirmed by a refused connection to `10.0.0.254:22` from this machine. Winbox (`:8291`) and HTTP (`:80`) are reachable but need interactive/Winbox-protocol credentials this session doesn't have. Everything below is therefore derived from that static export, cross-checked against MikroTik's public changelog for version currency — **not live device state**. If the device has been reconfigured since 2026-08-03, this doc will be stale in the same places the export was.
+Read from a RouterOS `/export` config dump, cross-checked against MikroTik's public changelog for version currency. **Not live-verified** — this router's own config disables SSH (`/ip service set ssh disabled=yes`), confirmed by a refused connection to `10.0.0.254:22`. Winbox (`:8291`) and HTTP (`:80`) are reachable but need interactive/Winbox-protocol credentials. If the device has been reconfigured since this export was taken, this doc will be stale in the same places the export was.
 
 ## Identity & hardware
 
@@ -78,7 +78,7 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 ## IGMP / multicast (IPTV)
 
-- `br-iptv` is the multicast querier/IGMP-proxy upstream (`alternative-subnets=0.0.0.0/0`), `br-lan` is a downstream proxy interface — this is what lets IPTV multicast groups actually traverse from the ISP feed to LAN clients (and ultimately to rtp2httpd/udpxy on Chainedbox, per the [Armbian doc](ARMBIAN-SERVER.md#iptv-stack)).
+- `br-iptv` is the multicast querier/IGMP-proxy upstream (`alternative-subnets=0.0.0.0/0`), `br-lan` is a downstream proxy interface — this is what lets IPTV multicast groups actually traverse from the ISP feed to LAN clients (and ultimately to rtp2httpd on Chainedbox, per the [Armbian doc](ARMBIAN-SERVER.md#iptv-stack)).
 - A bridge filter explicitly **drops multicast forwarded out `br-iptv`** (prevents LAN-sourced multicast leaking upstream to the ISP) while still accepting mDNS (`224.0.0.251`) and SSDP (`239.255.255.250`) forwarding elsewhere — so local service discovery (Chromecast, etc.) still works across the LAN/other bridges.
 
 ## Services

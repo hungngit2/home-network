@@ -65,7 +65,7 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
      |    "home⁺"       -> vlan12 (Guest, PMF required)                                    |
      |    "home-mesh"   -> 802.11s backhaul (5GHz, SAE-encrypted)                          |
      |                                                                                      |
-     |  usteer (roaming/band-steering) + own udpxy + own Unbound                           |
+     |  usteer (roaming/band-steering) + own Unbound                                       |
      |  (each AP's Unbound is a redundant upstream in AdGuard Home's resolver chain)       |
      +--------------------------------------------------------------------------------------+
                     |                  |                  |                  |
@@ -123,14 +123,14 @@ None of the docs or archived configs in this repo contain live plaintext secrets
 
 ## Known housekeeping (aggregated from all 3 docs)
 
-Nothing urgent — mostly routine drift and a few loose ends worth a look next time you're in there:
+Nothing urgent — mostly routine version drift and a few loose ends worth a look next time you're in there. Full detail and exact file locations are in the linked doc for each row.
 
-- **Version drift**: `nginx`/`unbound`/`samba` a few Ubuntu point-releases behind on Chainedbox (routine `apt upgrade`); Jellyfin 6 patches behind; Docker Engine several releases behind; Home Assistant's `:latest` tag hasn't actually moved in 3 months; `jcg-q20-f3` one OpenWrt service release behind the other 3 APs.
-- **Stale leftovers not yet cleaned up**: old OwnTone Docker-Compose files under `/mnt/appsrv/docker/owntone/` (pre-migration to native systemd), a stopped `homeassistant_new` container, `KodExplorer-master (1).zip` sitting next to the unpacked app, `udpxy-opkg`/`unbound-opkg` leftover config on `redmi-rm2100-f0` from the OpenWrt opkg→apk migration.
-- **The MikroTik's giant `Vietnam` address-list** (900+ CIDRs) is defined and actively maintained but referenced by zero live rules — worth confirming intent (finish wiring it up, or drop it) rather than leaving it as dead weight.
-- **nginx access log** on Chainedbox has no rotation and is already ~140MB.
-- Full detail and file locations for every item above are in the linked docs.
-
-## History note
-
-This repo originally held the raw source material this doc set was built from — a plaintext setup-notes file for Chainedbox, the MikroTik's `.rsc` export, and 4 extracted OpenWrt config backups. All of it was read, cross-checked against live devices, and folded into the 3 docs above (with corrections where live state had drifted from the static snapshots); the raw files have since been removed to avoid keeping two competing sources of truth. The one exception is [configs/chainedbox/](configs/chainedbox/), kept deliberately as an actual config archive (not just prose) since Chainedbox has no single-command config export the way the router and APs do.
+| Item | Status | Doc |
+|---|---|---|
+| `nginx` / `unbound` / `samba` (Chainedbox) | A few Ubuntu point-releases behind — routine `apt upgrade` | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md#base-packages) |
+| Jellyfin | 6 patch releases behind | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md#non-apt-services--installed-vs-latest-upstream) |
+| Docker Engine | Several releases behind | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md#non-apt-services--installed-vs-latest-upstream) |
+| Home Assistant | `:latest` tag hasn't actually moved in 3 months — needs a manual re-pull | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md#non-apt-services--installed-vs-latest-upstream) |
+| `jcg-q20-f3` (AP) | One OpenWrt service release behind the other 3 APs | [WIFI-APS.md](WIFI-APS.md#version) |
+| MikroTik `Vietnam` address-list | 900+ CIDRs defined and actively maintained, but referenced by zero live rules — confirm intent (finish wiring it up, or drop it) | [MIKROTIK-HEXS.md](MIKROTIK-HEXS.md#multi-wan-routing--policy-routing-the-interesting-part) |
+| nginx access log (Chainedbox) | No rotation configured, already ~140MB | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md#web-server--nginx--php-fpm) |
