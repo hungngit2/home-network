@@ -1,6 +1,6 @@
 # Home Network
 
-A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHCP, a mesh of 4 OpenWrt access points for Wi-Fi, and an Armbian TV-box (`chainedbox`) running the household's actual services (media, DNS blocking, dashboard, home automation).
+A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHCP, a fleet of 4 wired OpenWrt access points (with 802.11s mesh backup) for Wi-Fi, and an Armbian TV-box (`chainedbox`) running the household's actual services (media, DNS blocking, dashboard, home automation).
 
 ## Network diagram
 
@@ -53,8 +53,8 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
                                                                                         |
                                                                                         v
       +----------------------------------------------------------------------------------+
-      |                4x OpenWrt dumb APs, meshed over 802.11s "home-mesh"              |
-      |------------------------------------------------------------------------------------|
+      |             4x OpenWrt dumb APs (wired trunk backhaul, 802.11s mesh backup)      |
+      |----------------------------------------------------------------------------------|
       |  redmi-rm2100-f0    jcg-q20-f1        jcg-q20-f2        jcg-q20-f3                  |
       |  10.0.0.200         10.0.0.201        10.0.0.202        10.0.0.203                  |
       |  (AP-0)             (AP-1)            (AP-2)            (AP-3)                      |
@@ -63,7 +63,7 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
       |    "home"       -> vlan1  (LAN)                                                     |
       |    "home IoT"    -> vlan10 (IoT, no PMF)                                            |
       |    "home⁺"       -> vlan12 (Guest, PMF required)                                    |
-      |    "home-mesh"   -> 802.11s backhaul (5GHz, SAE-encrypted)                          |
+      |    "home-mesh"   -> 802.11s backup backhaul (5GHz, SAE-encrypted)                   |
       |                                                                                      |
       |  usteer (optimized 802.11v/k/r roaming & band-steering) + local Unbound            |
       |  (each AP's Unbound is a redundant upstream in AdGuard Home's resolver chain)       |
