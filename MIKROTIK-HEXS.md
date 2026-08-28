@@ -37,7 +37,10 @@ Static/recursive routes handle the two check-gateway targets for each WAN (so fa
 
 ## VPN
 
-- **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access VPN. 3 peers configured, each `/32` on `10.0.100.x`. Public keys are in the export (not private — safe); no other secrets here.
+- **WireGuard inbound** (`vpn-in-lotus`, UDP `13231`, comment "lotus <- VPN") — the router's own remote-access VPN, fully dual-stack:
+  - **IPv4 subnet**: `10.0.100.254/24` (peers on `10.0.100.1`–`.3`)
+  - **IPv6 subnet**: `fd39:10:100::254/64` (peers on `fd39:10:100::1`–`::3/128`)
+  - 3 peers configured (`iPhoneSE2`, `mac16`, `hpEnvy`).
 - **WireGuard outbound ×2** — `vpn-out1` ("VPN → SG") and `vpn-out2` ("VPN → HK") — these are the tunnels traffic gets routed into for the geo-unblocking rule above.
 - **OpenVPN server** (`ovpn-server1`, UDP, client-cert required) — a second, separate remote-access VPN path alongside WireGuard.
 - IPsec is present only as defaults/DPD tuning (`dpd-interval=2m`) — no active IPsec peers configured in this export.
@@ -55,13 +58,15 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 - **IGMP/UDP accepted inbound from `br-iptv`** — lets the ISP's multicast IPTV stream traffic actually reach the router.
 - **WireGuard inbound port (`13231`) accepted** from the WAN IP address-list.
-- **IoT isolation**: IoT can reach Chainedbox (`10.0.0.100`) directly, and can resolve DNS out to `private` interfaces, but is otherwise blocked from reaching LAN — enforced by explicit drop rules for both `br-iot`→`private` and `br-guest`→`private`.
-- **NAT**: standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`) — this is how `REDACTED-domain` in the [Armbian doc](ARMBIAN-SERVER.md#web-server--nginx--php-fpm) actually reaches nginx from outside. A `torrent` DNAT rule (port 6889→Chainedbox) exists but is disabled.
-- **IPv6 firewall** mirrors the IPv4 baseline (RFC-recommended defconf: drop bad/bogon ranges, accept ICMPv6/IKE/IPsec, drop everything not from a `private`-listed interface) plus the same WireGuard-inbound and `dst-nat` port-forward rules (`www`, to a `/128` derived at runtime — see next section).
+- **IoT & Guest isolation**:
+  - **IPv4**: IoT can reach Chainedbox (`10.0.0.100`) directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
+  - **IPv6**: Mirrors IPv4 exactly — allows IoT to Chainedbox (`fd39:10::100/128`) and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
+- **NAT**: 
+  - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`).
+  - **IPv6 (NAT66 / Masquerade)**: Uses ULA subnets (`fd39:...`) for LAN/IoT paired with an outbound masquerade rule on `out-interface-list=wan` for non-GUA traffic (`src-address=!2001::/16`). This ensures reliable outbound IPv6 connectivity and multi-VLAN segmentation despite ISP (VNPT) single `/64` delegation and upstream routing anomalies. Destination NAT forwards `80,443` to Chainedbox (`fd39:10::100/128`).
 
 ## Scheduler & scripts
 
-- **`update-ipv6-nat-www`** (manual/on-demand, not on a schedule) — the router's IPv6 prefix from the ISP changes, so this script re-derives the `::100/128` host address from whatever the current `br-lan` IPv6 prefix is and updates the IPv6 DNAT rule (`www`) to point there — keeps the port-forward to Chainedbox valid across IPv6 prefix changes.
 - **`IGMP-Proxy-Fix`** (every 8h) — disables then re-enables the `br-lan` IGMP-proxy interface. A recurring workaround, which usually means IGMP proxying silently wedges over time on this platform — if IPTV/multicast-to-LAN issues ever come up, this is the known mitigation already in place.
 - **`Reboot-Weekly`** — exists but disabled. (Interesting contrast with Chainedbox's *enabled* nightly reboot — the router isn't rebooted on a schedule, only Chainedbox is.)
 - **`Check-AGHome`** — see [DNS](#dns) above; exists but disabled.
@@ -75,9 +80,10 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 | Service | State |
 |---|---|
-| SSH, FTP, Telnet, API, API-SSL | **disabled** |
+| SSH | **enabled** (key-based auth configured with `id_ed25519`, aliased in `~/.ssh/config` as `home` / `hexs`) |
+| FTP, Telnet, API, API-SSL | **disabled** |
 | WWW (HTTP config UI), Winbox | enabled, restricted to `10.0.0.0/24` + `10.0.100.0/24` (LAN + WireGuard-in) |
 | SMB (file sharing on the router itself) | disabled |
 | NTP client | enabled; NTP server also enabled (broadcast/multicast, `local-clock-stratum=10`) — the router serves time to the LAN in addition to syncing itself against Cloudflare/`vn.pool.ntp.org`/`asia.pool.ntp.org` |
-| `/tool sniffer` | pre-configured to filter on `10.0.0.6/32` — a packet-capture filter left set up, presumably for a specific past troubleshooting session (not currently running) |
-| Kid Control | one profile, `Tony`, defined with no further restrictions attached in this export |
+| `/tool sniffer` | stopped / default (no active filters) |
+| Kid Control | disabled / no active profiles |

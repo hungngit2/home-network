@@ -55,12 +55,12 @@ Chainedbox is dual-homed, matching exactly 2 of the 4 VLANs defined on [the Mikr
 
 | Interface | VLAN | Subnet | Address | Default route metric |
 |---|---|---|---|---|
-| `end0` | 1 (LAN) | `10.0.0.0/24` | `10.0.0.100` (DHCP from MikroTik) | 100 (preferred) |
+| `end0` | 1 (LAN) | `10.0.0.0/24`<br>`fd39:10::/64` | `10.0.0.100` (DHCP reservation)<br>`fd39:10::100/64` (fixed static + token `::100`) | 100 (preferred) |
 | `end0.10` | 10 (IoT) | `10.0.1.0/24` | `10.0.1.15` (DHCP from MikroTik) | 400 (fallback) |
 
 **No Guest (VLAN 12) interface exists on this box** — deliberate, since Guest is meant to stay isolated from everything (matches the MikroTik's `Block Guest to Lan` firewall rule and explains why [avahi](#dns--mdns) can't reflect mDNS to Guest either).
 
-`end0.10` is a NetworkManager-rendered VLAN sub-interface (`/etc/netplan/90-NM-*.yaml`, `renderer: NetworkManager`, `id: 10`, `link: end0`) — Armbian defaults network management to NetworkManager via netplan passthrough, so this VLAN was added through NetworkManager (nmcli/nm-connection-editor or its GUI equivalent), not hand-edited netplan YAML or `systemd-networkd`. Both interfaces pick up a DHCP-assigned default route from the MikroTik; the LAN one wins on metric, so outbound-from-Chainedbox traffic normally egresses via `end0` and only falls back to the IoT path if that's somehow unavailable.
+`end0` is configured with a persistent fixed IPv6 address `fd39:10::100/64` alongside DHCPv4 (`10.0.0.100`) via `/etc/netplan/10-end0.yaml` (`renderer: NetworkManager`, `ipv6-address-generation: eui64`, `ipv6.token: "::100"`). `end0.10` is a NetworkManager-rendered VLAN sub-interface (`/etc/netplan/90-NM-*.yaml`, `renderer: NetworkManager`, `id: 10`, `link: end0`). Both interfaces pick up a DHCP/RA-assigned default route from the MikroTik; the LAN one wins on metric, so outbound-from-Chainedbox traffic normally egresses via `end0` and only falls back to the IoT path if that's somehow unavailable.
 
 The IoT leg exists specifically so services on this box can reach IoT-VLAN devices directly without needing the MikroTik to route between segments: [Home Assistant](#home-assistant) (`network_mode: host`) uses it for device discovery, and [avahi](#dns--mdns) uses it to reflect mDNS between LAN and IoT.
 
@@ -200,7 +200,7 @@ RPC/web UI on `:6800`. `ConditionPathIsMountPoint=/mnt/appsrv` guards against st
 
 ## Home Assistant
 
-Runs as a plain Docker container (`homeassistant/home-assistant:latest`), **not** the Supervisor-managed OS install — `network_mode: host` (needed for mDNS/HomeKit/casting discovery and for go2rtc above), `restart: unless-stopped`, config bind-mounted from `/opt/docker/homeassistant/config`, media from `/opt/docker/homeassistant/media`. Web UI on `:8123`. A stopped `homeassistant_new` container also exists (exited 3 months ago) — looks like a leftover from a migration/upgrade attempt, worth cleaning up if confirmed unneeded.
+Runs as a plain Docker container (`homeassistant/home-assistant:latest`), **not** the Supervisor-managed OS install — `network_mode: host` (needed for mDNS/HomeKit/casting discovery and for go2rtc above), `restart: unless-stopped`, config bind-mounted from `/opt/docker/homeassistant/config`, media from `/opt/docker/homeassistant/media`. Web UI on `:8123`.
 
 ```bash
 docker exec -it homeassistant bash
