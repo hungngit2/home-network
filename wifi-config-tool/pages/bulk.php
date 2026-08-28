@@ -250,88 +250,23 @@ if (empty($availableNetworks)) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Fleet Management - OpenWrt WiFi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bulk Wi-Fi Update - Fleet</title>
     <link rel="stylesheet" href="../assets/style.css">
     <style>
-        .group-switcher {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 15px 0 20px 0;
-            padding: 12px;
-            background: #eef2f7;
-            border-radius: 8px;
-            align-items: center;
-        }
-        .group-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            background: #fff;
-            color: #333;
-            font-weight: 600;
-            border: 1px solid #ccd0d5;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .group-btn:hover {
-            background: #f8f9fa;
-            border-color: #337ab7;
-        }
-        .group-btn.active {
-            background: #337ab7;
-            color: #fff;
-            border-color: #2e6da4;
-            box-shadow: 0 2px 4px rgba(51, 122, 183, 0.3);
-        }
-        .btn-toggle-pwd {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #eee;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 0.8em;
-            cursor: pointer;
-        }
         .help-text {
             font-size: 0.85em;
-            color: #666;
+            color: #64748b;
             margin-top: 4px;
-        }
-        .device-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .device-card:hover {
-            background: #f0f7ff;
-            border-color: #337ab7;
-        }
-        .device-card input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="../index.php" class="btn" style="background-color: #6c757d; margin-bottom: 10px;">← Back to Dashboard</a>
+        <a href="../index.php" class="btn" style="background-color: #64748b; margin-bottom: 12px; font-size: 0.9rem;">← Back to Fleet</a>
         
-        <h1 style="margin-top: 5px;">Bulk Wi-Fi Management</h1>
-        <p style="color: #666; margin-top: 0;">Change Wi-Fi names or passwords across all access points simultaneously.</p>
+        <h1 style="margin-top: 5px;">Bulk Wi-Fi Update</h1>
+        <p style="color: #64748b; margin-top: 0; font-size: 0.95rem;">Sync Wi-Fi credentials across multiple access points simultaneously.</p>
 
         <?php if ($errorMessage): ?>
             <div class="card" style="background-color: #f2dede; border-color: #ebccd1; color: #a94442; font-weight: 500;">

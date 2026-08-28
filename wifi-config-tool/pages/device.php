@@ -135,46 +135,46 @@ $regions = $deviceManager->getRegions();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Device - <?= htmlspecialchars($device['name']) ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Manage AP - <?= htmlspecialchars($device['name']) ?></title>
     <link rel="stylesheet" href="../assets/style.css">
     <style>
         .region-badge {
             display: inline-block;
             padding: 3px 8px;
             border-radius: 12px;
-            font-size: 0.85em;
+            font-size: 0.82em;
             font-weight: bold;
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 1px solid #bbdefb;
+            background: #ebf8ff;
+            color: #2b6cb0;
+            border: 1px solid #bee3f8;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="../index.php" class="btn">Back to Dashboard</a>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 15px;">
+        <a href="../index.php" class="btn" style="background-color: #64748b; margin-bottom: 12px; font-size: 0.9rem;">← Back to Fleet</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 5px;">
             <h1 style="margin: 0;">
-                Manage: <?= htmlspecialchars($device['name']) ?>
+                <?= htmlspecialchars($device['name']) ?>
                 <?php if (count($regions) > 1): ?>
-                    <span class="region-badge" style="font-size: 0.45em; vertical-align: middle;">Region: <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+                    <span class="region-badge" style="font-size: 0.55em; vertical-align: middle;">📍 <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
                 <?php endif; ?>
             </h1>
             <?php if (count($regions) > 1): ?>
-                <form method="post" style="display: flex; gap: 6px; align-items: center; margin: 0;">
+                <form method="post" style="display: flex; gap: 6px; align-items: center; margin: 0; flex-wrap: wrap;">
                     <input type="hidden" name="action" value="update_region">
-                    <input type="text" name="region" list="region-list" value="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" style="padding: 5px; width: 140px;" placeholder="Change Region">
+                    <input type="text" name="region" list="region-list" value="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" style="padding: 6px 10px; width: 130px; font-size: 0.88rem;" placeholder="Change Region">
                     <datalist id="region-list">
                         <?php foreach ($regions as $r): ?>
                             <option value="<?= htmlspecialchars($r) ?>">
                         <?php endforeach; ?>
                     </datalist>
-                    <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.85em; background-color: #337ab7;">Update Region</button>
+                    <button type="submit" class="btn" style="padding: 6px 12px; font-size: 0.85rem; min-height: 34px;">Move</button>
                 </form>
             <?php endif; ?>
         </div>
-        <p>URL: <a href="http://<?= htmlspecialchars($device['url']) ?>" target="_blank"><?= htmlspecialchars($device['url']) ?></a></p>
+        <p style="color: #64748b; margin: 6px 0 15px 0;">IP: <a href="http://<?= htmlspecialchars($device['url']) ?>" target="_blank" style="color: #3182ce; font-weight: bold;"><code><?= htmlspecialchars($device['url']) ?></code></a></p>
 
         <?php if (isset($sysInfo['result'])): ?>
             <div class="card">

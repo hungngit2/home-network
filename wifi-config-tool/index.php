@@ -67,85 +67,47 @@ foreach ($displayGroups as $list) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OpenWrt WiFi Fleet Manager</title>
     <link rel="stylesheet" href="assets/style.css">
     <style>
-        .group-switcher {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 15px 0 20px 0;
-            padding: 12px;
-            background: #eef2f7;
-            border-radius: 8px;
-            align-items: center;
-        }
-        .group-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            background: #fff;
-            color: #333;
-            font-weight: 600;
-            border: 1px solid #ccd0d5;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .group-btn:hover {
-            background: #f8f9fa;
-            border-color: #337ab7;
-        }
-        .group-btn.active {
-            background: #337ab7;
-            color: #fff;
-            border-color: #2e6da4;
-            box-shadow: 0 2px 4px rgba(51, 122, 183, 0.3);
-        }
-        .region-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            font-weight: bold;
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 1px solid #bbdefb;
-        }
         .region-header {
             margin-top: 20px;
             margin-bottom: 12px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #edf2f7;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 15px;
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div class="header-bar">
             <div>
-                <h1 style="margin: 0;">OpenWrt WiFi Fleet Manager</h1>
-                <p style="color: #666; margin: 4px 0 0 0;">Unified management for mesh & wired access points across all locations.</p>
+                <h1 style="margin: 0;">OpenWrt WiFi Fleet</h1>
+                <p style="color: #64748b; margin: 4px 0 0 0; font-size: 0.95rem;">Unified management for mesh & wired access points.</p>
             </div>
-            <div>
-                <a href="pages/bulk.php<?= $activeRegion !== 'all' ? '?region=' . urlencode($activeRegion) : '' ?>" class="btn" style="background-color: #5cb85c; padding: 10px 18px; font-size: 1em; font-weight: bold; text-decoration: none;">
+            <div class="mobile-full-btn">
+                <a href="pages/bulk.php<?= $activeRegion !== 'all' ? '?region=' . urlencode($activeRegion) : '' ?>" class="btn mobile-full-btn" style="background-color: #38a169; text-decoration: none;">
                     ⚡ Bulk Wi-Fi Update <?= $activeRegion !== 'all' ? '(' . htmlspecialchars($activeRegion) . ')' : '' ?>
                 </a>
             </div>
         </div>
         
         <?php if ($message): ?>
-            <div class="card" style="background-color: <?= $isError ? '#f2dede' : '#dff0d8' ?>; border-color: <?= $isError ? '#ebccd1' : '#d6e9c6' ?>; color: <?= $isError ? '#a94442' : '#3c763d' ?>; font-weight: 500; margin-top: 15px;">
+            <div class="card" style="background-color: <?= $isError ? '#fff5f5' : '#f0fff4' ?>; border-color: <?= $isError ? '#feb2b2' : '#9ae6b4' ?>; color: <?= $isError ? '#c53030' : '#276749' ?>; font-weight: 500;">
                 <?= $isError ? '⚠️ ' : '✅ ' ?><?= htmlspecialchars($message) ?>
             </div>
         <?php endif; ?>
@@ -153,9 +115,9 @@ foreach ($displayGroups as $list) {
         <?php if ($hasMultipleRegions): ?>
             <!-- Group Switcher (Filter by Group) -->
             <div class="group-switcher">
-                <span style="font-weight: 600; color: #444;">Select Site / Group:</span>
+                <span style="font-weight: 600; color: #475569; width: 100%; font-size: 0.88rem;">Select Site / Group:</span>
                 <a href="index.php?region=all" class="group-btn <?= $activeRegion === 'all' ? 'active' : '' ?>">
-                    🌐 All Groups (<?= count($devices) ?>)
+                    🌐 All (<?= count($devices) ?>)
                 </a>
                 <?php foreach ($groupedDevices as $r => $devs): ?>
                     <a href="index.php?region=<?= urlencode($r) ?>" class="group-btn <?= $activeRegion === $r ? 'active' : '' ?>">
@@ -166,66 +128,66 @@ foreach ($displayGroups as $list) {
         <?php endif; ?>
 
         <!-- Add Device Card (Context-Aware UX) -->
-        <div class="card" style="border-left: 5px solid #337ab7;">
+        <div class="card" style="border-left: 4px solid #3182ce;">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleAddDevice()">
                 <div>
-                    <h3 style="margin: 0; color: #337ab7;">
+                    <h3 style="margin: 0; color: #2b6cb0;">
                         ➕ Add Access Point
                         <?php if ($activeRegion !== 'all'): ?>
                             to <span class="region-badge"><?= htmlspecialchars($activeRegion) ?></span>
                         <?php endif; ?>
                     </h3>
-                    <p style="margin: 3px 0 0 0; color: #666; font-size: 0.9em;">
-                        <?= $activeRegion !== 'all' ? 'Connect a new router/AP to group <strong>' . htmlspecialchars($activeRegion) . '</strong>' : 'Connect a new router/AP to your network fleet' ?>
+                    <p style="margin: 3px 0 0 0; color: #64748b; font-size: 0.88rem;">
+                        <?= $activeRegion !== 'all' ? 'Connect a new AP to group <strong>' . htmlspecialchars($activeRegion) . '</strong>' : 'Connect a new AP to your network' ?>
                     </p>
                 </div>
-                <button type="button" class="btn" style="background-color: #6c757d; padding: 5px 12px; font-size: 0.9em;">
-                    <span id="toggle-icon">▼ Expand Form</span>
+                <button type="button" class="btn" style="background-color: #64748b; padding: 4px 10px; font-size: 0.85rem; min-height: 32px;">
+                    <span id="toggle-icon">▼ Expand</span>
                 </button>
             </div>
 
-            <div id="add-device-form" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+            <div id="add-device-form" style="display: none; margin-top: 15px; border-top: 1px solid #edf2f7; padding-top: 15px;">
                 <form method="post">
                     <input type="hidden" name="action" value="add">
 
                     <div class="form-grid">
-                        <div class="form-group" style="margin-bottom: 10px;">
-                            <label for="name"><strong>Access Point Name</strong></label>
-                            <input type="text" id="name" name="name" placeholder="e.g. jcg-q20-f1" required style="width: 100%;">
+                        <div class="form-group">
+                            <label for="name">Access Point Name</label>
+                            <input type="text" id="name" name="name" placeholder="e.g. jcg-q20-f1" required>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 10px;">
-                            <label for="url"><strong>IP Address / Hostname</strong></label>
-                            <input type="text" id="url" name="url" placeholder="10.0.0.201" required style="width: 100%;">
+                        <div class="form-group">
+                            <label for="url">IP Address</label>
+                            <input type="text" id="url" name="url" placeholder="10.0.0.201" required>
                         </div>
                     </div>
 
                     <?php if ($activeRegion !== 'all'): ?>
                         <!-- Locked Target Group for selected region -->
                         <input type="hidden" name="region" value="<?= htmlspecialchars($activeRegion) ?>">
-                        <div style="margin: 8px 0 12px 0; font-size: 0.9em; color: #555;">
+                        <div style="margin: 4px 0 12px 0; font-size: 0.88rem; color: #64748b;">
                             📍 Target Group: <strong><?= htmlspecialchars($activeRegion) ?></strong> 
-                            <span style="color: #999;">(To add to a different group, select it from the top switcher or click <a href="index.php?region=all" style="color: #337ab7;">All Groups</a>)</span>
+                            <span>(Switch to <a href="index.php?region=all" style="color: #3182ce;">All Groups</a> to change)</span>
                         </div>
                     <?php elseif ($hasMultipleRegions): ?>
                         <!-- Group Selection for 'All Groups' view -->
-                        <div class="form-group" style="margin: 10px 0;">
-                            <label for="group_selector"><strong>Target Group / Location</strong></label>
-                            <select id="group_selector" name="region" style="width: 100%; max-width: 320px; padding: 7px;" onchange="handleGroupChange(this.value)">
+                        <div class="form-group" style="margin: 8px 0 14px 0;">
+                            <label for="group_selector">Target Group / Location</label>
+                            <select id="group_selector" name="region" onchange="handleGroupChange(this.value)">
                                 <?php foreach ($regions as $r): ?>
                                     <option value="<?= htmlspecialchars($r) ?>">📍 <?= htmlspecialchars($r) ?></option>
                                 <?php endforeach; ?>
                                 <option value="__new__">➕ Create New Group...</option>
                             </select>
                         </div>
-                        <div id="new_group_container" style="display: none; margin: 8px 0 12px 0;">
-                            <label for="new_region_name"><strong>New Group Name</strong></label>
-                            <input type="text" id="new_region_name" name="new_region_name" placeholder="e.g. office, warehouse" style="max-width: 320px; width: 100%;">
+                        <div id="new_group_container" style="display: none; margin: 8px 0 14px 0;">
+                            <label for="new_region_name">New Group Name</label>
+                            <input type="text" id="new_region_name" name="new_region_name" placeholder="e.g. office, warehouse">
                         </div>
                     <?php endif; ?>
 
-                    <div>
-                        <button type="submit" class="btn" style="background-color: #337ab7; padding: 9px 22px; font-weight: bold; font-size: 1em;">
+                    <div style="margin-top: 8px;">
+                        <button type="submit" class="btn mobile-full-btn" style="background-color: #3182ce; padding: 10px 20px; font-weight: bold;">
                             💾 Add Access Point
                         </button>
                     </div>
@@ -235,77 +197,78 @@ foreach ($displayGroups as $list) {
 
         <!-- Managed Devices Card -->
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
                 <h2 style="margin: 0;">
-                    <?= $activeRegion !== 'all' ? 'Access Points in Group: ' . htmlspecialchars($activeRegion) : 'All Managed Access Points' ?>
-                    <span style="font-size: 0.75em; color: #777; font-weight: normal;">(<?= $displayedCount ?> Total)</span>
+                    <?= $activeRegion !== 'all' ? 'Group: ' . htmlspecialchars($activeRegion) : 'Managed Access Points' ?>
+                    <span style="font-size: 0.75em; color: #64748b; font-weight: normal;">(<?= $displayedCount ?>)</span>
                 </h2>
                 <?php if ($activeRegion !== 'all'): ?>
-                    <a href="pages/bulk.php?region=<?= urlencode($activeRegion) ?>" class="btn" style="background-color: #5cb85c; padding: 5px 12px; font-size: 0.9em;">
-                        ⚡ Manage All <?= htmlspecialchars($activeRegion) ?> APs
+                    <a href="pages/bulk.php?region=<?= urlencode($activeRegion) ?>" class="btn" style="background-color: #38a169; padding: 5px 12px; font-size: 0.85rem; min-height: 32px;">
+                        ⚡ Manage All <?= htmlspecialchars($activeRegion) ?>
                     </a>
                 <?php endif; ?>
             </div>
             
             <?php if (empty($devices)): ?>
-                <p>No devices managed yet. Click "Add Access Point" above.</p>
+                <p style="color: #64748b;">No devices managed yet. Click "Add Access Point" above.</p>
             <?php else: ?>
 
                 <?php foreach ($displayGroups as $regName => $devList): ?>
                     <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
                         <div class="region-header">
-                            <h3 style="margin: 0; color: #337ab7;">
-                                📍 Group: <?= htmlspecialchars($regName) ?>
-                                <span style="font-size: 0.8em; font-weight: normal; color: #777;">(<?= count($devList) ?> APs)</span>
+                            <h3 style="margin: 0; color: #2b6cb0;">
+                                📍 <?= htmlspecialchars($regName) ?>
+                                <span style="font-size: 0.8em; font-weight: normal; color: #64748b;">(<?= count($devList) ?> APs)</span>
                             </h3>
-                            <a href="pages/bulk.php?region=<?= urlencode($regName) ?>" class="btn" style="background-color: #5cb85c; padding: 4px 10px; font-size: 0.85em;">
-                                Bulk Manage <?= htmlspecialchars($regName) ?>
+                            <a href="pages/bulk.php?region=<?= urlencode($regName) ?>" class="btn" style="background-color: #38a169; padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">
+                                Bulk Manage
                             </a>
                         </div>
                     <?php endif; ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
-                                    <th>Group</th>
-                                <?php endif; ?>
-                                <th>IP Address</th>
-                                <th>Auth</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($devList as $device): ?>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="text-decoration: none; color: #337ab7;">
-                                            <strong><?= htmlspecialchars($device['name']) ?></strong>
-                                        </a>
-                                    </td>
+                                    <th>AP Name</th>
                                     <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
-                                        <td>
-                                            <span class="region-badge"><?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
-                                        </td>
+                                        <th>Group</th>
                                     <?php endif; ?>
-                                    <td><code><?= htmlspecialchars($device['url']) ?></code></td>
-                                    <td><span style="color: #2e7d32; font-weight: 500;">SSH Key</span></td>
-                                    <td>
-                                        <div style="display: flex; gap: 6px; align-items: center;">
-                                            <a href="pages/device.php?name=<?= urlencode($device['name']) ?>">
-                                                <button class="btn" style="padding: 4px 10px; font-size: 0.85em;">Manage</button>
-                                            </a>
-                                            <form method="post" style="margin: 0;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
-                                                <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.85em;">Remove</button>
-                                            </form>
-                                        </div>
-                                    </td>
+                                    <th>IP Address</th>
+                                    <th style="text-align: right;">Actions</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($devList as $device): ?>
+                                    <tr>
+                                        <td>
+                                            <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="text-decoration: none; color: #2b6cb0; font-weight: bold;">
+                                                <?= htmlspecialchars($device['name']) ?>
+                                            </a>
+                                        </td>
+                                        <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
+                                            <td>
+                                                <span class="region-badge"><?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+                                            </td>
+                                        <?php endif; ?>
+                                        <td><code><?= htmlspecialchars($device['url']) ?></code></td>
+                                        <td style="text-align: right;">
+                                            <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                                                <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="text-decoration: none;">
+                                                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">Manage</button>
+                                                </a>
+                                                <form method="post" style="margin: 0;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
+                                                    <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">Remove</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
@@ -317,10 +280,10 @@ foreach ($displayGroups as $list) {
             const icon = document.getElementById('toggle-icon');
             if (form.style.display === 'none') {
                 form.style.display = 'block';
-                icon.textContent = '▲ Collapse Form';
+                icon.textContent = '▲ Collapse';
             } else {
                 form.style.display = 'none';
-                icon.textContent = '▼ Expand Form';
+                icon.textContent = '▼ Expand';
             }
         }
 
