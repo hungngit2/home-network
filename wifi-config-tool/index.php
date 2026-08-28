@@ -191,10 +191,6 @@ foreach ($displayGroups as $list) {
                         <label for="port">SSH Port</label>
                         <input type="number" id="port" name="port" value="22" required>
                     </div>
-                    <div class="form-group">
-                        <label for="ssh_key">Custom SSH Key Path (optional)</label>
-                        <input type="text" id="ssh_key" name="ssh_key" placeholder="Leave empty to use default key (/var/www/.ssh/id_hungnguyen)">
-                    </div>
                     <button type="submit" class="btn" style="background-color: #337ab7; padding: 8px 18px; font-weight: bold;">Add Access Point</button>
                 </form>
             </div>

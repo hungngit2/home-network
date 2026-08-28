@@ -195,13 +195,16 @@ class DeviceManager {
         foreach ($grouped as $regName => $devList) {
             $cleanGrouped[$regName] = [];
             foreach ($devList as $dev) {
-                $cleanGrouped[$regName][] = [
+                $item = [
                     'name' => $dev['name'] ?? '',
                     'url' => $dev['url'] ?? '',
                     'username' => $dev['username'] ?? 'root',
-                    'ssh_key' => $dev['ssh_key'] ?? '',
                     'port' => (int)($dev['port'] ?? 22)
                 ];
+                if (!empty($dev['ssh_key'])) {
+                    $item['ssh_key'] = $dev['ssh_key'];
+                }
+                $cleanGrouped[$regName][] = $item;
             }
         }
         file_put_contents($this->configFile, json_encode($cleanGrouped, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
