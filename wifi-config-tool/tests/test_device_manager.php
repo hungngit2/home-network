@@ -7,24 +7,53 @@ file_put_contents($testConfig, '[]');
 
 $dm = new \OpenWrt\DeviceManager($testConfig);
 
-echo "Adding device...\n";
-$dm->addDevice('Test Router', '192.168.1.1', 'root', '', 22);
+echo "Adding device with region...\n";
+$dm->addDevice('Test Router 1', '192.168.1.1', 'root', '', 22, 'Region-A');
+$dm->addDevice('Test Router 2', '192.168.1.2', 'root', '', 22, 'Region-B');
+$dm->addDevice('Test Router 3', '192.168.1.3', 'root', '', 22, 'Region-A');
 
 $devices = $dm->getDevices();
-if (count($devices) === 1 && $devices[0]['name'] === 'Test Router' && $devices[0]['url'] === '192.168.1.1') {
-    echo "Device added successfully.\n";
+if (count($devices) === 3 && $devices[0]['region'] === 'Region-A') {
+    echo "Devices added successfully with regions.\n";
 } else {
     echo "FAILED: Device add.\n";
     exit(1);
 }
 
-$name = $devices[0]['name'];
+$regions = $dm->getRegions();
+if (count($regions) === 2 && in_array('Region-A', $regions) && in_array('Region-B', $regions)) {
+    echo "Regions retrieved successfully: " . implode(', ', $regions) . "\n";
+} else {
+    echo "FAILED: getRegions.\n";
+    exit(1);
+}
+
+$grouped = $dm->getDevicesGroupedByRegion();
+if (count($grouped['Region-A']) === 2 && count($grouped['Region-B']) === 1) {
+    echo "Grouped devices verified successfully.\n";
+} else {
+    echo "FAILED: getDevicesGroupedByRegion.\n";
+    exit(1);
+}
+
+echo "Updating device region...\n";
+$dm->updateDeviceRegion('Test Router 2', 'Region-A');
+$updatedGrouped = $dm->getDevicesGroupedByRegion();
+if (count($updatedGrouped['Region-A']) === 3 && empty($updatedGrouped['Region-B'])) {
+    echo "Device region updated successfully.\n";
+} else {
+    echo "FAILED: updateDeviceRegion.\n";
+    exit(1);
+}
+
 echo "Removing device...\n";
-$dm->removeDevice($name);
+$dm->removeDevice('Test Router 1');
+$dm->removeDevice('Test Router 2');
+$dm->removeDevice('Test Router 3');
 
 $devices = $dm->getDevices();
 if (count($devices) === 0) {
-    echo "Device removed successfully.\n";
+    echo "Devices removed successfully.\n";
 } else {
     echo "FAILED: Device remove.\n";
     exit(1);

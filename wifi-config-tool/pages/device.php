@@ -108,6 +108,10 @@ if ($loginSuccess) {
                 } else {
                      $_SESSION['flash_error'] = "No interfaces selected for removal.";
                 }
+            } elseif ($_POST['action'] === 'update_region') {
+                $newRegion = trim($_POST['region'] ?? 'Default');
+                $deviceManager->updateDeviceRegion($name, $newRegion);
+                $_SESSION['flash_success'] = "Device region updated to '$newRegion'.";
             }
             // Redirect to self to prevent resubmission
             header("Location: " . $_SERVER['REQUEST_URI']);
@@ -125,6 +129,7 @@ if ($loginSuccess) {
     $errorMessage = "Failed to login to OpenWrt device. Error: " . htmlspecialchars($client->getLastError());
 }
 
+$regions = $deviceManager->getRegions();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -133,12 +138,39 @@ if ($loginSuccess) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Device - <?= htmlspecialchars($device['name']) ?></title>
     <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        .region-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <a href="../index.php" class="btn">Back to Dashboard</a>
-        <h1>Manage: <?= htmlspecialchars($device['name']) ?></h1>
-        <p>URL: <a href="<?= htmlspecialchars($device['url']) ?>" target="_blank"><?= htmlspecialchars($device['url']) ?></a></p>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 15px;">
+            <h1 style="margin: 0;">
+                Manage: <?= htmlspecialchars($device['name']) ?>
+                <span class="region-badge" style="font-size: 0.45em; vertical-align: middle;">Region: <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+            </h1>
+            <form method="post" style="display: flex; gap: 6px; align-items: center; margin: 0;">
+                <input type="hidden" name="action" value="update_region">
+                <input type="text" name="region" list="region-list" value="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" style="padding: 5px; width: 140px;" placeholder="Change Region">
+                <datalist id="region-list">
+                    <?php foreach ($regions as $r): ?>
+                        <option value="<?= htmlspecialchars($r) ?>">
+                    <?php endforeach; ?>
+                </datalist>
+                <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.85em; background-color: #337ab7;">Update Region</button>
+            </form>
+        </div>
+        <p>URL: <a href="http://<?= htmlspecialchars($device['url']) ?>" target="_blank"><?= htmlspecialchars($device['url']) ?></a></p>
 
         <?php if (isset($sysInfo['result'])): ?>
             <div class="card">
