@@ -53,33 +53,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $wirelessConfig = $client->getWirelessConfig();
                 $configData = $wirelessConfig['values'] ?? $wirelessConfig['result'] ?? $wirelessConfig;
                 
+                $options = [
+                    'key' => !empty($key) ? $key : '',
+                    'encryption' => !empty($key) ? 'psk2+ccmp' : 'none',
+                    'network' => $network,
+                    'ieee80211w' => $mfp,
+                    'wpa_disable_eapol_key_retries' => '1',
+                    'multicast_to_unicast_all' => '1',
+                    'mcast_rate' => '24000',
+                    'basic_rate' => '12000 24000',
+                    'ocv' => '0',
+                    'time_advertisement' => '2',
+                    'bss_transition' => '1'
+                ];
+
+                if ($roaming === '1') {
+                    $options['ieee80211r'] = '1';
+                    $options['ieee80211k'] = '1';
+                    $options['ieee80211v'] = '1';
+                    $options['ft_over_ds'] = '1';
+                    $options['ft_psk_generate_local'] = '1';
+                    $options['mobility_domain'] = $mobilityDomain;
+                } else {
+                    $options['ieee80211r'] = '0';
+                    $options['ieee80211k'] = '0';
+                    $options['ieee80211v'] = '0';
+                    $options['mobility_domain'] = '';
+                }
+
                 $updated = false;
                 if (is_array($configData)) {
                     foreach ($configData as $section => $data) {
-                        if (isset($data['.type']) && $data['.type'] === 'wifi-iface' && isset($data['ssid']) && $data['ssid'] === $ssid) {
-                            // Update this interface
-                            $client->setWirelessConfig('wireless', $section, 'key', $key);
-                            
-                            if (!empty($key)) {
-                                $client->setWirelessConfig('wireless', $section, 'encryption', 'psk2+ccmp');
-                            } else {
-                                $client->setWirelessConfig('wireless', $section, 'encryption', 'none');
-                            }
-                            
-                            $client->setWirelessConfig('wireless', $section, 'network', $network);
-                            $client->setWirelessConfig('wireless', $section, 'ieee80211w', $mfp);
-                            
-                            // Roaming
-                            $roaming = !empty($mobilityDomain) ? '1' : '0';
-                            if ($roaming === '1') {
-                                $client->setWirelessConfig('wireless', $section, 'ieee80211r', '1');
-                                $client->setWirelessConfig('wireless', $section, 'ft_over_ds', '1');
-                                $client->setWirelessConfig('wireless', $section, 'ft_psk_generate_local', '1');
-                                $client->setWirelessConfig('wireless', $section, 'mobility_domain', $mobilityDomain);
-                            } else {
-                                $client->setWirelessConfig('wireless', $section, 'ieee80211r', '0');
-                            }
-                            
+                        if (isset($data['.type']) && $data['.type'] === 'wifi-iface' && ($data['mode'] ?? 'ap') !== 'mesh' && isset($data['ssid']) && $data['ssid'] === $ssid) {
+                            $client->updateWirelessInterfaceOptions($section, $options);
                             $updated = true;
                         }
                     }
@@ -228,7 +234,7 @@ if (!empty($devices)) {
         
         if (is_array($configData)) {
             foreach ($configData as $section => $data) {
-                if (isset($data['.type']) && $data['.type'] === 'wifi-iface' && isset($data['ssid'])) {
+                if (isset($data['.type']) && $data['.type'] === 'wifi-iface' && ($data['mode'] ?? 'ap') !== 'mesh' && isset($data['ssid'])) {
                     $ssid = $data['ssid'];
                     if (!in_array($ssid, $availableSSIDs)) {
                         $availableSSIDs[] = $ssid;

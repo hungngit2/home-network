@@ -16,7 +16,6 @@ class OpenWrtClient {
      * @param int $port SSH port (default: 22)
      */
     public function __construct($urlOrHost, $username = 'root', $sshKey = null, $port = 22) {
-        // Extract host if full URL passed
         $host = parse_url($urlOrHost, PHP_URL_HOST);
         if (!$host) {
             $host = preg_replace('/^https?:\/\//i', '', $urlOrHost);
@@ -27,7 +26,6 @@ class OpenWrtClient {
         $this->port = (int)$port ?: 22;
         $this->lastError = '';
 
-        // Resolve SSH key path
         if ($sshKey && file_exists($sshKey)) {
             $this->sshKey = $sshKey;
         } else {
@@ -35,9 +33,6 @@ class OpenWrtClient {
         }
     }
 
-    /**
-     * Discover standard SSH private key location on system
-     */
     private function discoverDefaultSshKey() {
         $candidates = [
             __DIR__ . '/../.ssh/id_ed25519',
@@ -86,24 +81,15 @@ class OpenWrtClient {
         return $outStr;
     }
 
-    /**
-     * Verify SSH connectivity to router
-     */
     public function login() {
         $result = $this->execCommand('echo "OPENWRT_SSH_OK"');
-        if ($result !== null && strpos($result, 'OPENWRT_SSH_OK') !== false) {
-            return true;
-        }
-        return false;
+        return ($result !== null && strpos($result, 'OPENWRT_SSH_OK') !== false);
     }
 
     public function getLastError() {
         return $this->lastError ?? null;
     }
 
-    /**
-     * Get system and hardware info
-     */
     public function getSystemInfo() {
         $infoJson = $this->execCommand("ubus call system info 2>/dev/null");
         $model = $this->execCommand("cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | head -n 1");
@@ -115,9 +101,6 @@ class OpenWrtClient {
         return $data;
     }
 
-    /**
-     * Get complete wireless configuration as structured array
-     */
     public function getWirelessConfig() {
         $json = $this->execCommand("ubus call uci get '{\"config\":\"wireless\"}' 2>/dev/null");
         if ($json) {
@@ -129,9 +112,6 @@ class OpenWrtClient {
         return ['values' => []];
     }
 
-    /**
-     * Get available network interface names from router
-     */
     public function getNetworkInterfaces() {
         $json = $this->execCommand("ubus call uci get '{\"config\":\"network\"}' 2>/dev/null");
         $networks = [];
@@ -155,7 +135,25 @@ class OpenWrtClient {
     }
 
     /**
-     * Add a new wireless interface/SSID to a radio
+     * Batch update an existing wireless interface with fleet-aligned best practices
+     */
+    public function updateWirelessInterfaceOptions(string $sectionName, array $options) {
+        $commands = [];
+        foreach ($options as $key => $val) {
+            if ($val === null || $val === '') {
+                $commands[] = "uci delete wireless." . escapeshellarg("{$sectionName}.{$key}") . " 2>/dev/null || true";
+            } else {
+                $commands[] = "uci set wireless." . escapeshellarg("{$sectionName}.{$key}") . "=" . escapeshellarg((string)$val);
+            }
+        }
+
+        $cmd = implode(" && ", $commands);
+        $res = $this->execCommand($cmd);
+        return $res !== null;
+    }
+
+    /**
+     * Add a new wireless AP interface with full fleet-aligned options
      */
     public function addWirelessInterface($device, $ssid, $key, $network, $encryption = 'psk2+ccmp', $roaming = false, $mobilityDomain = '', $mfp = '1') {
         $existingConfig = $this->getWirelessConfig();
@@ -179,19 +177,26 @@ class OpenWrtClient {
         $commands[] = "uci set wireless.{$sectionName}.mode='ap'";
         $commands[] = "uci set wireless.{$sectionName}.ssid=" . escapeshellarg($ssid);
         $commands[] = "uci set wireless.{$sectionName}.network=" . escapeshellarg($network);
-        $commands[] = "uci set wireless.{$sectionName}.encryption=" . escapeshellarg($encryption);
+        $commands[] = "uci set wireless.{$sectionName}.encryption=" . escapeshellarg(!empty($key) ? ($encryption ?: 'psk2+ccmp') : 'none');
 
         if (!empty($key)) {
             $commands[] = "uci set wireless.{$sectionName}.key=" . escapeshellarg($key);
         }
 
+        // Standard fleet optimizations
         $commands[] = "uci set wireless.{$sectionName}.ieee80211w=" . escapeshellarg($mfp);
+        $commands[] = "uci set wireless.{$sectionName}.wpa_disable_eapol_key_retries='1'";
+        $commands[] = "uci set wireless.{$sectionName}.multicast_to_unicast_all='1'";
+        $commands[] = "uci set wireless.{$sectionName}.mcast_rate='24000'";
+        $commands[] = "uci set wireless.{$sectionName}.basic_rate='12000 24000'";
+        $commands[] = "uci set wireless.{$sectionName}.ocv='0'";
+        $commands[] = "uci set wireless.{$sectionName}.time_advertisement='2'";
+        $commands[] = "uci set wireless.{$sectionName}.bss_transition='1'";
 
         if ($roaming) {
             $commands[] = "uci set wireless.{$sectionName}.ieee80211r='1'";
             $commands[] = "uci set wireless.{$sectionName}.ieee80211k='1'";
             $commands[] = "uci set wireless.{$sectionName}.ieee80211v='1'";
-            $commands[] = "uci set wireless.{$sectionName}.bss_transition='1'";
             $commands[] = "uci set wireless.{$sectionName}.ft_over_ds='1'";
             $commands[] = "uci set wireless.{$sectionName}.ft_psk_generate_local='1'";
             if ($mobilityDomain) {
@@ -206,36 +211,24 @@ class OpenWrtClient {
         return $res !== null;
     }
 
-    /**
-     * Delete a wireless interface section
-     */
     public function deleteWirelessInterface($sectionName) {
         $cmd = "uci delete wireless." . escapeshellarg($sectionName) . " && uci commit wireless";
         $res = $this->execCommand($cmd);
         return $res !== null;
     }
 
-    /**
-     * Set a UCI option
-     */
     public function setWirelessConfig($config, $section, $option, $value) {
         $cmd = "uci set " . escapeshellarg("{$config}.{$section}.{$option}") . "=" . escapeshellarg($value);
         $res = $this->execCommand($cmd);
         return $res !== null;
     }
 
-    /**
-     * Commit UCI configuration
-     */
     public function commit($config) {
         $cmd = "uci commit " . escapeshellarg($config);
         $res = $this->execCommand($cmd);
         return $res !== null;
     }
 
-    /**
-     * Reload wireless subsystem
-     */
     public function applyWifi() {
         $cmd = "/sbin/wifi reload 2>/dev/null || ubus call network reload 2>/dev/null";
         $res = $this->execCommand($cmd);

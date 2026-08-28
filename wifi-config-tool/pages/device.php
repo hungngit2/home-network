@@ -43,36 +43,37 @@ if ($loginSuccess) {
                 $mfp = $_POST['mfp'] ?? '1'; // Default: Optional
 
                 $count = 0;
-                foreach ($sections as $section) {
-                    // Update SSID
-                    $client->setWirelessConfig('wireless', $section, 'ssid', $ssid);
-                    
-                    // Update Key (Password)
-                    $client->setWirelessConfig('wireless', $section, 'key', $key);
-                    
-                    // Update Encryption based on Key presence
-                    if (!empty($key)) {
-                        $client->setWirelessConfig('wireless', $section, 'encryption', 'psk2+ccmp');
-                    } else {
-                        $client->setWirelessConfig('wireless', $section, 'encryption', 'none');
-                    }
+                $options = [
+                    'ssid' => $ssid,
+                    'key' => !empty($key) ? $key : '',
+                    'encryption' => !empty($key) ? 'psk2+ccmp' : 'none',
+                    'network' => $network,
+                    'ieee80211w' => $mfp,
+                    'wpa_disable_eapol_key_retries' => '1',
+                    'multicast_to_unicast_all' => '1',
+                    'mcast_rate' => '24000',
+                    'basic_rate' => '12000 24000',
+                    'ocv' => '0',
+                    'time_advertisement' => '2',
+                    'bss_transition' => '1'
+                ];
 
-                    // Update Network
-                    $client->setWirelessConfig('wireless', $section, 'network', $network);
-                    
-                    // Update Roaming
-                    if ($roaming === '1') {
-                        $client->setWirelessConfig('wireless', $section, 'ieee80211r', '1');
-                        $client->setWirelessConfig('wireless', $section, 'ft_over_ds', '1');
-                        $client->setWirelessConfig('wireless', $section, 'ft_psk_generate_local', '1');
-                        $client->setWirelessConfig('wireless', $section, 'mobility_domain', $mobilityDomain);
-                    } else {
-                        $client->setWirelessConfig('wireless', $section, 'ieee80211r', '0');
-                    }
-                    
-                    // Update MFP
-                    $client->setWirelessConfig('wireless', $section, 'ieee80211w', $mfp);
-                    
+                if ($roaming === '1') {
+                    $options['ieee80211r'] = '1';
+                    $options['ieee80211k'] = '1';
+                    $options['ieee80211v'] = '1';
+                    $options['ft_over_ds'] = '1';
+                    $options['ft_psk_generate_local'] = '1';
+                    $options['mobility_domain'] = $mobilityDomain;
+                } else {
+                    $options['ieee80211r'] = '0';
+                    $options['ieee80211k'] = '0';
+                    $options['ieee80211v'] = '0';
+                    $options['mobility_domain'] = '';
+                }
+
+                foreach ($sections as $section) {
+                    $client->updateWirelessInterfaceOptions($section, $options);
                     $count++;
                 }
                 
@@ -209,7 +210,7 @@ if ($loginSuccess) {
             
             if (is_array($configData)) {
                 foreach ($configData as $key => $section) {
-                    if (isset($section['.type']) && $section['.type'] === 'wifi-iface') {
+                    if (isset($section['.type']) && $section['.type'] === 'wifi-iface' && ($section['mode'] ?? 'ap') !== 'mesh') {
                         $section['.name'] = $key;
                         $ssid = $section['ssid'] ?? '(No SSID)';
                         if (!isset($ssidGroups[$ssid])) {
