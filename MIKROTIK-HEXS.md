@@ -77,13 +77,13 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 ## Scheduler & scripts
 
-- **`IGMP-Proxy-Fix`** (every 8h) — disables then re-enables the `br-lan` IGMP-proxy interface. A recurring workaround, which usually means IGMP proxying silently wedges over time on this platform — if IPTV/multicast-to-LAN issues ever come up, this is the known mitigation already in place.
+- **`IGMP-Proxy-Fix`** — **disabled** (superseded by permanent bridge querier and switch port multicast-router tuning below).
 - **`Reboot-Weekly`** — exists but disabled. (Interesting contrast with Chainedbox's *enabled* nightly reboot — the router isn't rebooted on a schedule, only Chainedbox is.)
 - **`Check-AGHome`** — see [DNS](#dns) above; exists but disabled.
 
 ## IGMP / multicast (IPTV)
 
-- `br-iptv` is the multicast querier/IGMP-proxy upstream (`alternative-subnets=0.0.0.0/0`), `br-lan` is a downstream proxy interface — this is what lets IPTV multicast groups actually traverse from the ISP feed to LAN clients (and ultimately to rtp2httpd on Chainedbox, per the [Armbian doc](ARMBIAN-SERVER.md#iptv-stack)).
+- `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-querier=no` so the ISP BNG remains the authoritative querier), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s` — keeping the kernel multicast routes permanently armed and responsive even after long idle periods.
 - A bridge filter explicitly **drops multicast forwarded out `br-iptv`** (prevents LAN-sourced multicast leaking upstream to the ISP) while still accepting mDNS (`224.0.0.251`) and SSDP (`239.255.255.250`) forwarding elsewhere — so local service discovery (Chromecast, etc.) still works across the LAN/other bridges.
 
 ## Services
