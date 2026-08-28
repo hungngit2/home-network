@@ -250,15 +250,15 @@ foreach ($displayGroups as $list) {
                                                 <span class="region-badge"><?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
                                             </td>
                                         <?php endif; ?>
-                                        <td style="text-align: right;">
+                                        <td style="text-align: right; width: 85px;">
                                             <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
-                                                <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="text-decoration: none;">
-                                                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">Manage</button>
+                                                <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="btn-icon btn-icon-manage" title="Manage AP (<?= htmlspecialchars($device['name']) ?>)">
+                                                    ⚙
                                                 </a>
-                                                <form method="post" style="margin: 0;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
+                                                <form method="post" style="margin: 0; display: inline;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
-                                                    <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">Remove</button>
+                                                    <button type="submit" class="btn-icon btn-icon-danger" title="Remove Access Point">✕</button>
                                                 </form>
                                             </div>
                                         </td>

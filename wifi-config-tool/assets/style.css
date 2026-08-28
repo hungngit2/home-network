@@ -107,6 +107,59 @@ tbody tr:hover {
     background-color: #c53030;
 }
 
+/* Action Icon Buttons */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 1.05rem;
+    line-height: 1;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    touch-action: manipulation;
+}
+
+.btn-icon:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.btn-icon:active {
+    transform: scale(0.95);
+}
+
+.btn-icon-manage {
+    background: #ebf8ff;
+    border-color: #bee3f8;
+    color: #2b6cb0;
+}
+
+.btn-icon-manage:hover {
+    background: #bee3f8;
+    border-color: #90cdf4;
+}
+
+.btn-icon-danger {
+    background: #fef2f2;
+    border-color: #fee2e2;
+    color: #dc2626;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.btn-icon-danger:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
 /* Forms & Inputs */
 .form-group {
     margin-bottom: 16px;
