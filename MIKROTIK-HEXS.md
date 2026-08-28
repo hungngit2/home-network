@@ -44,7 +44,7 @@ Static/recursive routes handle the two check-gateway targets for each WAN (so fa
     - `iPhoneSE2` (`10.0.100.1/32`, `fd39:10:100::1/128`)
     - `mac16` (`10.0.100.2/32`, `fd39:10:100::2/128`)
     - `hpEnvy` (`10.0.100.3/32`, `fd39:10:100::3/128`)
-    - `sala-to-lotus` (Site 2 router @ `10.1.0.254`: `10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static route `10.1.0.0/16` and `fd86:10::/48` on `vpn-in-home`)
+    - `site2-to-home` (Site 2 router @ `10.1.0.254`: `10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static route `10.1.0.0/16` and `fd86:10::/48` on `vpn-in-home`)
 - **WireGuard outbound ×2** — `vpn-out1` ("VPN → SG") and `vpn-out2` ("VPN → HK") — these are the tunnels traffic gets routed into for the geo-unblocking rule above.
 - **OpenVPN server** (`ovpn-server1`, UDP, client-cert required) — a second, separate remote-access VPN path alongside WireGuard.
 - IPsec is present only as defaults/DPD tuning (`dpd-interval=2m`) — no active IPsec peers configured in this export.
