@@ -37,12 +37,21 @@ h3 {
     font-size: 1.1rem;
 }
 
-/* Compact Table (No scroll needed) */
+/* Responsive Table */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 1px solid #e1e4e8;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.95rem;
-    margin-top: 10px;
+    min-width: 320px;
 }
 
 th, td {
@@ -63,68 +72,7 @@ tbody tr:hover {
     background-color: #f8fafc;
 }
 
-.ap-table-link {
-    font-weight: 700;
-    color: #1e293b;
-    text-decoration: none;
-    font-size: 0.98rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.ap-table-link:hover {
-    color: #3182ce;
-    text-decoration: underline;
-}
-
-/* Action Icon Buttons */
-.btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 6px;
-    font-size: 1rem;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    color: #334155;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    touch-action: manipulation;
-}
-
-.btn-icon:hover {
-    background: #e2e8f0;
-    border-color: #94a3b8;
-}
-
-.btn-icon-manage {
-    background: #ebf8ff;
-    border-color: #bee3f8;
-    color: #2b6cb0;
-}
-
-.btn-icon-manage:hover {
-    background: #bee3f8;
-    border-color: #90cdf4;
-}
-
-.btn-icon-danger {
-    background: #fef2f2;
-    border-color: #fee2e2;
-    color: #dc2626;
-}
-
-.btn-icon-danger:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-}
-
-/* Standard Buttons */
+/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -366,6 +314,10 @@ select:focus {
         grid-template-columns: 1fr;
     }
 
+    table {
+        font-size: 0.88rem;
+    }
+
     th, td {
         padding: 10px 8px;
     }
@@ -380,5 +332,18 @@ select:focus {
     .mobile-full-btn {
         width: 100%;
         text-align: center;
+    }
+
+    .action-btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .action-btn-group .btn {
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        min-height: 34px;
     }
 }

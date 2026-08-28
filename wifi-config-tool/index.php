@@ -226,45 +226,47 @@ foreach ($displayGroups as $list) {
                         </div>
                     <?php endif; ?>
 
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Access Point</th>
-                                <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
-                                    <th>Group</th>
-                                <?php endif; ?>
-                                <th style="text-align: right; width: 90px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($devList as $device): ?>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="ap-table-link" title="IP Address: <?= htmlspecialchars($device['url']) ?>">
-                                            📡 <?= htmlspecialchars($device['name']) ?>
-                                        </a>
-                                    </td>
+                                    <th>AP Name</th>
                                     <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
-                                        <td>
-                                            <span class="region-badge">📍 <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
-                                        </td>
+                                        <th>Group</th>
                                     <?php endif; ?>
-                                    <td style="text-align: right;">
-                                        <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
-                                            <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="btn-icon btn-icon-manage" title="Manage Wi-Fi (<?= htmlspecialchars($device['name']) ?>)">
-                                                ⚙️
-                                            </a>
-                                            <form method="post" style="margin: 0; display: inline;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
-                                                <button type="submit" class="btn-icon btn-icon-danger" title="Remove Access Point">🗑️</button>
-                                            </form>
-                                        </div>
-                                    </td>
+                                    <th style="text-align: right;">Actions</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($devList as $device): ?>
+                                    <tr>
+                                        <td>
+                                            <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="text-decoration: none; color: #2b6cb0; font-weight: bold;" title="IP: <?= htmlspecialchars($device['url']) ?>">
+                                                <?= htmlspecialchars($device['name']) ?>
+                                            </a>
+                                        </td>
+                                        <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
+                                            <td>
+                                                <span class="region-badge"><?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+                                            </td>
+                                        <?php endif; ?>
+                                        <td style="text-align: right;">
+                                            <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                                                <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="text-decoration: none;">
+                                                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">Manage</button>
+                                                </a>
+                                                <form method="post" style="margin: 0;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
+                                                    <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.82rem; min-height: 30px;">Remove</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
