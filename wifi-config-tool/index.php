@@ -226,35 +226,45 @@ foreach ($displayGroups as $list) {
                         </div>
                     <?php endif; ?>
 
-                    <div class="device-list">
-                        <?php foreach ($devList as $device): ?>
-                            <div class="ap-card">
-                                <div class="ap-info">
-                                    <div class="ap-name-row">
-                                        <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="ap-name">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Access Point</th>
+                                <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
+                                    <th>Group</th>
+                                <?php endif; ?>
+                                <th style="text-align: right; width: 90px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($devList as $device): ?>
+                                <tr>
+                                    <td>
+                                        <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="ap-table-link" title="IP Address: <?= htmlspecialchars($device['url']) ?>">
                                             📡 <?= htmlspecialchars($device['name']) ?>
                                         </a>
-                                        <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
+                                    </td>
+                                    <?php if ($activeRegion === 'all' && $hasMultipleRegions): ?>
+                                        <td>
                                             <span class="region-badge">📍 <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="ap-meta">
-                                        <code><?= htmlspecialchars($device['url']) ?></code>
-                                    </div>
-                                </div>
-                                <div class="ap-actions">
-                                    <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="btn-manage">
-                                        ⚙️ Manage
-                                    </a>
-                                    <form method="post" style="margin: 0;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
-                                        <button type="submit" class="btn-delete-icon" title="Remove Access Point">🗑️</button>
-                                    </form>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
+                                        </td>
+                                    <?php endif; ?>
+                                    <td style="text-align: right;">
+                                        <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                                            <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" class="btn-icon btn-icon-manage" title="Manage Wi-Fi (<?= htmlspecialchars($device['name']) ?>)">
+                                                ⚙️
+                                            </a>
+                                            <form method="post" style="margin: 0; display: inline;" onsubmit="return confirm('Remove access point \'<?= htmlspecialchars($device['name']) ?>\'?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="name" value="<?= htmlspecialchars($device['name']) ?>">
+                                                <button type="submit" class="btn-icon btn-icon-danger" title="Remove Access Point">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
