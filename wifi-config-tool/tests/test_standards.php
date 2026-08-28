@@ -15,14 +15,15 @@ echo "Regular SSID: ieee80211w={$opts1['ieee80211w']}, ieee80211r={$opts1['ieee8
 echo "\n=== 2. Testing SSID Pattern Override (lotus IoT) ===\n";
 $opts2 = Standards::buildInterfaceOptions('lotus IoT', 'IoTSecretPass123', 'lan');
 assert($opts2['ieee80211w'] === '0', "IoT SSID ieee80211w must be '0'");
-assert($opts2['ieee80211r'] === '0', "IoT SSID ieee80211r must be '0'");
-assert($opts2['mobility_domain'] === '', "IoT SSID mobility_domain must be empty");
+assert($opts2['ieee80211r'] === '1', "IoT SSID ieee80211r inherits default '1'");
+assert(strlen($opts2['mobility_domain']) === 4, "IoT SSID mobility_domain is generated");
 echo "lotus IoT SSID: ieee80211w={$opts2['ieee80211w']}, ieee80211r={$opts2['ieee80211r']}, mobility_domain='{$opts2['mobility_domain']}' -> OK\n";
 
 echo "\n=== 3. Testing Explicit User Override ===\n";
 $opts3 = Standards::buildInterfaceOptions('lotus', 'MySecretPass123', 'lan', '2', false);
 assert($opts3['ieee80211w'] === '2', "User override ieee80211w must be '2'");
 assert($opts3['ieee80211r'] === '0', "User override ieee80211r must be '0'");
+assert($opts3['mobility_domain'] === '', "Disabled roaming has empty mobility_domain");
 echo "Explicit user override: ieee80211w={$opts3['ieee80211w']}, ieee80211r={$opts3['ieee80211r']} -> OK\n";
 
 echo "\nALL STANDARDS TESTS PASSED!\n";
