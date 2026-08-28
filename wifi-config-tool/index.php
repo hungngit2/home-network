@@ -224,23 +224,6 @@ foreach ($displayGroups as $list) {
                         </div>
                     <?php endif; ?>
 
-                    <!-- Advanced SSH Username & Port (Collapsible) -->
-                    <div style="margin-top: 10px; margin-bottom: 15px;">
-                        <details>
-                            <summary style="font-size: 0.85em; color: #666; cursor: pointer;">⚙️ Advanced SSH Connection (Username: root, Port: 22)</summary>
-                            <div class="form-grid" style="margin-top: 10px; padding: 10px; background: #fbfbfb; border-radius: 4px; border: 1px solid #eee;">
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label for="username" style="font-size: 0.85em;">SSH Username</label>
-                                    <input type="text" id="username" name="username" value="root" required style="width: 100%;">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label for="port" style="font-size: 0.85em;">SSH Port</label>
-                                    <input type="number" id="port" name="port" value="22" required style="width: 100%;">
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-
                     <div>
                         <button type="submit" class="btn" style="background-color: #337ab7; padding: 9px 22px; font-weight: bold; font-size: 1em;">
                             💾 Add Access Point
