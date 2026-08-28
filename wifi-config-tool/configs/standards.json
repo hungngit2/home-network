@@ -14,7 +14,7 @@
         "ieee80211v": "1",
         "ft_over_ds": "1",
         "ft_psk_generate_local": "1",
-        "mobility_domain": "4f5e"
+        "mobility_domain": "1076"
     },
     "ssid_overrides": {
         "*IoT*": {

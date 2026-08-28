@@ -30,7 +30,7 @@ class Standards {
                 'ieee80211v' => '1',
                 'ft_over_ds' => '1',
                 'ft_psk_generate_local' => '1',
-                'mobility_domain' => '4f5e'
+                'mobility_domain' => '1076'
             ],
             'ssid_overrides' => [
                 '*IoT*' => [
@@ -109,7 +109,7 @@ class Standards {
             if (!empty($mobilityDomain)) {
                 $options['mobility_domain'] = $mobilityDomain;
             } elseif (empty($options['mobility_domain'])) {
-                $options['mobility_domain'] = '4f5e';
+                $options['mobility_domain'] = '1076';
             }
         } else {
             $options['mobility_domain'] = '';
