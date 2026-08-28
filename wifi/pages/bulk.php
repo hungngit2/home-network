@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $device = $deviceManager->getDevice($deviceName);
                 if (!$device) continue;
                 
-                $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'], $device['password']);
+                $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
                 if (!$client->login()) {
                     $failedDevices[] = $deviceName . " (login failed)";
                     continue;
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $device = $deviceManager->getDevice($deviceName);
                 if (!$device) continue;
                 
-                $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'], $device['password']);
+                $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
                 if (!$client->login()) {
                     $failedDevices[] = $deviceName . " (login failed)";
                     continue;
@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $device = $deviceManager->getDevice($deviceName);
                 if (!$device) continue;
                 
-                $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'], $device['password']);
+                $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
                 if (!$client->login()) {
                     $failedDevices[] = $deviceName . " (login failed)";
                     continue;
@@ -221,7 +221,7 @@ $availableSSIDs = [];
 $ssidSettings = [];
 if (!empty($devices)) {
     $firstDevice = $devices[0];
-    $client = new \OpenWrt\OpenWrtClient($firstDevice['url'], $firstDevice['username'], $firstDevice['password']);
+    $client = new \OpenWrt\OpenWrtClient($firstDevice['url'], $firstDevice['username'] ?? 'root', $firstDevice['ssh_key'] ?? null, $firstDevice['port'] ?? 22);
     if ($client->login()) {
         $wirelessConfig = $client->getWirelessConfig();
         $configData = $wirelessConfig['values'] ?? $wirelessConfig['result'] ?? $wirelessConfig;
@@ -250,7 +250,7 @@ if (!empty($devices)) {
 $availableNetworks = [];
 if (!empty($devices)) {
     $firstDevice = $devices[0];
-    $client = new \OpenWrt\OpenWrtClient($firstDevice['url'], $firstDevice['username'], $firstDevice['password']);
+    $client = new \OpenWrt\OpenWrtClient($firstDevice['url'], $firstDevice['username'] ?? 'root', $firstDevice['ssh_key'] ?? null, $firstDevice['port'] ?? 22);
     if ($client->login()) {
         $availableNetworks = $client->getNetworkInterfaces();
     }

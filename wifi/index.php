@@ -10,16 +10,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'add') {
         $name = $_POST['name'] ?? '';
         $url = $_POST['url'] ?? '';
-        $username = $_POST['username'] ?? '';
-        $password = $_POST['password'] ?? '';
+        $username = $_POST['username'] ?? 'root';
+        $sshKey = $_POST['ssh_key'] ?? '';
+        $port = $_POST['port'] ?? 22;
         
-        // Auto-prepend http:// if not present
-        if ($url && !preg_match('/^https?:\/\//i', $url)) {
-            $url = 'http://' . $url;
-        }
+        // Clean hostname/IP
+        $url = preg_replace('/^https?:\/\//i', '', trim($url));
         
         if ($name && $url && $username) {
-            $deviceManager->addDevice($name, $url, $username, $password);
+            $deviceManager->addDevice($name, $url, $username, $sshKey, $port);
             $message = "Device added successfully.";
         } else {
             $message = "Please fill in all required fields.";
@@ -40,7 +39,7 @@ $devices = $deviceManager->getDevices();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenWrt WiFi Manager</title>
+    <title>OpenWrt WiFi Manager (SSH)</title>
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -58,7 +57,7 @@ $devices = $deviceManager->getDevices();
 
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0;">Add New Device</h2>
+                <h2 style="margin: 0;">Add New Device (SSH Key Auth)</h2>
                 <button onclick="toggleAddDevice()" class="btn" style="background-color: #777; padding: 5px 15px;">
                     <span id="toggle-icon">▼</span>
                 </button>
@@ -71,17 +70,20 @@ $devices = $deviceManager->getDevices();
                         <input type="text" id="name" name="name" placeholder="e.g. Living Room AP" required>
                     </div>
                     <div class="form-group">
-                        <label for="url">Device IP Address</label>
-                        <input type="text" id="url" name="url" placeholder="192.168.1.1" required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}(:[0-9]+)?$|^[a-zA-Z0-9.-]+(:[0-9]+)?$">
-                        <small style="color:#777;">Enter IP address or hostname (http:// will be added automatically)</small>
+                        <label for="url">Device IP Address / Hostname</label>
+                        <input type="text" id="url" name="url" placeholder="10.0.0.200" required>
                     </div>
                     <div class="form-group">
-                        <label for="username">Username</label>
+                        <label for="username">SSH Username</label>
                         <input type="text" id="username" name="username" value="root" required>
                     </div>
                     <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Leave empty if none">
+                        <label for="port">SSH Port</label>
+                        <input type="number" id="port" name="port" value="22" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ssh_key">Custom SSH Key Path (optional)</label>
+                        <input type="text" id="ssh_key" name="ssh_key" placeholder="Leave blank to use default SSH key">
                     </div>
                     <button type="submit" class="btn">Add Device</button>
                 </form>
@@ -97,13 +99,17 @@ $devices = $deviceManager->getDevices();
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Host / IP</th>
+                            <th>Auth</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($devices as $device): ?>
                             <tr>
-                                <td><a title="<?= htmlspecialchars($device['url']) ?>" href="pages/device.php?name=<?= urlencode($device['name']) ?>"><strong><?= htmlspecialchars($device['name']) ?></strong></a></td>
+                                <td><a href="pages/device.php?name=<?= urlencode($device['name']) ?>"><strong><?= htmlspecialchars($device['name']) ?></strong></a></td>
+                                <td><code><?= htmlspecialchars($device['url']) ?></code></td>
+                                <td><span style="color: #2e7d32; font-weight: 500;">Direct SSH Key</span></td>
                                 <td>
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <a href="pages/device.php?name=<?= urlencode($device['name']) ?>" style="display: inline-flex; align-items: center; text-decoration: none;">

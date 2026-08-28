@@ -3,41 +3,96 @@
 namespace OpenWrt;
 
 class OpenWrtClient {
-    private $url;
+    private $host;
     private $username;
-    private $password;
-    private $token;
+    private $sshKey;
+    private $port;
     private $lastError;
 
-    public function __construct($url, $username, $password) {
-        $this->url = rtrim($url, '/');
-        $this->username = $username;
-        // Do not store password if not needed, but for now we keep it for login
-        $this->password = $password;
-        // Initialize lastError
+    /**
+     * @param string $urlOrHost IP, hostname, or URL (e.g. "http://10.0.0.200" or "10.0.0.200")
+     * @param string $username SSH username (default: "root")
+     * @param string|null $sshKey Path to private key (optional, auto-discovers default keys if null)
+     * @param int $port SSH port (default: 22)
+     */
+    public function __construct($urlOrHost, $username = 'root', $sshKey = null, $port = 22) {
+        // Extract host if full URL passed
+        $host = parse_url($urlOrHost, PHP_URL_HOST);
+        if (!$host) {
+            $host = preg_replace('/^https?:\/\//i', '', $urlOrHost);
+            $host = preg_replace('/:\d+$/', '', $host);
+        }
+        $this->host = trim($host, '/');
+        $this->username = $username ?: 'root';
+        $this->port = (int)$port ?: 22;
         $this->lastError = '';
+
+        // Resolve SSH key path
+        if ($sshKey && file_exists($sshKey)) {
+            $this->sshKey = $sshKey;
+        } else {
+            $this->sshKey = $this->discoverDefaultSshKey();
+        }
     }
 
-    public function login() {
-        $response = $this->rpcRequest('auth', 'login', [$this->username, $this->password]);
-        
-        if (isset($response['result']) && $response['result']) {
-            $this->token = $response['result'];
-            return true;
+    /**
+     * Discover standard SSH private key location on system
+     */
+    private function discoverDefaultSshKey() {
+        $candidates = [
+            __DIR__ . '/../.ssh/id_ed25519',
+            __DIR__ . '/../.ssh/id_rsa',
+            (getenv('HOME') ?: '/root') . '/.ssh/id_ed25519',
+            (getenv('HOME') ?: '/root') . '/.ssh/id_rsa',
+            '/var/www/.ssh/id_ed25519',
+            '/var/www/.ssh/id_rsa',
+            '/root/.ssh/id_ed25519',
+            '/root/.ssh/id_rsa',
+        ];
+
+        foreach ($candidates as $keyPath) {
+            if (file_exists($keyPath) && is_readable($keyPath)) {
+                return $keyPath;
+            }
         }
-        
-        // Store last error for debugging
-        $error = $response['error'] ?? null;
-        if (is_array($error)) {
-             $this->lastError = $error['message'] ?? json_encode($error);
-        } elseif ($error) {
-             $this->lastError = $error;
-        } else {
-             $this->lastError = 'Unknown login error (Empty result)';
+        return null;
+    }
+
+    /**
+     * Execute a command on the remote OpenWrt router via SSH
+     */
+    public function execCommand($cmd) {
+        $user = escapeshellarg($this->username);
+        $target = escapeshellarg($this->host);
+        $port = escapeshellarg($this->port);
+
+        $keyOption = '';
+        if ($this->sshKey && file_exists($this->sshKey)) {
+            $keyOption = '-i ' . escapeshellarg($this->sshKey) . ' ';
         }
 
-        if (isset($response['raw_response'])) {
-             $this->lastError .= ' (Raw: ' . substr($response['raw_response'], 0, 100) . '...)';
+        $sshCmd = "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -p {$port} {$keyOption}{$user}@{$target} " . escapeshellarg($cmd) . " 2>&1";
+
+        $output = [];
+        $returnVar = 0;
+        exec($sshCmd, $output, $returnVar);
+        $outStr = implode("\n", $output);
+
+        if ($returnVar !== 0) {
+            $this->lastError = "SSH error (code $returnVar): " . $outStr;
+            return null;
+        }
+
+        return $outStr;
+    }
+
+    /**
+     * Verify SSH connectivity to router
+     */
+    public function login() {
+        $result = $this->execCommand('echo "OPENWRT_SSH_OK"');
+        if ($result !== null && strpos($result, 'OPENWRT_SSH_OK') !== false) {
+            return true;
         }
         return false;
     }
@@ -46,207 +101,144 @@ class OpenWrtClient {
         return $this->lastError ?? null;
     }
 
+    /**
+     * Get system and hardware info
+     */
     public function getSystemInfo() {
-        return $this->rpcRequest('sys', 'system');
-    }
+        $infoJson = $this->execCommand("ubus call system info 2>/dev/null");
+        $model = $this->execCommand("cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | head -n 1");
+        $release = $this->execCommand("cat /etc/openwrt_release 2>/dev/null | grep 'DISTRIB_DESCRIPTION' | cut -d\"'\" -f2");
 
-    public function getWirelessConfig() {
-        // Use get_all to retrieve the full configuration package
-        return $this->rpcRequest('uci', 'get_all', ['wireless'], true);
+        $data = json_decode($infoJson ?: '{}', true) ?: [];
+        $data['model'] = trim($model ?: 'OpenWrt Device');
+        $data['release'] = trim($release ?: 'OpenWrt');
+        return $data;
     }
 
     /**
-     * Get available network interfaces from the device
-     * @return array List of network interface names
+     * Get complete wireless configuration as structured array
+     */
+    public function getWirelessConfig() {
+        $json = $this->execCommand("ubus call uci get '{\"config\":\"wireless\"}' 2>/dev/null");
+        if ($json) {
+            $decoded = json_decode($json, true);
+            if (isset($decoded['values'])) {
+                return ['values' => $decoded['values']];
+            }
+        }
+        return ['values' => []];
+    }
+
+    /**
+     * Get available network interface names from router
      */
     public function getNetworkInterfaces() {
-        $result = $this->rpcRequest('uci', 'get_all', ['network'], true);
+        $json = $this->execCommand("ubus call uci get '{\"config\":\"network\"}' 2>/dev/null");
         $networks = [];
-        
-        if (isset($result['values'])) {
-            $configData = $result['values'];
-        } elseif (isset($result['result'])) {
-            $configData = $result['result'];
-        } else {
-            $configData = $result;
-        }
-        
-        if (is_array($configData)) {
+
+        if ($json) {
+            $decoded = json_decode($json, true);
+            $configData = $decoded['values'] ?? [];
             foreach ($configData as $key => $section) {
-                // Only include interface sections, not devices or other types
                 if (isset($section['.type']) && $section['.type'] === 'interface' && $key !== 'loopback') {
                     $networks[] = $key;
                 }
             }
         }
-        
-        return $networks;
+
+        return !empty($networks) ? $networks : ['lan', 'iot', 'guest'];
     }
 
     public function getNetworkConfig() {
-        return $this->rpcRequest('uci', 'get_all', ['network'], true);
-    }
-
-    public function addWirelessInterface($device, $ssid, $key, $network, $encryption = 'psk2+ccmp', $roaming = false, $mobilityDomain = '', $mfp = '1') {
-        $values = [
-            'device' => $device,
-            'mode' => 'ap',
-            'ssid' => $ssid,
-            'key' => $key,
-            'network' => $network,
-            'encryption' => $encryption,
-            'ieee80211w' => $mfp
-        ];
-
-        if ($roaming) {
-            $values['ieee80211r'] = '1';
-            // ... (rest is same)
-            if ($mobilityDomain) {
-                $values['mobility_domain'] = $mobilityDomain;
-            }
-            $values['ft_over_ds'] = '1';
-            $values['ft_psk_generate_local'] = '1';
-        }
-
-        // Generate a new named section 'wifinetX' to avoid anonymous section migration issues in LuCI
-        $existingConfig = $this->getWirelessConfig();
-        $configData = $existingConfig['values'] ?? $existingConfig['result'] ?? $existingConfig;
-        
-        $maxIndex = 0;
-        if (is_array($configData)) {
-            foreach ($configData as $key => $section) {
-                if (preg_match('/^wifinet(\d+)$/', $key, $matches)) {
-                    $index = (int)$matches[1];
-                    if ($index > $maxIndex) {
-                        $maxIndex = $index;
-                    }
-                }
-            }
-        }
-        
-        $newIndex = $maxIndex + 1;
-        $sectionName = 'wifinet' . $newIndex;
-
-        // Create the named section
-        // uci set wireless.wifinetX=wifi-iface
-        $this->rpcRequest('uci', 'set', ['wireless', $sectionName, 'wifi-iface'], true);
-        
-        // Now set the values individually as bulk set might not be supported
-        foreach ($values as $option => $value) {
-             $this->rpcRequest('uci', 'set', ['wireless', $sectionName, $option, $value], true);
-        }
-        return true;
-    }
-
-    public function deleteWirelessInterface($sectionName) {
-         return $this->rpcRequest('uci', 'delete', ['wireless', $sectionName], true);
-    }
-
-    public function setWirelessConfig($config, $section, $option, $value) {
-        // uci set config section option value
-        // but via rpc usually uci set config section values
-        // Let's try simpler form: set(config, section, option, value)
-        // If that fails, we might need named params or specific structure.
-        return $this->rpcRequest('uci', 'set', [$config, $section, $option, $value], true);
-    }
-
-    public function commit($config) {
-        return $this->rpcRequest('uci', 'commit', [$config], true);
-    }
-
-    public function applyWifi() {
-        // 'apply' in uci rpc usually attempts to apply the config changes.
-        // It might be 'apply' with rollback handling, but for now we try this.
-        return $this->rpcRequest('uci', 'apply', ['wireless'], true);
-    }
-
-    public function callUbus($object, $method, $params = []) {
-        // ...
-        return $this->rpcRequest('ubus', 'call', [$this->token, $object, $method, $params]); 
-    }
-
-    private function rpcRequest($module, $method, $params = [], $auth = false) {
-        $endpoint = $this->url . '/cgi-bin/luci/rpc/' . $module;
-        
-        $rpcParams = $params;
-        if ($auth && $this->token) {
-            // Standard LuCI RPC (via ubus) usually doesn't need token in params if cookie is present.
-            // If we send both, it might take token as the first argument (e.g. config name).
-            // So let's NOT prepend token to params.
-            // array_unshift($rpcParams, $this->token);
-        }
-
-        $payload = [
-            'jsonrpc' => '2.0',
-            'method' => $method,
-            'params' => $rpcParams,
-            'id' => 1
-        ];
-
-        // ... rest of the function ...
-        $headers = ['Content-Type: application/json'];
-        if ($auth && $this->token) {
-            // Also add sysauth cookie for LuCI session
-            $headers[] = 'Cookie: sysauth=' . $this->token;
-        }
-
-        $ch = curl_init($endpoint);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($result === false) {
-             // Return a special error structure or log it
-             return ['error' => 'Curl error: ' . $curlError];
-        }
-        
-        // Check if response is HTML (login page usually means RPC is missing)
-        if (strpos(trim($result), '<!DOCTYPE html') === 0 || strpos($result, '<html') !== false) {
-             return ['error' => 'Received HTML page instead of JSON. This usually means `luci-mod-rpc` is not installed on the router. Please run `opkg update && opkg install luci-mod-rpc` on the router via SSH.', 'raw_response' => $result];
-        }
-
-        $decoded = json_decode($result, true);
-        if ($decoded === null) {
-             return ['error' => 'JSON decode error', 'raw_response' => $result, 'http_code' => $httpCode];
-        }
-
-        return $decoded;
+        $json = $this->execCommand("ubus call uci get '{\"config\":\"network\"}' 2>/dev/null");
+        return json_decode($json ?: '{}', true) ?: ['values' => []];
     }
 
     /**
-     * Check if luci-mod-rpc is installed, and install it if not
-     * @return array Result with 'success' boolean and 'message' string
+     * Add a new wireless interface/SSID to a radio
      */
-    public function ensureRpcPackageInstalled() {
-        // Check if package is installed
-        $checkResult = $this->execCommand('opkg list-installed | grep luci-mod-rpc');
-        
-        // If grep returns something, package is installed
-        if (isset($checkResult['result']) && !empty($checkResult['result'])) {
-            return ['success' => true, 'message' => 'Package luci-mod-rpc is already installed'];
+    public function addWirelessInterface($device, $ssid, $key, $network, $encryption = 'psk2+ccmp', $roaming = false, $mobilityDomain = '', $mfp = '1') {
+        $existingConfig = $this->getWirelessConfig();
+        $configData = $existingConfig['values'] ?? [];
+
+        $maxIndex = 0;
+        foreach ($configData as $k => $sec) {
+            if (preg_match('/^wifinet(\d+)$/', $k, $matches)) {
+                $idx = (int)$matches[1];
+                if ($idx > $maxIndex) {
+                    $maxIndex = $idx;
+                }
+            }
         }
-        
-        // Package not installed, try to install it
-        // First update package list
-        $updateResult = $this->execCommand('opkg update');
-        
-        if (!isset($updateResult['result'])) {
-            return ['success' => false, 'message' => 'Failed to update package list'];
+
+        $sectionName = 'wifinet' . ($maxIndex + 1);
+
+        $commands = [];
+        $commands[] = "uci set wireless.{$sectionName}=wifi-iface";
+        $commands[] = "uci set wireless.{$sectionName}.device=" . escapeshellarg($device);
+        $commands[] = "uci set wireless.{$sectionName}.mode='ap'";
+        $commands[] = "uci set wireless.{$sectionName}.ssid=" . escapeshellarg($ssid);
+        $commands[] = "uci set wireless.{$sectionName}.network=" . escapeshellarg($network);
+        $commands[] = "uci set wireless.{$sectionName}.encryption=" . escapeshellarg($encryption);
+
+        if (!empty($key)) {
+            $commands[] = "uci set wireless.{$sectionName}.key=" . escapeshellarg($key);
         }
-        
-        // Then install the package
-        $installResult = $this->execCommand('opkg install luci-mod-rpc');
-        
-        if (isset($installResult['result'])) {
-            return ['success' => true, 'message' => 'Successfully installed luci-mod-rpc package'];
+
+        $commands[] = "uci set wireless.{$sectionName}.ieee80211w=" . escapeshellarg($mfp);
+
+        if ($roaming) {
+            $commands[] = "uci set wireless.{$sectionName}.ieee80211r='1'";
+            $commands[] = "uci set wireless.{$sectionName}.ieee80211k='1'";
+            $commands[] = "uci set wireless.{$sectionName}.ieee80211v='1'";
+            $commands[] = "uci set wireless.{$sectionName}.bss_transition='1'";
+            $commands[] = "uci set wireless.{$sectionName}.ft_over_ds='1'";
+            $commands[] = "uci set wireless.{$sectionName}.ft_psk_generate_local='1'";
+            if ($mobilityDomain) {
+                $commands[] = "uci set wireless.{$sectionName}.mobility_domain=" . escapeshellarg($mobilityDomain);
+            }
         }
-        
-        return ['success' => false, 'message' => 'Failed to install luci-mod-rpc package'];
+
+        $commands[] = "uci commit wireless";
+        $batchCmd = implode(" && ", $commands);
+
+        $res = $this->execCommand($batchCmd);
+        return $res !== null;
+    }
+
+    /**
+     * Delete a wireless interface section
+     */
+    public function deleteWirelessInterface($sectionName) {
+        $cmd = "uci delete wireless." . escapeshellarg($sectionName) . " && uci commit wireless";
+        $res = $this->execCommand($cmd);
+        return $res !== null;
+    }
+
+    /**
+     * Set a UCI option
+     */
+    public function setWirelessConfig($config, $section, $option, $value) {
+        $cmd = "uci set " . escapeshellarg("{$config}.{$section}.{$option}") . "=" . escapeshellarg($value);
+        $res = $this->execCommand($cmd);
+        return $res !== null;
+    }
+
+    /**
+     * Commit UCI configuration
+     */
+    public function commit($config) {
+        $cmd = "uci commit " . escapeshellarg($config);
+        $res = $this->execCommand($cmd);
+        return $res !== null;
+    }
+
+    /**
+     * Reload wireless subsystem
+     */
+    public function applyWifi() {
+        $cmd = "/sbin/wifi reload 2>/dev/null || ubus call network reload 2>/dev/null";
+        $res = $this->execCommand($cmd);
+        return $res !== null;
     }
 }

@@ -8,10 +8,10 @@ file_put_contents($testConfig, '[]');
 $dm = new \OpenWrt\DeviceManager($testConfig);
 
 echo "Adding device...\n";
-$dm->addDevice('Test Router', 'http://192.168.1.1', 'root', 'password');
+$dm->addDevice('Test Router', '192.168.1.1', 'root', '', 22);
 
 $devices = $dm->getDevices();
-if (count($devices) === 1 && $devices[0]['name'] === 'Test Router') {
+if (count($devices) === 1 && $devices[0]['name'] === 'Test Router' && $devices[0]['url'] === '192.168.1.1') {
     echo "Device added successfully.\n";
 } else {
     echo "FAILED: Device add.\n";

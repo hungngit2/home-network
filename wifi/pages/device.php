@@ -12,7 +12,7 @@ if (!$device) {
     die("Device not found. <a href='index.php'>Go back</a>");
 }
 
-$client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'], $device['password']);
+$client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
 $loginSuccess = $client->login();
 $errorMessage = '';
 $successMessage = '';

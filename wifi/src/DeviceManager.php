@@ -18,7 +18,7 @@ class DeviceManager {
         return is_array($data) ? $data : [];
     }
 
-    public function addDevice($name, $url, $username, $password) {
+    public function addDevice($name, $url, $username = 'root', $sshKey = null, $port = 22) {
         $devices = $this->getDevices();
         
         // Remove existing device with same name if exists (upsert)
@@ -29,8 +29,9 @@ class DeviceManager {
         $devices[] = [
             'name' => $name,
             'url' => $url,
-            'username' => $username,
-            'password' => $password
+            'username' => $username ?: 'root',
+            'ssh_key' => $sshKey ?: '',
+            'port' => (int)$port ?: 22
         ];
         // Re-index array
         $this->saveDevices(array_values($devices));
