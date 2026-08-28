@@ -23,9 +23,8 @@ class Standards {
                 'basic_rate' => '12000 24000',
                 'ocv' => '0',
                 'time_advertisement' => '2',
-                'bss_transition' => '1'
-            ],
-            'fast_roaming' => [
+                'bss_transition' => '1',
+                'ieee80211w' => '1',
                 'ieee80211r' => '1',
                 'ieee80211k' => '1',
                 'ieee80211v' => '1',
@@ -33,9 +32,28 @@ class Standards {
                 'ft_psk_generate_local' => '1'
             ],
             'network_defaults' => [
-                'lan' => ['ieee80211w' => '1'],
-                'guest' => ['ieee80211w' => '1'],
-                'iot' => ['ieee80211w' => '0']
+                'lan' => [
+                    'ieee80211w' => '1',
+                    'ieee80211r' => '1'
+                ],
+                'guest' => [
+                    'ieee80211w' => '1',
+                    'ieee80211r' => '1'
+                ],
+                'iot' => [
+                    'ieee80211w' => '0',
+                    'ieee80211r' => '0'
+                ]
+            ],
+            'ssid_overrides' => [
+                '*IoT*' => [
+                    'ieee80211w' => '0',
+                    'ieee80211r' => '0'
+                ],
+                '*iot*' => [
+                    'ieee80211w' => '0',
+                    'ieee80211r' => '0'
+                ]
             ]
         ];
 
@@ -55,7 +73,15 @@ class Standards {
     /**
      * Build full UCI options array for a wifi-iface section based on standard config
      */
-    public static function buildInterfaceOptions(string $ssid, string $key, string $network, string $mfp, bool $roaming, string $mobilityDomain, ?string $device = null): array {
+    public static function buildInterfaceOptions(
+        string $ssid,
+        string $key,
+        string $network = 'lan',
+        ?string $mfp = null,
+        ?bool $roaming = null,
+        ?string $mobilityDomain = null,
+        ?string $device = null
+    ): array {
         $standards = self::get();
         $options = $standards['wifi_standards'] ?? [];
 
@@ -68,21 +94,57 @@ class Standards {
         $options['key'] = !empty($key) ? $key : '';
         $options['encryption'] = !empty($key) ? ($options['encryption'] ?? 'psk2+ccmp') : 'none';
         $options['network'] = $network;
-        $options['ieee80211w'] = $mfp;
 
-        if ($roaming) {
-            $roamingConfig = $standards['fast_roaming'] ?? [];
-            foreach ($roamingConfig as $k => $v) {
+        // 1. Apply Network Defaults (e.g. iot -> ieee80211w: 0, ieee80211r: 0)
+        $netKey = strtolower($network);
+        if (isset($standards['network_defaults'][$netKey]) && is_array($standards['network_defaults'][$netKey])) {
+            foreach ($standards['network_defaults'][$netKey] as $k => $v) {
                 $options[$k] = (string)$v;
             }
+        }
+
+        // 2. Apply SSID-specific overrides (e.g. "*IoT*", "lotus IoT", etc.)
+        if (isset($standards['ssid_overrides']) && is_array($standards['ssid_overrides'])) {
+            foreach ($standards['ssid_overrides'] as $pattern => $overrideOpts) {
+                if (fnmatch($pattern, $ssid, FNM_CASEFOLD) || strcasecmp($pattern, $ssid) === 0) {
+                    if (is_array($overrideOpts)) {
+                        foreach ($overrideOpts as $k => $v) {
+                            $options[$k] = (string)$v;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Apply user-explicit overrides if specified
+        if ($mfp !== null && $mfp !== '') {
+            $options['ieee80211w'] = (string)$mfp;
+        }
+
+        if ($roaming !== null) {
+            $options['ieee80211r'] = $roaming ? '1' : '0';
+            $options['ieee80211k'] = $roaming ? '1' : '0';
+            $options['ieee80211v'] = $roaming ? '1' : '0';
+            $options['ft_over_ds'] = $roaming ? '1' : '0';
+            $options['ft_psk_generate_local'] = $roaming ? '1' : '0';
+        }
+
+        // 4. Handle Mobility Domain for Fast Roaming
+        $isRoamingEnabled = (($options['ieee80211r'] ?? '0') === '1');
+        if ($isRoamingEnabled) {
             if (!empty($mobilityDomain)) {
                 $options['mobility_domain'] = $mobilityDomain;
+            } elseif (empty($options['mobility_domain'])) {
+                // Auto-generate consistent 4-hex mobility domain from SSID name
+                $options['mobility_domain'] = substr(md5($ssid), 0, 4);
             }
         } else {
+            $options['mobility_domain'] = '';
             $options['ieee80211r'] = '0';
             $options['ieee80211k'] = '0';
             $options['ieee80211v'] = '0';
-            $options['mobility_domain'] = '';
+            $options['ft_over_ds'] = '0';
+            $options['ft_psk_generate_local'] = '0';
         }
 
         return $options;

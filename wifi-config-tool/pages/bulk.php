@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $key = trim($_POST['key'] ?? '');
             $network = $_POST['network'] ?? 'lan';
             $mobilityDomain = trim($_POST['mobility_domain'] ?? '');
-            $mfp = $_POST['mfp'] ?? '1';
-            $roaming = !empty($mobilityDomain);
+            $roaming = isset($_POST['roaming']) ? ($_POST['roaming'] === '1') : null;
+            $mfp = !empty($_POST['mfp']) ? $_POST['mfp'] : null;
             
             $successCount = 0;
             $failedDevices = [];
@@ -103,8 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newKey = trim($_POST['new_key'] ?? '');
             $newNetwork = $_POST['new_network'] ?? 'lan';
             $mobilityDomain = trim($_POST['new_mobility_domain'] ?? '');
-            $roaming = !empty($mobilityDomain);
-            $newMfp = $_POST['new_mfp'] ?? '1';
+            $roaming = isset($_POST['new_roaming']) ? ($_POST['new_roaming'] === '1') : null;
+            $newMfp = !empty($_POST['new_mfp']) ? $_POST['new_mfp'] : null;
             
             $successCount = 0;
             $failedDevices = [];

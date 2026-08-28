@@ -38,12 +38,12 @@ if ($loginSuccess) {
                 $ssid = $_POST['ssid'];
                 $key = $_POST['key'];
                 $network = $_POST['network'] ?? 'lan';
-                $mobilityDomain = $_POST['mobility_domain'] ?? '';
-                $roaming = !empty($mobilityDomain) ? '1' : '0';
-                $mfp = $_POST['mfp'] ?? '1'; // Default: Optional
+                $mobilityDomain = trim($_POST['mobility_domain'] ?? '');
+                $roaming = isset($_POST['roaming']) ? ($_POST['roaming'] === '1') : null;
+                $mfp = !empty($_POST['mfp']) ? $_POST['mfp'] : null;
 
                 $count = 0;
-                $options = \OpenWrt\Standards::buildInterfaceOptions($ssid, $key, $network, $mfp, $roaming === '1', $mobilityDomain);
+                $options = \OpenWrt\Standards::buildInterfaceOptions($ssid, $key, $network, $mfp, $roaming, $mobilityDomain);
 
                 foreach ($sections as $section) {
                     $client->updateWirelessInterfaceOptions($section, $options);
@@ -58,12 +58,12 @@ if ($loginSuccess) {
                     $_SESSION['flash_error'] = "No interfaces selected for update.";
                 }
             } elseif ($_POST['action'] === 'add_ssid') {
-                $newSsid = $_POST['new_ssid'];
-                $newKey = $_POST['new_key'];
+                $newSsid = trim($_POST['new_ssid'] ?? '');
+                $newKey = trim($_POST['new_key'] ?? '');
                 $newNetwork = $_POST['new_network'] ?? 'lan';
-                $mobilityDomain = $_POST['new_mobility_domain'] ?? '';
-                $roaming = !empty($mobilityDomain);
-                $newMfp = $_POST['new_mfp'] ?? '1';
+                $mobilityDomain = trim($_POST['new_mobility_domain'] ?? '');
+                $roaming = isset($_POST['new_roaming']) ? ($_POST['new_roaming'] === '1') : null;
+                $newMfp = !empty($_POST['new_mfp']) ? $_POST['new_mfp'] : null;
                 
                 // We need to add this SSID to ALL radios
                 // First, find all devices (radios)

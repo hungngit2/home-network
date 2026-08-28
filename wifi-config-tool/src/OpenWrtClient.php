@@ -148,7 +148,7 @@ class OpenWrtClient {
         return $res !== null;
     }
 
-    public function addWirelessInterface($device, $ssid, $key, $network, $encryption = 'psk2+ccmp', $roaming = false, $mobilityDomain = '', $mfp = '1') {
+    public function addWirelessInterface($device, $ssid, $key, $network = 'lan', $encryption = 'psk2+ccmp', $roaming = null, $mobilityDomain = null, $mfp = null) {
         $existingConfig = $this->getWirelessConfig();
         $configData = $existingConfig['values'] ?? [];
 
