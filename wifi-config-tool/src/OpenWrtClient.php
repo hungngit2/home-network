@@ -35,12 +35,16 @@ class OpenWrtClient {
 
     private function discoverDefaultSshKey() {
         $candidates = [
+            __DIR__ . '/../.ssh/id_hungnguyen',
             __DIR__ . '/../.ssh/id_ed25519',
             __DIR__ . '/../.ssh/id_rsa',
+            (getenv('HOME') ?: '/root') . '/.ssh/id_hungnguyen',
             (getenv('HOME') ?: '/root') . '/.ssh/id_ed25519',
             (getenv('HOME') ?: '/root') . '/.ssh/id_rsa',
+            '/var/www/.ssh/id_hungnguyen',
             '/var/www/.ssh/id_ed25519',
             '/var/www/.ssh/id_rsa',
+            '/root/.ssh/id_hungnguyen',
             '/root/.ssh/id_ed25519',
             '/root/.ssh/id_rsa',
         ];

@@ -3,28 +3,28 @@
         "name": "redmi-rm2100-f0",
         "url": "10.0.0.200",
         "username": "root",
-        "ssh_key": "",
+        "ssh_key": "/var/www/.ssh/id_hungnguyen",
         "port": 22
     },
     {
         "name": "jcg-q20-f1",
         "url": "10.0.0.201",
         "username": "root",
-        "ssh_key": "",
+        "ssh_key": "/var/www/.ssh/id_hungnguyen",
         "port": 22
     },
     {
         "name": "jcg-q20-f2",
         "url": "10.0.0.202",
         "username": "root",
-        "ssh_key": "",
+        "ssh_key": "/var/www/.ssh/id_hungnguyen",
         "port": 22
     },
     {
         "name": "jcg-q20-f3",
         "url": "10.0.0.203",
         "username": "root",
-        "ssh_key": "",
+        "ssh_key": "/var/www/.ssh/id_hungnguyen",
         "port": 22
     }
 ]
