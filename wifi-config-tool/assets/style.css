@@ -325,61 +325,111 @@ select:focus {
 /* --- Mobile Optimizations (iPhone SE 2020 / <= 480px) --- */
 @media (max-width: 480px) {
     body {
-        padding: 8px 6px;
+        padding: 8px 5px;
+        font-size: 0.88rem;
     }
 
     .container {
-        padding: 14px 12px;
+        padding: 12px 10px;
         border-radius: 8px;
     }
 
     h1 {
-        font-size: 1.35rem;
+        font-size: 1.2rem;
     }
 
     h2 {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
     }
 
     h3 {
-        font-size: 1.05rem;
+        font-size: 0.95rem;
+    }
+
+    p, .help-text {
+        font-size: 0.82rem;
+    }
+
+    .card {
+        padding: 12px;
+        margin-bottom: 12px;
     }
 
     .form-grid {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
     }
 
     .group-switcher {
-        padding: 8px;
-        gap: 6px;
+        padding: 6px;
+        gap: 5px;
+        margin: 10px 0 14px 0;
     }
 
     .group-btn {
-        flex: 1 1 calc(50% - 6px);
+        flex: 1 1 calc(50% - 5px);
         justify-content: center;
-        padding: 8px 10px;
-        font-size: 0.85rem;
+        padding: 6px 8px;
+        font-size: 0.8rem;
         text-align: center;
+        min-height: 30px;
     }
 
     .device-checklist {
         grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .device-card {
+        padding: 8px 10px;
+        font-size: 0.85rem;
     }
 
     table {
-        font-size: 0.88rem;
+        font-size: 0.82rem;
+        margin-top: 6px;
     }
 
     th, td {
-        padding: 10px 8px;
+        padding: 8px 6px;
+    }
+
+    .ap-table-link {
+        font-size: 0.88rem;
+    }
+
+    .region-badge {
+        font-size: 0.75em;
+        padding: 2px 6px;
+    }
+
+    .btn {
+        padding: 7px 12px;
+        font-size: 0.85rem;
+        min-height: 32px;
+    }
+
+    .btn-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+        border-radius: 5px;
     }
 
     .mobile-stack {
         display: flex;
         flex-direction: column;
         width: 100%;
-        gap: 8px;
+        gap: 6px;
     }
 
     .mobile-full-btn {
@@ -390,13 +440,13 @@ select:focus {
     .action-btn-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
     }
 
     .action-btn-group .btn {
         width: 100%;
-        padding: 6px 10px;
-        font-size: 0.85rem;
-        min-height: 34px;
+        padding: 5px 8px;
+        font-size: 0.8rem;
+        min-height: 30px;
     }
 }
