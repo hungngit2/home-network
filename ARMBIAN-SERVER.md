@@ -139,6 +139,26 @@ Lives at `/mnt/appsrv/www/ytb/`, owned by `www-data`: `app.js`, `backend.php`, `
 
 Backed by **OwnTone** (music server — see below); the dashboard's own GitHub repo [ytb-owntone-dashboard](https://github.com/hungngit2/ytb-owntone-dashboard). This local repo (`home-network`) appears to be its deploy-side counterpart.
 
+## WiFi Fleet Configuration Tool — `/wifi-config-tool`
+
+Lives at `/mnt/appsrv/www/wifi-config-tool/`, owned by `www-data:www-data`. A lightweight, headless OpenWrt fleet management interface that allows managing SSIDs, WPA2 encryption keys, VLAN network bindings, Protected Management Frames (PMF / 802.11w), and 802.11r/k/v fast roaming across all 4 home access points (`10.0.0.200`–`10.0.0.203`) individually or in bulk.
+
+### Architecture & Operation:
+* **Headless SSH Batching (`OpenWrt\OpenWrtClient`)**: Communicates with OpenWrt APs via native Ed25519 SSH keys (`/var/www/.ssh/id_hungnguyen`), bypassing legacy LuCI JSON-RPC dependencies and eliminating plaintext passwords. Multiple UCI changes are executed in a single atomic batch (`uci set ... && uci commit && /sbin/wifi reload`), executing full AP reconfiguration in <350ms.
+* **Mesh Backhaul Protection**: Filtering logic automatically ignores 802.11s mesh interfaces (`mode='mesh'`) during fleet-wide SSID scans and updates to prevent accidental disruption of the inter-AP mesh link.
+* **Standards Engine (`OpenWrt\Standards`)**: Centralizes fleet-wide wireless parameters in [`configs/standards.json`](wifi-config-tool/configs/standards.json) (multicast rate 24 Mbps, basic rates 12/24 Mbps, KRACK mitigation `wpa_disable_eapol_key_retries=1`, 802.11v BSS transition, 802.11r FT-over-DS, and network PMF profiles).
+
+### Configuration & Security:
+* **Directory Layout**:
+  * `configs/config.json`: AP inventory (hostname, IP, SSH key path, port).
+  * `configs/standards.json`: Fleet Wi-Fi tuning standards.
+  * `configs/auth.php`: HTTP Basic Auth credentials (`AUTH_USERNAME`, `AUTH_PASSWORD`) with optional local LAN exemption (`FORCE_AUTH_FOR_LOCAL`).
+* **Permissions & Defense-in-Depth**:
+  * `configs/` directory locked to `chmod 700` owned by `www-data:www-data`.
+  * `config.json`, `auth.php`, `standards.json` locked to `chmod 600`.
+  * SSH key `/var/www/.ssh/id_hungnguyen` locked to `chmod 600`.
+  * Nginx explicitly blocks direct HTTP access to `/(configs|src)/` and `\.(json|example)$` with `404 Not Found`.
+
 ## Media server — Jellyfin
 
 Systemd service, runs as dedicated `jellyfin` user/group, all data under `/mnt/appsrv/jellyfin`. Listens on `:8096`, proxied at `/jellyfin/` above.
