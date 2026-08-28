@@ -1,4 +1,6 @@
 # Private credentials & runtime config
+wifi-config-tool/configs/config.json
+wifi-config-tool/configs/auth.php
 wifi-config-tool/config.json
 wifi-config-tool/auth.php
 wifi-config-tool/tests/test_config.json

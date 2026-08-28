@@ -3,7 +3,7 @@
 namespace OpenWrt;
 
 class Standards {
-    private static $file = __DIR__ . '/../standards.json';
+    private static $file = __DIR__ . '/../configs/standards.json';
     private static $cache = null;
 
     /**

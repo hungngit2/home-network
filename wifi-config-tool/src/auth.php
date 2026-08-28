@@ -1,7 +1,10 @@
 <?php
 
 // Load auth configuration if exists
-$authConfigFile = __DIR__ . '/../auth.php';
+$authConfigFile = file_exists(__DIR__ . '/../configs/auth.php') 
+    ? __DIR__ . '/../configs/auth.php' 
+    : __DIR__ . '/../auth.php';
+
 if (file_exists($authConfigFile)) {
     require_once $authConfigFile;
 } else {

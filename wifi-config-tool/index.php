@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/src/bootstrap.php';
 
-$configPath = __DIR__ . '/config.json';
+$configPath = file_exists(__DIR__ . '/configs/config.json') ? __DIR__ . '/configs/config.json' : __DIR__ . '/config.json';
 $deviceManager = new \OpenWrt\DeviceManager($configPath);
 
 $message = '';
