@@ -2,8 +2,8 @@
 
 ## Identity & hardware
 
-- **System identity**: `home`
-- **Model**: RB760iGS ("hEX S") — MikroTik's 5-port Gigabit router with one SFP cage, running RouterOS (ARM, not the older MIPS hEX).
+- **System identity**: `lotus` (aliased in `~/.ssh/config` as `home` / `hexs`)
+- **Model**: RB760iGS ("hEX S") — MikroTik's 5-port Gigabit router with one SFP cage, running RouterOS v7.24 (MediaTek MT7621A, MMIPS 1004Kc 880MHz dual-core / 4-threads, 256MB RAM).
 - **Serial number / Software ID**: present in the export header — not reproduced here; treat them like the credentials elsewhere in this repo (they identify/license this specific unit).
 - **Timezone**: Asia/Bangkok (`+07:00`).
 - **Auto-upgrade**: `/system routerboard settings` has `auto-upgrade=yes` — RouterOS updates itself and just needs a reboot to apply.
@@ -61,9 +61,14 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 - **IoT & Guest isolation**:
   - **IPv4**: IoT can reach Chainedbox (`10.0.0.100`) directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
   - **IPv6**: Mirrors IPv4 exactly — allows IoT to Chainedbox (`fd39:10::100/128`) and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
+- **FastTrack**: Rule #1 in the `forward` chain on both IPv4 (`FastTrack: IPv4`) and IPv6 (`FastTrack: IPv6`), hardware-accelerating established/related flows and keeping router CPU load at ~10-15%.
 - **NAT**: 
   - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`).
-  - **IPv6 (NAT66 / Masquerade)**: Uses ULA subnets (`fd39:...`) for LAN/IoT paired with an outbound masquerade rule on `out-interface-list=wan` for non-GUA traffic (`src-address=!2001::/16`). This ensures reliable outbound IPv6 connectivity and multi-VLAN segmentation despite ISP (VNPT) single `/64` delegation and upstream routing anomalies. Destination NAT forwards `80,443` to Chainedbox (`fd39:10::100/128`).
+  - **IPv6 (NAT66 / Masquerade & `pd-Guest` Anchor)**:
+    - **Why ULA + NAT66 instead of Native PD on LAN**: VNPT (ISP) upstream BRAS/BNG and OMC core routing suffer from routing loops and blackholes when handling individual downstream client SLAAC `/128` host routes. NAT66 collapses all outbound traffic into the router's single public GUA identity, completely bypassing VNPT's OMC routing mess while giving internal LAN/IoT rock-solid static addressing (`fd39:10::/64`).
+    - **The `pd-Guest` Anchor Mechanism**: VNPT delegates only a prefix (`IA_PD`), without assigning a WAN GUA address (`IA_NA`) to `pppoe-out1` (link-local only). RouterOS's `action=masquerade` engine requires at least one active GUA bound to an interface to use as the public source IP. Binding `from-pool=ipv6-wan1-pool` to `br-guest` (`pd-Guest`) provides this critical anchor address.
+    - **Outbound Rule**: `action=masquerade chain=srcnat out-interface-list=wan src-address=!2001::/16`.
+    - **Inbound Destination NAT**: Port-forwards `80,443` to Chainedbox (`fd39:10::100/128`), with explicit forward filter acceptance (`connection-nat-state=dstnat in-interface-list=wan`).
 
 ## Scheduler & scripts
 
