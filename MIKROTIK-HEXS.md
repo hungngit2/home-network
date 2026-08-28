@@ -64,9 +64,9 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 - **FastTrack**: Rule #1 in the `forward` chain on both IPv4 (`FastTrack: IPv4`) and IPv6 (`FastTrack: IPv6`), hardware-accelerating established/related flows and keeping router CPU load at ~10-15%.
 - **NAT**: 
   - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`).
-  - **IPv6 (NAT66 / Masquerade & `pd-Guest` Anchor)**:
-    - **Why ULA + NAT66 instead of Native PD on LAN**: VNPT (ISP) upstream BRAS/BNG and OMC core routing suffer from routing loops and blackholes when handling individual downstream client SLAAC `/128` host routes. NAT66 collapses all outbound traffic into the router's single public GUA identity, completely bypassing VNPT's OMC routing mess while giving internal LAN/IoT rock-solid static addressing (`fd39:10::/64`).
-    - **The `pd-Guest` Anchor Mechanism**: VNPT delegates only a prefix (`IA_PD`), without assigning a WAN GUA address (`IA_NA`) to `pppoe-out1` (link-local only). RouterOS's `action=masquerade` engine requires at least one active GUA bound to an interface to use as the public source IP. Binding `from-pool=ipv6-wan1-pool` to `br-guest` (`pd-Guest`) provides this critical anchor address.
+  - **IPv6 (NAT66 / Masquerade & `pd-WAN` Anchor)**:
+    - **Why ULA + NAT66 instead of Native PD on LAN**: VNPT (ISP) upstream BRAS/BNG and OMC core routing suffer from routing loops and blackholes when handling individual downstream client SLAAC `/128` host routes. NAT66 collapses all outbound traffic into the router's single public GUA identity, completely bypassing VNPT's OMC routing mess while giving internal LAN/IoT/Guest rock-solid static ULA addressing (`fd39:...`).
+    - **The `pd-WAN` Anchor Mechanism**: VNPT delegates only a prefix (`IA_PD`), without assigning a WAN GUA address (`IA_NA`) to `pppoe-out1` (link-local only). RouterOS's `action=masquerade` engine requires at least one active GUA bound on the router to use as the public source IP. Binding `from-pool=ipv6-wan1-pool` directly to `pppoe-out1` (`pd-WAN`, `advertise=no`) provides this public anchor address cleanly without broadcasting public RAs to any client VLANs.
     - **Outbound Rule**: `action=masquerade chain=srcnat out-interface-list=wan src-address=!2001::/16`.
     - **Inbound Destination NAT**: Port-forwards `80,443` to Chainedbox (`fd39:10::100/128`), with explicit forward filter acceptance (`connection-nat-state=dstnat in-interface-list=wan`).
 
