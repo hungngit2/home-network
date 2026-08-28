@@ -90,7 +90,7 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 | Service | State |
 |---|---|
-| SSH | **enabled** (Ed25519 key-based auth `yes-if-no-key` with `id_hungnguyen`, `strong-crypto=yes`, restricted to `10.0.0.0/24` + `10.0.100.0/24`, aliased in `~/.ssh/config` as `home` / `hexs`) |
+| SSH | **enabled** (key-based auth `yes-if-no-key` with `id_hungnguyen`, `strong-crypto=yes`, restricted to `10.0.0.0/24` + `10.0.100.0/24`, aliased in `~/.ssh/config` as `home` / `hexs`) |
 | FTP, Telnet, API, API-SSL | **disabled** |
 | WWW (HTTP config UI), Winbox | enabled, restricted to `10.0.0.0/24` + `10.0.100.0/24` (LAN + WireGuard-in) |
 | SMB (file sharing on the router itself) | disabled |
