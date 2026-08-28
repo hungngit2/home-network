@@ -37,10 +37,14 @@ Static/recursive routes handle the two check-gateway targets for each WAN (so fa
 
 ## VPN
 
-- **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access VPN, fully dual-stack:
-  - **IPv4 subnet**: `10.0.100.254/24` (peers on `10.0.100.1`–`.3`)
-  - **IPv6 subnet**: `fd39:10:100::254/64` (peers on `fd39:10:100::1`–`::3/128`)
-  - 3 peers configured (`iPhoneSE2`, `mac16`, `hpEnvy`).
+- **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access & site-to-site VPN, fully dual-stack:
+  - **IPv4 subnet**: `10.0.100.254/24` (peers on `10.0.100.1`–`.4`, plus remote site subnets)
+  - **IPv6 subnet**: `fd39:10:100::254/64` (peers on `fd39:10:100::1`–`::4/128`, plus remote site ULA)
+  - 4 peers configured:
+    - `iPhoneSE2` (`10.0.100.1/32`, `fd39:10:100::1/128`)
+    - `mac16` (`10.0.100.2/32`, `fd39:10:100::2/128`)
+    - `hpEnvy` (`10.0.100.3/32`, `fd39:10:100::3/128`)
+    - `peer-sala` (Site 2 router @ `10.1.0.254`: `10.0.100.4/32`, `10.1.0.0/24`, `fd39:10:100::4/128`, `fd86:10::/48`)
 - **WireGuard outbound ×2** — `vpn-out1` ("VPN → SG") and `vpn-out2` ("VPN → HK") — these are the tunnels traffic gets routed into for the geo-unblocking rule above.
 - **OpenVPN server** (`ovpn-server1`, UDP, client-cert required) — a second, separate remote-access VPN path alongside WireGuard.
 - IPsec is present only as defaults/DPD tuning (`dpd-interval=2m`) — no active IPsec peers configured in this export.
