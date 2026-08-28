@@ -20,7 +20,18 @@ if (isset($_SESSION['flash_error'])) {
 $devices = $deviceManager->getDevices();
 $groupedDevices = $deviceManager->getDevicesGroupedByRegion();
 $regions = $deviceManager->getRegions();
-$presetRegion = $_GET['region'] ?? 'all';
+$hasMultipleRegions = count($regions) > 1;
+
+// Default region selection: If multiple regions exist, default to first region unless specified
+$presetRegion = $_GET['region'] ?? ($hasMultipleRegions ? $regions[0] : 'all');
+if ($presetRegion !== 'all' && !isset($groupedDevices[$presetRegion])) {
+    $presetRegion = $hasMultipleRegions ? $regions[0] : 'all';
+}
+
+// Target devices based on selected group
+$targetDevices = ($presetRegion !== 'all' && isset($groupedDevices[$presetRegion]))
+    ? $groupedDevices[$presetRegion]
+    : $devices;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
@@ -33,11 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if ($_POST['action'] === 'bulk_update') {
-            $ssid = $_POST['ssid'];
-            $key = $_POST['key'];
+            $ssid = trim($_POST['ssid'] ?? '');
+            $key = trim($_POST['key'] ?? '');
             $network = $_POST['network'] ?? 'lan';
-            $mobilityDomain = $_POST['mobility_domain'] ?? '';
+            $mobilityDomain = trim($_POST['mobility_domain'] ?? '');
             $mfp = $_POST['mfp'] ?? '1';
+            $roaming = !empty($mobilityDomain);
             
             $successCount = 0;
             $failedDevices = [];
@@ -48,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
                 if (!$client->login()) {
-                    $failedDevices[] = $deviceName . " (login failed)";
+                    $failedDevices[] = $deviceName . " (SSH connection failed)";
                     continue;
                 }
                 
@@ -56,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $wirelessConfig = $client->getWirelessConfig();
                 $configData = $wirelessConfig['values'] ?? $wirelessConfig['result'] ?? $wirelessConfig;
                 
-                $options = \OpenWrt\Standards::buildInterfaceOptions($ssid, $key, $network, $mfp, $roaming === '1', $mobilityDomain);
+                $options = \OpenWrt\Standards::buildInterfaceOptions($ssid, $key, $network, $mfp, $roaming, $mobilityDomain);
 
                 $updated = false;
                 if (is_array($configData)) {
@@ -73,24 +85,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $client->applyWifi();
                     $successCount++;
                 } else {
-                    $failedDevices[] = $deviceName . " (SSID not found)";
+                    $failedDevices[] = $deviceName . " (SSID '$ssid' not found)";
                 }
             }
             
             if ($successCount > 0) {
-                $_SESSION['flash_success'] = "Updated SSID '$ssid' on $successCount device(s).";
+                $_SESSION['flash_success'] = "Successfully updated Wi-Fi '$ssid' on $successCount device(s)!";
                 if (!empty($failedDevices)) {
-                    $_SESSION['flash_success'] .= " Failed: " . implode(', ', $failedDevices);
+                    $_SESSION['flash_success'] .= " (Note: Failed on " . implode(', ', $failedDevices) . ")";
                 }
             } else {
-                $_SESSION['flash_error'] = "Failed to update any devices. " . implode(', ', $failedDevices);
+                $_SESSION['flash_error'] = "Failed to update devices: " . implode(', ', $failedDevices);
             }
             
         } elseif ($_POST['action'] === 'bulk_add') {
-            $newSsid = $_POST['new_ssid'];
-            $newKey = $_POST['new_key'];
+            $newSsid = trim($_POST['new_ssid'] ?? '');
+            $newKey = trim($_POST['new_key'] ?? '');
             $newNetwork = $_POST['new_network'] ?? 'lan';
-            $mobilityDomain = $_POST['new_mobility_domain'] ?? '';
+            $mobilityDomain = trim($_POST['new_mobility_domain'] ?? '');
             $roaming = !empty($mobilityDomain);
             $newMfp = $_POST['new_mfp'] ?? '1';
             
@@ -103,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
                 if (!$client->login()) {
-                    $failedDevices[] = $deviceName . " (login failed)";
+                    $failedDevices[] = $deviceName . " (SSH connection failed)";
                     continue;
                 }
                 
@@ -131,21 +143,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $client->applyWifi();
                     $successCount++;
                 } else {
-                    $failedDevices[] = $deviceName . " (no radios found)";
+                    $failedDevices[] = $deviceName . " (no Wi-Fi radios found)";
                 }
             }
             
             if ($successCount > 0) {
-                $_SESSION['flash_success'] = "Added SSID '$newSsid' to $successCount device(s).";
+                $_SESSION['flash_success'] = "Successfully added new Wi-Fi '$newSsid' to $successCount device(s)!";
                 if (!empty($failedDevices)) {
-                    $_SESSION['flash_success'] .= " Failed: " . implode(', ', $failedDevices);
+                    $_SESSION['flash_success'] .= " (Failed: " . implode(', ', $failedDevices) . ")";
                 }
             } else {
-                $_SESSION['flash_error'] = "Failed to add SSID to any devices. " . implode(', ', $failedDevices);
+                $_SESSION['flash_error'] = "Failed to add Wi-Fi to devices: " . implode(', ', $failedDevices);
             }
             
         } elseif ($_POST['action'] === 'bulk_remove') {
-            $ssidToRemove = $_POST['remove_ssid'];
+            $ssidToRemove = trim($_POST['remove_ssid'] ?? '');
             
             $successCount = 0;
             $failedDevices = [];
@@ -156,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $client = new \OpenWrt\OpenWrtClient($device['url'], $device['username'] ?? 'root', $device['ssh_key'] ?? null, $device['port'] ?? 22);
                 if (!$client->login()) {
-                    $failedDevices[] = $deviceName . " (login failed)";
+                    $failedDevices[] = $deviceName . " (SSH connection failed)";
                     continue;
                 }
                 
@@ -168,7 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (is_array($configData)) {
                     foreach ($configData as $section => $data) {
                         if (isset($data['.type']) && $data['.type'] === 'wifi-iface' && isset($data['ssid']) && $data['ssid'] === $ssidToRemove) {
-                            // Delete this section
                             $client->deleteWirelessInterface($section);
                             $removedCount++;
                         }
@@ -185,12 +196,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             if ($successCount > 0) {
-                $_SESSION['flash_success'] = "Removed SSID '$ssidToRemove' from $successCount device(s).";
+                $_SESSION['flash_success'] = "Removed Wi-Fi '$ssidToRemove' from $successCount device(s).";
                 if (!empty($failedDevices)) {
-                    $_SESSION['flash_success'] .= " Failed: " . implode(', ', $failedDevices);
+                    $_SESSION['flash_success'] .= " (Failed: " . implode(', ', $failedDevices) . ")";
                 }
             } else {
-                $_SESSION['flash_error'] = "Failed to remove SSID from any devices. " . implode(', ', $failedDevices);
+                $_SESSION['flash_error'] = "Failed to remove Wi-Fi from devices: " . implode(', ', $failedDevices);
             }
         }
         
@@ -199,12 +210,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch available SSIDs from the first device with their settings
+// Fetch default SSIDs and settings from the FIRST DEVICE OF THE SELECTED GROUP
 $availableSSIDs = [];
 $ssidSettings = [];
-if (!empty($devices)) {
-    $firstDevice = $devices[0];
-    $client = new \OpenWrt\OpenWrtClient($firstDevice['url'], $firstDevice['username'] ?? 'root', $firstDevice['ssh_key'] ?? null, $firstDevice['port'] ?? 22);
+$availableNetworks = [];
+$referenceDevice = !empty($targetDevices) ? $targetDevices[0] : null;
+
+if ($referenceDevice) {
+    $client = new \OpenWrt\OpenWrtClient($referenceDevice['url'], $referenceDevice['username'] ?? 'root', $referenceDevice['ssh_key'] ?? null, $referenceDevice['port'] ?? 22);
     if ($client->login()) {
         $wirelessConfig = $client->getWirelessConfig();
         $configData = $wirelessConfig['values'] ?? $wirelessConfig['result'] ?? $wirelessConfig;
@@ -215,7 +228,6 @@ if (!empty($devices)) {
                     $ssid = $data['ssid'];
                     if (!in_array($ssid, $availableSSIDs)) {
                         $availableSSIDs[] = $ssid;
-                        // Store settings for this SSID
                         $ssidSettings[$ssid] = [
                             'key' => $data['key'] ?? '',
                             'network' => $data['network'] ?? 'lan',
@@ -226,21 +238,12 @@ if (!empty($devices)) {
                 }
             }
         }
-    }
-}
-
-// Get available networks from the first device
-$availableNetworks = [];
-if (!empty($devices)) {
-    $firstDevice = $devices[0];
-    $client = new \OpenWrt\OpenWrtClient($firstDevice['url'], $firstDevice['username'] ?? 'root', $firstDevice['ssh_key'] ?? null, $firstDevice['port'] ?? 22);
-    if ($client->login()) {
         $availableNetworks = $client->getNetworkInterfaces();
     }
 }
+
 if (empty($availableNetworks)) {
-    // Fallback to common defaults
-    $availableNetworks = ['lan', 'guest', 'wan'];
+    $availableNetworks = ['lan', 'guest', 'iot'];
 }
 ?>
 <!DOCTYPE html>
@@ -248,247 +251,340 @@ if (empty($availableNetworks)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Device Management</title>
+    <title>Bulk Fleet Management - OpenWrt WiFi</title>
     <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        .group-switcher {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0 20px 0;
+            padding: 12px;
+            background: #eef2f7;
+            border-radius: 8px;
+            align-items: center;
+        }
+        .group-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            background: #fff;
+            color: #333;
+            font-weight: 600;
+            border: 1px solid #ccd0d5;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .group-btn:hover {
+            background: #f8f9fa;
+            border-color: #337ab7;
+        }
+        .group-btn.active {
+            background: #337ab7;
+            color: #fff;
+            border-color: #2e6da4;
+            box-shadow: 0 2px 4px rgba(51, 122, 183, 0.3);
+        }
+        .btn-toggle-pwd {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .device-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .device-card:hover {
+            background: #f0f7ff;
+            border-color: #337ab7;
+        }
+        .device-card input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <a href="../index.php" class="btn">Back to Dashboard</a>
-        <h1>Bulk Device Management</h1>
-        <p>Update or add SSIDs across multiple devices simultaneously.</p>
+        <a href="../index.php" class="btn" style="background-color: #6c757d; margin-bottom: 10px;">← Back to Dashboard</a>
+        
+        <h1 style="margin-top: 5px;">Bulk Wi-Fi Management</h1>
+        <p style="color: #666; margin-top: 0;">Change Wi-Fi names or passwords across all access points simultaneously.</p>
 
         <?php if ($errorMessage): ?>
-            <div class="card" style="background-color: #f2dede; border-color: #ebccd1; color: #a94442;">
-                <?= htmlspecialchars($errorMessage) ?>
+            <div class="card" style="background-color: #f2dede; border-color: #ebccd1; color: #a94442; font-weight: 500;">
+                ⚠️ <?= htmlspecialchars($errorMessage) ?>
             </div>
         <?php endif; ?>
 
         <?php if ($successMessage): ?>
-            <div class="card" style="background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d;">
-                <?= htmlspecialchars($successMessage) ?>
+            <div class="card" style="background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; font-weight: 500;">
+                ✅ <?= htmlspecialchars($successMessage) ?>
             </div>
         <?php endif; ?>
 
         <?php if (empty($devices)): ?>
             <div class="card">
-                <p>No devices available. <a href="index.php">Add a device</a> first.</p>
+                <p>No devices configured yet. <a href="../index.php">Add an Access Point</a> first.</p>
             </div>
         <?php else: ?>
             
-            <!-- Device Selection -->
+            <?php if ($hasMultipleRegions): ?>
+                <!-- Group Switcher Tabs -->
+                <div class="group-switcher">
+                    <span style="font-weight: 600; color: #444;">Select Site / Group:</span>
+                    <?php foreach ($groupedDevices as $r => $devs): ?>
+                        <a href="bulk.php?region=<?= urlencode($r) ?>" class="group-btn <?= $presetRegion === $r ? 'active' : '' ?>">
+                            📍 <?= htmlspecialchars($r) ?> (<?= count($devs) ?> APs)
+                        </a>
+                    <?php endforeach; ?>
+                    <a href="bulk.php?region=all" class="group-btn <?= $presetRegion === 'all' ? 'active' : '' ?>">
+                        🌐 All Groups (<?= count($devices) ?> APs)
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <!-- Target Devices Selection Card -->
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                     <div>
-                        <h3 style="margin: 0;">Select Target Devices</h3>
-                        <p style="margin: 5px 0 0 0; color: #666;">Choose which devices to apply changes to:</p>
+                        <h3 style="margin: 0;">
+                            Target Access Points
+                            <?php if ($presetRegion !== 'all'): ?>
+                                <span style="color: #337ab7; font-weight: normal;">(in Group: <strong><?= htmlspecialchars($presetRegion) ?></strong>)</span>
+                            <?php endif; ?>
+                        </h3>
+                        <p class="help-text" style="margin-bottom: 0;">Checked devices will receive your Wi-Fi changes:</p>
                     </div>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                        <button type="button" onclick="selectAll()" class="btn" style="background-color: #5bc0de; padding: 5px 12px; font-size: 0.9em;">Select All (<?= count($devices) ?>)</button>
-                        <?php if (count($regions) > 1): ?>
-                            <?php foreach ($regions as $r): ?>
-                                <button type="button" onclick="selectRegion('<?= htmlspecialchars($r, ENT_QUOTES) ?>')" class="btn" style="background-color: #337ab7; padding: 5px 12px; font-size: 0.9em;">
-                                    Select Region: <?= htmlspecialchars($r) ?>
-                                </button>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                        <button type="button" onclick="selectNone()" class="btn" style="background-color: #777; padding: 5px 12px; font-size: 0.9em;">Deselect All</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" onclick="selectAll()" class="btn" style="background-color: #5bc0de; padding: 6px 14px; font-size: 0.9em;">Select All</button>
+                        <button type="button" onclick="selectNone()" class="btn" style="background-color: #777; padding: 6px 14px; font-size: 0.9em;">Deselect All</button>
                     </div>
                 </div>
 
-                <div style="margin-top: 15px;">
-                    <?php if (count($regions) > 1): ?>
-                        <?php foreach ($groupedDevices as $regName => $devList): ?>
-                            <div style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                                    <strong style="color: #337ab7; font-size: 1.05em;">
-                                        Region: <?= htmlspecialchars($regName) ?> (<?= count($devList) ?> APs)
-                                    </strong>
-                                    <div>
-                                        <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', true)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #5cb85c;">Check All</button>
-                                        <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', false)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #999;">Uncheck</button>
-                                    </div>
+                <!-- Display ONLY devices in the selected group (or grouped if 'all') -->
+                <?php if ($presetRegion !== 'all'): ?>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;">
+                        <?php foreach ($targetDevices as $device): ?>
+                            <label class="device-card">
+                                <input type="checkbox" class="device-checkbox" value="<?= htmlspecialchars($device['name']) ?>" checked>
+                                <div>
+                                    <strong style="font-size: 1.05em;"><?= htmlspecialchars($device['name']) ?></strong>
+                                    <div style="font-size: 0.85em; color: #666;"><code><?= htmlspecialchars($device['url']) ?></code></div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
-                                    <?php foreach ($devList as $device): ?>
-                                        <?php 
-                                        $shouldCheck = ($presetRegion === 'all' || $presetRegion === ($device['region'] ?? 'Default'));
-                                        ?>
-                                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
-                                            <input type="checkbox" class="device-checkbox" data-region="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" value="<?= htmlspecialchars($device['name']) ?>" <?= $shouldCheck ? 'checked' : '' ?>>
-                                            <div>
-                                                <strong><?= htmlspecialchars($device['name']) ?></strong>
-                                                <div style="font-size: 0.8em; color: #777;"><code><?= htmlspecialchars($device['url']) ?></code></div>
-                                            </div>
-                                        </label>
-                                    <?php endforeach; ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($groupedDevices as $regName => $devList): ?>
+                        <div style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                                <strong style="color: #337ab7; font-size: 1.05em;">Group: <?= htmlspecialchars($regName) ?> (<?= count($devList) ?> APs)</strong>
+                                <div>
+                                    <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', true)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #5cb85c;">Check All</button>
+                                    <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', false)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #999;">Uncheck</button>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
-                            <?php foreach ($devices as $device): ?>
-                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
-                                    <input type="checkbox" class="device-checkbox" data-region="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" value="<?= htmlspecialchars($device['name']) ?>" checked>
-                                    <div>
-                                        <strong><?= htmlspecialchars($device['name']) ?></strong>
-                                        <div style="font-size: 0.8em; color: #777;"><code><?= htmlspecialchars($device['url']) ?></code></div>
-                                    </div>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Bulk Update Existing SSID -->
-            <div class="card" style="border-left: 5px solid #f0ad4e;">
-                <h3>Update Existing SSID</h3>
-                <p>Update settings for an existing SSID across selected devices.</p>
-                <form method="post">
-                    <input type="hidden" name="action" value="bulk_update">
-                    
-                    <div class="form-group">
-                        <label>SSID to Update</label>
-                        <?php if (!empty($availableSSIDs)): ?>
-                            <select name="ssid" required style="width: 100%; padding: 8px;">
-                                <?php foreach ($availableSSIDs as $ssid): ?>
-                                    <option value="<?= htmlspecialchars($ssid) ?>"><?= htmlspecialchars($ssid) ?></option>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px;">
+                                <?php foreach ($devList as $device): ?>
+                                    <label class="device-card">
+                                        <input type="checkbox" class="device-checkbox" data-region="<?= htmlspecialchars($regName) ?>" value="<?= htmlspecialchars($device['name']) ?>" checked>
+                                        <div>
+                                            <strong><?= htmlspecialchars($device['name']) ?></strong>
+                                            <div style="font-size: 0.85em; color: #666;"><code><?= htmlspecialchars($device['url']) ?></code></div>
+                                        </div>
+                                    </label>
                                 <?php endforeach; ?>
-                            </select>
-                            <small style="color:#777;">SSIDs from: <?= htmlspecialchars($devices[0]['name']) ?></small>
-                        <?php else: ?>
-                            <input type="text" name="ssid" required placeholder="Enter exact SSID name">
-                            <small style="color:#777;">Could not load SSIDs. Enter manually.</small>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="form-group">
-                        <label>New WiFi Password (Key)</label>
-                        <input type="text" name="key" placeholder="Leave empty for open network">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Network</label>
-                        <select name="network" style="width: 100%; padding: 8px;">
-                            <?php foreach ($availableNetworks as $net): ?>
-                                <option value="<?= htmlspecialchars($net) ?>"><?= htmlspecialchars($net) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                        <strong>Fast Roaming (802.11r)</strong>
-                        <label style="display: block; margin-top: 5px;">
-                            Mobility Domain (4 hex digits):
-                            <input type="text" name="mobility_domain" placeholder="e.g. AABB">
-                            <small style="display:block; color:#777;">Enter a 4-digit hex code to enable Fast Roaming. Leave empty to disable.</small>
-                        </label>
-                    </div>
-
-                    <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                        <strong>Security Enhancements</strong>
-                        <label style="display: block; margin-top: 5px;">
-                            Management Frame Protection (802.11w):
-                            <select name="mfp">
-                                <option value="0">Disabled</option>
-                                <option value="1" selected>Optional (Preferred)</option>
-                                <option value="2">Required</option>
-                            </select>
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn" style="background-color: #f0ad4e; margin-top: 15px;">Update SSID on Selected Devices</button>
-                </form>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
-            <!-- Bulk Remove SSID -->
-            <div class="card" style="border-left: 5px solid #d9534f;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">Remove SSID</h3>
-                    <button type="button" onclick="toggleBulkRemoveSSID()" class="btn" style="background-color: #777; padding: 5px 15px;">
-                        <span id="toggle-bulk-remove-icon">▼</span>
-                    </button>
-                </div>
-                <p style="margin-top: 10px;">Remove an SSID from all radios of selected devices.</p>
-                <div id="bulk-remove-ssid-form" style="display: none; margin-top: 15px;">
-                    <form method="post">
-                        <input type="hidden" name="action" value="bulk_remove">
+            <!-- Card 1: Bulk Update Existing Wi-Fi (Most Common) -->
+            <div class="card" style="border-left: 5px solid #337ab7;">
+                <h2 style="margin-top: 0; color: #337ab7;">1. Update Wi-Fi Password / Settings</h2>
+                <p style="color: #666;">Select an existing Wi-Fi network below to change its password or settings across all checked access points.</p>
+                
+                <?php if (empty($availableSSIDs)): ?>
+                    <p style="color: #a94442;">Could not load existing Wi-Fi networks from the reference access point (<code><?= htmlspecialchars($referenceDevice['url'] ?? '') ?></code>). Please ensure the device is online.</p>
+                <?php else: ?>
+                    <form method="post" onsubmit="return confirmAction('Update Wi-Fi network across selected access points?');">
+                        <input type="hidden" name="action" value="bulk_update">
                         
                         <div class="form-group">
-                            <label>SSID to Remove</label>
-                            <?php if (!empty($availableSSIDs)): ?>
-                                <select name="remove_ssid" required style="width: 100%; padding: 8px;">
-                                    <?php foreach ($availableSSIDs as $ssid): ?>
-                                        <option value="<?= htmlspecialchars($ssid) ?>"><?= htmlspecialchars($ssid) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <small style="color:#777;">SSIDs from: <?= htmlspecialchars($devices[0]['name']) ?></small>
-                            <?php else: ?>
-                                <input type="text" name="remove_ssid" required placeholder="Enter exact SSID name">
-                                <small style="color:#777;">Could not load SSIDs. Enter manually.</small>
-                            <?php endif; ?>
+                            <label for="ssid"><strong>Wi-Fi Name (SSID) to Update</strong></label>
+                            <select id="ssid" name="ssid" required style="font-size: 1.05em; padding: 8px; font-weight: bold;">
+                                <?php foreach ($availableSSIDs as $s): ?>
+                                    <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars($s) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="help-text">Selecting a Wi-Fi name automatically pre-fills its current password and settings below.</div>
                         </div>
+                        
+                        <div class="form-group">
+                            <label for="key"><strong>Wi-Fi Password</strong></label>
+                            <div style="position: relative; max-width: 450px;">
+                                <input type="password" id="key" name="key" required placeholder="Enter new Wi-Fi password (at least 8 chars)" style="padding-right: 75px;">
+                                <button type="button" class="btn-toggle-pwd" onclick="togglePassword('key', this)">👁️ Show</button>
+                            </div>
+                            <div class="help-text">WPA2-PSK Pre-Shared Key (minimum 8 characters).</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="network"><strong>Network Type (VLAN)</strong></label>
+                            <select id="network" name="network" style="max-width: 300px;">
+                                <?php foreach ($availableNetworks as $net): ?>
+                                    <option value="<?= htmlspecialchars($net) ?>" <?= $net === 'lan' ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars(strtoupper($net)) ?> (<?= $net === 'lan' ? 'Main Home Network' : ($net === 'guest' ? 'Guest Network' : 'Network') ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                            <details>
+                                <summary style="cursor: pointer; color: #555; font-size: 0.9em; font-weight: 600;">⚙️ Advanced Roaming & Security Settings (Optional)</summary>
+                                <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 4px;">
+                                    <div class="form-group">
+                                        <label for="mobility_domain">Fast Roaming Domain ID (802.11r/k/v)</label>
+                                        <input type="text" id="mobility_domain" name="mobility_domain" placeholder="e.g. 4f5e (4 hex characters)" maxlength="4" style="max-width: 200px;">
+                                        <div class="help-text">Allows devices to roam seamlessly between APs without dropping calls or video streams.</div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="mfp">Protected Management Frames (PMF)</label>
+                                        <select id="mfp" name="mfp" style="max-width: 250px;">
+                                            <option value="1" selected>Optional (Recommended - compatible with all devices)</option>
+                                            <option value="2">Required (WPA3-only devices)</option>
+                                            <option value="0">Disabled (Legacy)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn" style="background-color: #337ab7; padding: 10px 24px; font-size: 1.05em; font-weight: bold;">
+                                💾 Save & Apply Wi-Fi to Selected APs
+                            </button>
+                        </div>
+                    </form>
+                <?php endif; ?>
+            </div>
 
-                        <button type="submit" class="btn" style="background-color: #d9534f; margin-top: 15px;" onclick="return confirm('Are you sure you want to remove this SSID from all selected devices?');">Remove SSID from Selected Devices</button>
+            <!-- Card 2: Bulk Add New Wi-Fi (Collapsible) -->
+            <div class="card" style="border-left: 5px solid #5cb85c;">
+                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleSection('bulk-add-ssid-form', 'toggle-bulk-add-icon')">
+                    <div>
+                        <h3 style="margin: 0; color: #2e7d32;">➕ Create a New Wi-Fi Network</h3>
+                        <p class="help-text" style="margin: 3px 0 0 0;">Broadcast a new Wi-Fi SSID (e.g. Guest Network or IoT) on both 2.4GHz & 5GHz bands across selected APs.</p>
+                    </div>
+                    <button type="button" class="btn" style="background-color: #5cb85c; padding: 4px 10px;">
+                        <span id="toggle-bulk-add-icon">▼ Expand</span>
+                    </button>
+                </div>
+                
+                <div id="bulk-add-ssid-form" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <form method="post" onsubmit="return confirmAction('Add new Wi-Fi network to selected access points?');">
+                        <input type="hidden" name="action" value="bulk_add">
+                        
+                        <div class="form-group">
+                            <label for="new_ssid"><strong>New Wi-Fi Name (SSID)</strong></label>
+                            <input type="text" id="new_ssid" name="new_ssid" required placeholder="e.g. MyHome-Guest" style="max-width: 450px;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new_key"><strong>Wi-Fi Password</strong></label>
+                            <div style="position: relative; max-width: 450px;">
+                                <input type="password" id="new_key" name="new_key" required placeholder="Enter password (at least 8 characters)" style="padding-right: 75px;">
+                                <button type="button" class="btn-toggle-pwd" onclick="togglePassword('new_key', this)">👁️ Show</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new_network"><strong>Assign to Network</strong></label>
+                            <select id="new_network" name="new_network" style="max-width: 300px;">
+                                <?php foreach ($availableNetworks as $net): ?>
+                                    <option value="<?= htmlspecialchars($net) ?>" <?= $net === 'lan' ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars(strtoupper($net)) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new_mobility_domain">Fast Roaming Domain ID (optional)</label>
+                            <input type="text" id="new_mobility_domain" name="new_mobility_domain" placeholder="e.g. 5a6b" maxlength="4" style="max-width: 200px;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new_mfp">Protected Management Frames</label>
+                            <select id="new_mfp" name="new_mfp" style="max-width: 250px;">
+                                <option value="1" selected>Optional (Recommended)</option>
+                                <option value="2">Required</option>
+                                <option value="0">Disabled</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="background-color: #5cb85c; padding: 10px 20px; font-weight: bold;">
+                            🚀 Add Wi-Fi Network to Selected APs
+                        </button>
                     </form>
                 </div>
             </div>
 
-            <!-- Bulk Add New SSID -->
-            <div class="card" style="border-left: 5px solid #5cb85c;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0;">Add New SSID</h3>
-                    <button type="button" onclick="toggleBulkAddSSID()" class="btn" style="background-color: #777; padding: 5px 15px;">
-                        <span id="toggle-bulk-add-icon">▼</span>
+            <!-- Card 3: Bulk Remove Wi-Fi (Collapsible Danger Zone) -->
+            <div class="card" style="border-left: 5px solid #d9534f;">
+                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleSection('bulk-remove-ssid-form', 'toggle-bulk-remove-icon')">
+                    <div>
+                        <h3 style="margin: 0; color: #a94442;">🗑️ Remove a Wi-Fi Network</h3>
+                        <p class="help-text" style="margin: 3px 0 0 0;">Permanently delete an SSID across all selected access points.</p>
+                    </div>
+                    <button type="button" class="btn btn-danger" style="padding: 4px 10px;">
+                        <span id="toggle-bulk-remove-icon">▼ Expand</span>
                     </button>
                 </div>
-                <p style="margin-top: 10px;">Create a new SSID on all radios of selected devices.</p>
-                <div id="bulk-add-ssid-form" style="display: none; margin-top: 15px;">
-                <form method="post">
-                    <input type="hidden" name="action" value="bulk_add">
-                    
-                    <div class="form-group">
-                        <label>SSID (Network Name)</label>
-                        <input type="text" name="new_ssid" required placeholder="MyNewWiFi">
-                    </div>
-
-                    <div class="form-group">
-                        <label>WiFi Password (Key)</label>
-                        <input type="text" name="new_key" required placeholder="Min 8 characters">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Network</label>
-                        <select name="new_network" style="width: 100%; padding: 8px;">
-                            <?php foreach ($availableNetworks as $net): ?>
-                                <option value="<?= htmlspecialchars($net) ?>"><?= htmlspecialchars(strtoupper($net)) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                        <strong>Fast Roaming (802.11r)</strong>
-                        <label style="display: block; margin-top: 5px;">
-                            Mobility Domain (4 hex digits):
-                            <input type="text" name="new_mobility_domain" placeholder="e.g. AABB">
-                            <small style="display:block; color:#777;">Enter a 4-digit hex code to enable Fast Roaming. Leave empty to disable.</small>
-                        </label>
-                    </div>
-
-                    <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                        <strong>Security Enhancements</strong>
-                        <label style="display: block; margin-top: 5px;">
-                            Management Frame Protection (802.11w):
-                            <select name="new_mfp">
-                                <option value="0">Disabled</option>
-                                <option value="1" selected>Optional (Preferred)</option>
-                                <option value="2">Required</option>
+                
+                <div id="bulk-remove-ssid-form" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <form method="post" onsubmit="return confirm('⚠️ Are you SURE you want to permanently delete this Wi-Fi network from all selected access points?');">
+                        <input type="hidden" name="action" value="bulk_remove">
+                        
+                        <div class="form-group">
+                            <label for="remove_ssid"><strong>Select Wi-Fi Name to Delete</strong></label>
+                            <select id="remove_ssid" name="remove_ssid" required style="max-width: 450px;">
+                                <?php foreach ($availableSSIDs as $s): ?>
+                                    <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars($s) ?></option>
+                                <?php endforeach; ?>
                             </select>
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn" style="background-color: #5cb85c; margin-top: 15px;">Add SSID to Selected Devices</button>
-                </form>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-danger" style="padding: 10px 20px; font-weight: bold;">
+                            ❌ Delete Wi-Fi Network
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -496,22 +592,18 @@ if (empty($availableNetworks)) {
     </div>
 
     <script>
-        // SSID settings data from PHP
         const ssidSettings = <?= json_encode($ssidSettings) ?>;
-
-        // Auto-populate form when SSID is selected
-        const ssidSelect = document.querySelector('select[name="ssid"]');
+        const ssidSelect = document.getElementById('ssid');
+        
         if (ssidSelect) {
             ssidSelect.addEventListener('change', function() {
                 const selectedSSID = this.value;
-                const settings = ssidSettings[selectedSSID];
-                
-                if (settings) {
-                    // Populate form fields
-                    const keyInput = document.querySelector('input[name="key"]');
-                    const networkSelect = document.querySelector('select[name="network"]');
-                    const mobilityDomainInput = document.querySelector('input[name="mobility_domain"]');
-                    const mfpSelect = document.querySelector('select[name="mfp"]');
+                if (ssidSettings[selectedSSID]) {
+                    const settings = ssidSettings[selectedSSID];
+                    const keyInput = document.getElementById('key');
+                    const networkSelect = document.getElementById('network');
+                    const mobilityDomainInput = document.getElementById('mobility_domain');
+                    const mfpSelect = document.getElementById('mfp');
                     
                     if (keyInput) keyInput.value = settings.key || '';
                     if (networkSelect) networkSelect.value = settings.network || 'lan';
@@ -520,7 +612,7 @@ if (empty($availableNetworks)) {
                 }
             });
             
-            // Trigger change event on page load to populate initial values
+            // Populate initial values on page load
             if (ssidSelect.value) {
                 ssidSelect.dispatchEvent(new Event('change'));
             }
@@ -539,12 +631,6 @@ if (empty($availableNetworks)) {
             document.querySelectorAll('.device-checkbox').forEach(cb => cb.checked = false);
         }
 
-        function selectRegion(regName) {
-            document.querySelectorAll('.device-checkbox').forEach(cb => {
-                cb.checked = (cb.dataset.region === regName);
-            });
-        }
-
         function toggleRegion(regName, isChecked) {
             document.querySelectorAll('.device-checkbox').forEach(cb => {
                 if (cb.dataset.region === regName) {
@@ -553,13 +639,42 @@ if (empty($availableNetworks)) {
             });
         }
 
-        // Add hidden inputs for selected devices on form submit
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈 Hide';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️ Show';
+            }
+        }
+
+        function toggleSection(sectionId, iconId) {
+            const el = document.getElementById(sectionId);
+            const icon = document.getElementById(iconId);
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                icon.textContent = '▲ Collapse';
+            } else {
+                el.style.display = 'none';
+                icon.textContent = '▼ Expand';
+            }
+        }
+
+        function confirmAction(message) {
+            const selected = getSelectedDevices();
+            if (selected.length === 0) {
+                alert('Please check at least one access point to apply changes.');
+                return false;
+            }
+            return confirm(message + ' (' + selected.length + ' APs selected)');
+        }
+
+        // Attach selected devices to forms on submit
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
-                // Remove any existing device inputs
                 form.querySelectorAll('input[name="devices[]"]').forEach(input => input.remove());
-                
-                // Add current selection
                 const selected = getSelectedDevices();
                 selected.forEach(deviceName => {
                     const input = document.createElement('input');
@@ -570,32 +685,6 @@ if (empty($availableNetworks)) {
                 });
             });
         });
-
-        // Toggle Bulk Add SSID form
-        function toggleBulkAddSSID() {
-            const form = document.getElementById('bulk-add-ssid-form');
-            const icon = document.getElementById('toggle-bulk-add-icon');
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                icon.textContent = '▲';
-            } else {
-                form.style.display = 'none';
-                icon.textContent = '▼';
-            }
-        }
-
-        // Toggle Bulk Remove SSID form
-        function toggleBulkRemoveSSID() {
-            const form = document.getElementById('bulk-remove-ssid-form');
-            const icon = document.getElementById('toggle-bulk-remove-icon');
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                icon.textContent = '▲';
-            } else {
-                form.style.display = 'none';
-                icon.textContent = '▼';
-            }
-        }
     </script>
 </body>
 </html>
