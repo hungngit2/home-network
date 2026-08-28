@@ -152,9 +152,6 @@ class OpenWrtClient {
         return $res !== null;
     }
 
-    /**
-     * Add a new wireless AP interface with full fleet-aligned options
-     */
     public function addWirelessInterface($device, $ssid, $key, $network, $encryption = 'psk2+ccmp', $roaming = false, $mobilityDomain = '', $mfp = '1') {
         $existingConfig = $this->getWirelessConfig();
         $configData = $existingConfig['values'] ?? [];
@@ -170,37 +167,13 @@ class OpenWrtClient {
         }
 
         $sectionName = 'wifinet' . ($maxIndex + 1);
+        $options = Standards::buildInterfaceOptions($ssid, $key, $network, $mfp, $roaming, $mobilityDomain, $device);
 
         $commands = [];
         $commands[] = "uci set wireless.{$sectionName}=wifi-iface";
-        $commands[] = "uci set wireless.{$sectionName}.device=" . escapeshellarg($device);
-        $commands[] = "uci set wireless.{$sectionName}.mode='ap'";
-        $commands[] = "uci set wireless.{$sectionName}.ssid=" . escapeshellarg($ssid);
-        $commands[] = "uci set wireless.{$sectionName}.network=" . escapeshellarg($network);
-        $commands[] = "uci set wireless.{$sectionName}.encryption=" . escapeshellarg(!empty($key) ? ($encryption ?: 'psk2+ccmp') : 'none');
-
-        if (!empty($key)) {
-            $commands[] = "uci set wireless.{$sectionName}.key=" . escapeshellarg($key);
-        }
-
-        // Standard fleet optimizations
-        $commands[] = "uci set wireless.{$sectionName}.ieee80211w=" . escapeshellarg($mfp);
-        $commands[] = "uci set wireless.{$sectionName}.wpa_disable_eapol_key_retries='1'";
-        $commands[] = "uci set wireless.{$sectionName}.multicast_to_unicast_all='1'";
-        $commands[] = "uci set wireless.{$sectionName}.mcast_rate='24000'";
-        $commands[] = "uci set wireless.{$sectionName}.basic_rate='12000 24000'";
-        $commands[] = "uci set wireless.{$sectionName}.ocv='0'";
-        $commands[] = "uci set wireless.{$sectionName}.time_advertisement='2'";
-        $commands[] = "uci set wireless.{$sectionName}.bss_transition='1'";
-
-        if ($roaming) {
-            $commands[] = "uci set wireless.{$sectionName}.ieee80211r='1'";
-            $commands[] = "uci set wireless.{$sectionName}.ieee80211k='1'";
-            $commands[] = "uci set wireless.{$sectionName}.ieee80211v='1'";
-            $commands[] = "uci set wireless.{$sectionName}.ft_over_ds='1'";
-            $commands[] = "uci set wireless.{$sectionName}.ft_psk_generate_local='1'";
-            if ($mobilityDomain) {
-                $commands[] = "uci set wireless.{$sectionName}.mobility_domain=" . escapeshellarg($mobilityDomain);
+        foreach ($options as $opt => $val) {
+            if ($val !== '' && $val !== null) {
+                $commands[] = "uci set wireless." . escapeshellarg("{$sectionName}.{$opt}") . "=" . escapeshellarg((string)$val);
             }
         }
 

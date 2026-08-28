@@ -43,34 +43,7 @@ if ($loginSuccess) {
                 $mfp = $_POST['mfp'] ?? '1'; // Default: Optional
 
                 $count = 0;
-                $options = [
-                    'ssid' => $ssid,
-                    'key' => !empty($key) ? $key : '',
-                    'encryption' => !empty($key) ? 'psk2+ccmp' : 'none',
-                    'network' => $network,
-                    'ieee80211w' => $mfp,
-                    'wpa_disable_eapol_key_retries' => '1',
-                    'multicast_to_unicast_all' => '1',
-                    'mcast_rate' => '24000',
-                    'basic_rate' => '12000 24000',
-                    'ocv' => '0',
-                    'time_advertisement' => '2',
-                    'bss_transition' => '1'
-                ];
-
-                if ($roaming === '1') {
-                    $options['ieee80211r'] = '1';
-                    $options['ieee80211k'] = '1';
-                    $options['ieee80211v'] = '1';
-                    $options['ft_over_ds'] = '1';
-                    $options['ft_psk_generate_local'] = '1';
-                    $options['mobility_domain'] = $mobilityDomain;
-                } else {
-                    $options['ieee80211r'] = '0';
-                    $options['ieee80211k'] = '0';
-                    $options['ieee80211v'] = '0';
-                    $options['mobility_domain'] = '';
-                }
+                $options = \OpenWrt\Standards::buildInterfaceOptions($ssid, $key, $network, $mfp, $roaming === '1', $mobilityDomain);
 
                 foreach ($sections as $section) {
                     $client->updateWirelessInterfaceOptions($section, $options);

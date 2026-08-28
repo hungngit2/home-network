@@ -1,0 +1,30 @@
+{
+    "wifi_standards": {
+        "encryption": "psk2+ccmp",
+        "wpa_disable_eapol_key_retries": "1",
+        "multicast_to_unicast_all": "1",
+        "mcast_rate": "24000",
+        "basic_rate": "12000 24000",
+        "ocv": "0",
+        "time_advertisement": "2",
+        "bss_transition": "1"
+    },
+    "fast_roaming": {
+        "ieee80211r": "1",
+        "ieee80211k": "1",
+        "ieee80211v": "1",
+        "ft_over_ds": "1",
+        "ft_psk_generate_local": "1"
+    },
+    "network_defaults": {
+        "lan": {
+            "ieee80211w": "1"
+        },
+        "guest": {
+            "ieee80211w": "1"
+        },
+        "iot": {
+            "ieee80211w": "0"
+        }
+    }
+}
