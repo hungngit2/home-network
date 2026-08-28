@@ -113,6 +113,7 @@ Routes:
 | `/jellyfin/` | Reverse-proxies to Jellyfin on `localhost:8096`, buffering off (for streaming), WebSocket upgrade headers passed through |
 | `/tv/` | Reverse-proxies to rtp2httpd on `localhost:5140` |
 | `/owntone-ws/` | Reverse-proxies to OwnTone's WebSocket notify port on `127.0.0.1:3688`. This is the one direct browser↔service connection — everything else the dashboard needs from OwnTone goes through `backend.php` server-side (so real OwnTone credentials never reach the browser), because a browser WebSocket handshake can't carry a custom `Authorization` header and PHP-FPM can't proxy a WebSocket upgrade |
+| `/(configs|src)/`, `\.(json|example)$` | Explicitly blocked with `404 Not Found` to prevent direct HTTP downloading of internal source files, device inventories, and passwords |
 | `/.well-known/acme-challenge` | Certbot HTTP-01 webroot at `/mnt/nasdata/share/www/certbot/` |
 
 `80` redirects to `443` for the cert's hostnames (2 SANs on the same cert, both `REDACTED-domain`). Access/error logs go to `/mnt/appsrv/nginx/log/` (not the system default) — `nginx-access.log` alone is already ~140MB with no rotation configured on top of what's there; worth adding a logrotate rule if it isn't already handled elsewhere.
