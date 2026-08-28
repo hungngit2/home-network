@@ -38,13 +38,11 @@ Static/recursive routes handle the two check-gateway targets for each WAN (so fa
 ## VPN
 
 - **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access & site-to-site VPN, fully dual-stack:
-  - **IPv4 subnet**: `10.0.100.254/24` (peers on `10.0.100.1`–`.4`, plus remote site subnets)
-  - **IPv6 subnet**: `fd39:10:100::254/64` (peers on `fd39:10:100::1`–`::4/128`, plus remote site ULA)
-  - 4 peers configured:
-    - `iPhoneSE2` (`10.0.100.1/32`, `fd39:10:100::1/128`)
-    - `mac16` (`10.0.100.2/32`, `fd39:10:100::2/128`)
-    - `hpEnvy` (`10.0.100.3/32`, `fd39:10:100::3/128`)
-    - `site2-to-home` (Site 2 router @ `10.1.0.254`: `10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static route `10.1.0.0/16` and `fd86:10::/48` on `vpn-in-home`)
+  - **IPv4 subnet**: `10.0.100.254/24` (road-warrior client peers on `10.0.100.1`–`.3`, site-to-site peer on `10.0.100.100`)
+  - **IPv6 subnet**: `fd39:10:100::254/64` (road-warrior client peers on `fd39:10:100::1`–`::3/128`, site-to-site peer on `fd39:10:100::100/128`)
+  - Peers configured:
+    - **Remote client peers**: Road-warrior mobile & laptop devices (`10.0.100.1`–`.3/32`, `fd39:10:100::1`–`::3/128`)
+    - **Site-to-site peer** (`site2-to-home`): Remote Site 2 gateway router (`10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static routes on `vpn-in-home`)
 - **WireGuard outbound ×2** — `vpn-out1` ("VPN → SG") and `vpn-out2` ("VPN → HK") — these are the tunnels traffic gets routed into for the geo-unblocking rule above.
 - **OpenVPN server** (`ovpn-server1`, UDP, client-cert required) — a second, separate remote-access VPN path alongside WireGuard.
 - IPsec is present only as defaults/DPD tuning (`dpd-interval=2m`) — no active IPsec peers configured in this export.
