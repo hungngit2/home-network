@@ -29,7 +29,8 @@ class Standards {
                 'ieee80211k' => '1',
                 'ieee80211v' => '1',
                 'ft_over_ds' => '1',
-                'ft_psk_generate_local' => '1'
+                'ft_psk_generate_local' => '1',
+                'mobility_domain' => '4f5e'
             ],
             'ssid_overrides' => [
                 '*IoT*' => [
@@ -108,8 +109,7 @@ class Standards {
             if (!empty($mobilityDomain)) {
                 $options['mobility_domain'] = $mobilityDomain;
             } elseif (empty($options['mobility_domain'])) {
-                // Auto-generate consistent 4-hex mobility domain from SSID name
-                $options['mobility_domain'] = substr(md5($ssid), 0, 4);
+                $options['mobility_domain'] = '4f5e';
             }
         } else {
             $options['mobility_domain'] = '';
