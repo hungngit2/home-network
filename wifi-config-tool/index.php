@@ -5,24 +5,33 @@ $configPath = file_exists(__DIR__ . '/configs/config.json') ? __DIR__ . '/config
 $deviceManager = new \OpenWrt\DeviceManager($configPath);
 
 $message = '';
+$isError = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'add') {
         $name = trim($_POST['name'] ?? '');
         $url = trim($_POST['url'] ?? '');
         $region = trim($_POST['region'] ?? '');
-        $username = trim($_POST['username'] ?? 'root');
-        $sshKey = trim($_POST['ssh_key'] ?? '');
-        $port = (int)($_POST['port'] ?? 22);
+        $newRegionName = trim($_POST['new_region_name'] ?? '');
+        
+        if ($region === '__new__' && !empty($newRegionName)) {
+            $region = $newRegionName;
+        } elseif ($region === '__new__') {
+            $region = 'Default';
+        }
+        
+        $username = trim($_POST['username'] ?? 'root') ?: 'root';
+        $port = (int)($_POST['port'] ?? 22) ?: 22;
         
         // Clean hostname/IP
         $url = preg_replace('/^https?:\/\//i', '', $url);
         
-        if ($name && $url && $username) {
-            $deviceManager->addDevice($name, $url, $username, $sshKey, $port, $region);
-            $message = "Access Point '$name' added successfully.";
+        if ($name && $url) {
+            $deviceManager->addDevice($name, $url, $username, '', $port, $region);
+            $message = "Access Point '$name' added successfully to group '" . htmlspecialchars($region ?: 'Default') . "'.";
         } else {
-            $message = "Please fill in all required fields.";
+            $message = "Please provide both an Access Point Name and an IP address.";
+            $isError = true;
         }
     } elseif (isset($_POST['action']) && $_POST['action'] === 'delete') {
         $name = trim($_POST['name'] ?? '');
@@ -114,6 +123,11 @@ foreach ($displayGroups as $list) {
             justify-content: space-between;
             align-items: center;
         }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
@@ -131,8 +145,8 @@ foreach ($displayGroups as $list) {
         </div>
         
         <?php if ($message): ?>
-            <div class="card" style="background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; font-weight: 500; margin-top: 15px;">
-                ✅ <?= htmlspecialchars($message) ?>
+            <div class="card" style="background-color: <?= $isError ? '#f2dede' : '#dff0d8' ?>; border-color: <?= $isError ? '#ebccd1' : '#d6e9c6' ?>; color: <?= $isError ? '#a94442' : '#3c763d' ?>; font-weight: 500; margin-top: 15px;">
+                <?= $isError ? '⚠️ ' : '✅ ' ?><?= htmlspecialchars($message) ?>
             </div>
         <?php endif; ?>
 
@@ -151,47 +165,87 @@ foreach ($displayGroups as $list) {
             </div>
         <?php endif; ?>
 
-        <!-- Add Device Card (Collapsible) -->
-        <div class="card">
+        <!-- Add Device Card (Context-Aware UX) -->
+        <div class="card" style="border-left: 5px solid #337ab7;">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleAddDevice()">
-                <h3 style="margin: 0; color: #337ab7;">➕ Add New Access Point</h3>
-                <button type="button" class="btn" style="background-color: #6c757d; padding: 4px 10px;">
-                    <span id="toggle-icon">▼ Expand</span>
+                <div>
+                    <h3 style="margin: 0; color: #337ab7;">
+                        ➕ Add Access Point
+                        <?php if ($activeRegion !== 'all'): ?>
+                            to <span class="region-badge"><?= htmlspecialchars($activeRegion) ?></span>
+                        <?php endif; ?>
+                    </h3>
+                    <p style="margin: 3px 0 0 0; color: #666; font-size: 0.9em;">
+                        <?= $activeRegion !== 'all' ? 'Connect a new router/AP to group <strong>' . htmlspecialchars($activeRegion) . '</strong>' : 'Connect a new router/AP to your network fleet' ?>
+                    </p>
+                </div>
+                <button type="button" class="btn" style="background-color: #6c757d; padding: 5px 12px; font-size: 0.9em;">
+                    <span id="toggle-icon">▼ Expand Form</span>
                 </button>
             </div>
+
             <div id="add-device-form" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
                 <form method="post">
                     <input type="hidden" name="action" value="add">
-                    <div class="form-group">
-                        <label for="name"><strong>Access Point Name</strong></label>
-                        <input type="text" id="name" name="name" placeholder="e.g. jcg-q20-f1" required>
+
+                    <div class="form-grid">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="name"><strong>Access Point Name</strong></label>
+                            <input type="text" id="name" name="name" placeholder="e.g. jcg-q20-f1" required style="width: 100%;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="url"><strong>IP Address / Hostname</strong></label>
+                            <input type="text" id="url" name="url" placeholder="10.0.0.201" required style="width: 100%;">
+                        </div>
                     </div>
 
-                    <?php if ($hasMultipleRegions): ?>
-                        <div class="form-group">
-                            <label for="region"><strong>Group / Location</strong></label>
-                            <input type="text" id="region" name="region" list="region-list" placeholder="e.g. lotus, sala" value="<?= htmlspecialchars($activeRegion !== 'all' ? $activeRegion : ($regions[0] ?? '')) ?>">
-                            <datalist id="region-list">
+                    <?php if ($activeRegion !== 'all'): ?>
+                        <!-- Locked Target Group for selected region -->
+                        <input type="hidden" name="region" value="<?= htmlspecialchars($activeRegion) ?>">
+                        <div style="margin: 8px 0 12px 0; font-size: 0.9em; color: #555;">
+                            📍 Target Group: <strong><?= htmlspecialchars($activeRegion) ?></strong> 
+                            <span style="color: #999;">(To add to a different group, select it from the top switcher or click <a href="index.php?region=all" style="color: #337ab7;">All Groups</a>)</span>
+                        </div>
+                    <?php elseif ($hasMultipleRegions): ?>
+                        <!-- Group Selection for 'All Groups' view -->
+                        <div class="form-group" style="margin: 10px 0;">
+                            <label for="group_selector"><strong>Target Group / Location</strong></label>
+                            <select id="group_selector" name="region" style="width: 100%; max-width: 320px; padding: 7px;" onchange="handleGroupChange(this.value)">
                                 <?php foreach ($regions as $r): ?>
-                                    <option value="<?= htmlspecialchars($r) ?>">
+                                    <option value="<?= htmlspecialchars($r) ?>">📍 <?= htmlspecialchars($r) ?></option>
                                 <?php endforeach; ?>
-                            </datalist>
+                                <option value="__new__">➕ Create New Group...</option>
+                            </select>
+                        </div>
+                        <div id="new_group_container" style="display: none; margin: 8px 0 12px 0;">
+                            <label for="new_region_name"><strong>New Group Name</strong></label>
+                            <input type="text" id="new_region_name" name="new_region_name" placeholder="e.g. office, warehouse" style="max-width: 320px; width: 100%;">
                         </div>
                     <?php endif; ?>
 
-                    <div class="form-group">
-                        <label for="url"><strong>IP Address / Hostname</strong></label>
-                        <input type="text" id="url" name="url" placeholder="10.0.0.201" required>
+                    <!-- Advanced SSH Username & Port (Collapsible) -->
+                    <div style="margin-top: 10px; margin-bottom: 15px;">
+                        <details>
+                            <summary style="font-size: 0.85em; color: #666; cursor: pointer;">⚙️ Advanced SSH Connection (Username: root, Port: 22)</summary>
+                            <div class="form-grid" style="margin-top: 10px; padding: 10px; background: #fbfbfb; border-radius: 4px; border: 1px solid #eee;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="username" style="font-size: 0.85em;">SSH Username</label>
+                                    <input type="text" id="username" name="username" value="root" required style="width: 100%;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="port" style="font-size: 0.85em;">SSH Port</label>
+                                    <input type="number" id="port" name="port" value="22" required style="width: 100%;">
+                                </div>
+                            </div>
+                        </details>
                     </div>
-                    <div class="form-group">
-                        <label for="username">SSH Username</label>
-                        <input type="text" id="username" name="username" value="root" required>
+
+                    <div>
+                        <button type="submit" class="btn" style="background-color: #337ab7; padding: 9px 22px; font-weight: bold; font-size: 1em;">
+                            💾 Add Access Point
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label for="port">SSH Port</label>
-                        <input type="number" id="port" name="port" value="22" required>
-                    </div>
-                    <button type="submit" class="btn" style="background-color: #337ab7; padding: 8px 18px; font-weight: bold;">Add Access Point</button>
                 </form>
             </div>
         </div>
@@ -211,7 +265,7 @@ foreach ($displayGroups as $list) {
             </div>
             
             <?php if (empty($devices)): ?>
-                <p>No devices managed yet. Click "Add New Access Point" above.</p>
+                <p>No devices managed yet. Click "Add Access Point" above.</p>
             <?php else: ?>
 
                 <?php foreach ($displayGroups as $regName => $devList): ?>
@@ -280,10 +334,22 @@ foreach ($displayGroups as $list) {
             const icon = document.getElementById('toggle-icon');
             if (form.style.display === 'none') {
                 form.style.display = 'block';
-                icon.textContent = '▲ Collapse';
+                icon.textContent = '▲ Collapse Form';
             } else {
                 form.style.display = 'none';
-                icon.textContent = '▼ Expand';
+                icon.textContent = '▼ Expand Form';
+            }
+        }
+
+        function handleGroupChange(val) {
+            const container = document.getElementById('new_group_container');
+            if (!container) return;
+            if (val === '__new__') {
+                container.style.display = 'block';
+                const input = document.getElementById('new_region_name');
+                if (input) input.focus();
+            } else {
+                container.style.display = 'none';
             }
         }
     </script>
