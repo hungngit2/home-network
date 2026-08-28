@@ -1,3 +1,5 @@
 # Private credentials & runtime config
-wifi/config.json
+wifi-config-tool/config.json
+wifi-config-tool/auth.php
+wifi-config-tool/tests/test_config.json
 .DS_Store

@@ -1,0 +1,4 @@
+<?php
+define('AUTH_USERNAME', 'admin');
+define('AUTH_PASSWORD', 'YOUR_PASSWORD_HERE');
+define('FORCE_AUTH_FOR_LOCAL', false);
