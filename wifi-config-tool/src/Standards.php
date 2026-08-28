@@ -31,20 +31,6 @@ class Standards {
                 'ft_over_ds' => '1',
                 'ft_psk_generate_local' => '1'
             ],
-            'network_defaults' => [
-                'lan' => [
-                    'ieee80211w' => '1',
-                    'ieee80211r' => '1'
-                ],
-                'guest' => [
-                    'ieee80211w' => '1',
-                    'ieee80211r' => '1'
-                ],
-                'iot' => [
-                    'ieee80211w' => '0',
-                    'ieee80211r' => '0'
-                ]
-            ],
             'ssid_overrides' => [
                 '*IoT*' => [
                     'ieee80211w' => '0',
@@ -95,15 +81,7 @@ class Standards {
         $options['encryption'] = !empty($key) ? ($options['encryption'] ?? 'psk2+ccmp') : 'none';
         $options['network'] = $network;
 
-        // 1. Apply Network Defaults (e.g. iot -> ieee80211w: 0, ieee80211r: 0)
-        $netKey = strtolower($network);
-        if (isset($standards['network_defaults'][$netKey]) && is_array($standards['network_defaults'][$netKey])) {
-            foreach ($standards['network_defaults'][$netKey] as $k => $v) {
-                $options[$k] = (string)$v;
-            }
-        }
-
-        // 2. Apply SSID-specific overrides (e.g. "*IoT*", "lotus IoT", etc.)
+        // 1. Apply SSID-specific overrides (e.g. "*IoT*", "lotus IoT", etc.)
         if (isset($standards['ssid_overrides']) && is_array($standards['ssid_overrides'])) {
             foreach ($standards['ssid_overrides'] as $pattern => $overrideOpts) {
                 if (fnmatch($pattern, $ssid, FNM_CASEFOLD) || strcasecmp($pattern, $ssid) === 0) {
@@ -116,7 +94,7 @@ class Standards {
             }
         }
 
-        // 3. Apply user-explicit overrides if specified
+        // 2. Apply user-explicit overrides if specified
         if ($mfp !== null && $mfp !== '') {
             $options['ieee80211w'] = (string)$mfp;
         }
@@ -129,7 +107,7 @@ class Standards {
             $options['ft_psk_generate_local'] = $roaming ? '1' : '0';
         }
 
-        // 4. Handle Mobility Domain for Fast Roaming
+        // 3. Handle Mobility Domain for Fast Roaming
         $isRoamingEnabled = (($options['ieee80211r'] ?? '0') === '1');
         if ($isRoamingEnabled) {
             if (!empty($mobilityDomain)) {

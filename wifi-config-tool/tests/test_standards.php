@@ -19,16 +19,10 @@ assert($opts2['ieee80211r'] === '0', "IoT SSID ieee80211r must be '0'");
 assert($opts2['mobility_domain'] === '', "IoT SSID mobility_domain must be empty");
 echo "lotus IoT SSID: ieee80211w={$opts2['ieee80211w']}, ieee80211r={$opts2['ieee80211r']}, mobility_domain='{$opts2['mobility_domain']}' -> OK\n";
 
-echo "\n=== 3. Testing Network Default (iot network) ===\n";
-$opts3 = Standards::buildInterfaceOptions('SmartHome', 'IoTSecretPass123', 'iot');
-assert($opts3['ieee80211w'] === '0', "iot network ieee80211w must be '0'");
-assert($opts3['ieee80211r'] === '0', "iot network ieee80211r must be '0'");
-echo "iot network: ieee80211w={$opts3['ieee80211w']}, ieee80211r={$opts3['ieee80211r']} -> OK\n";
-
-echo "\n=== 4. Testing Explicit User Override ===\n";
-$opts4 = Standards::buildInterfaceOptions('lotus', 'MySecretPass123', 'lan', '2', false);
-assert($opts4['ieee80211w'] === '2', "User override ieee80211w must be '2'");
-assert($opts4['ieee80211r'] === '0', "User override ieee80211r must be '0'");
-echo "Explicit user override: ieee80211w={$opts4['ieee80211w']}, ieee80211r={$opts4['ieee80211r']} -> OK\n";
+echo "\n=== 3. Testing Explicit User Override ===\n";
+$opts3 = Standards::buildInterfaceOptions('lotus', 'MySecretPass123', 'lan', '2', false);
+assert($opts3['ieee80211w'] === '2', "User override ieee80211w must be '2'");
+assert($opts3['ieee80211r'] === '0', "User override ieee80211r must be '0'");
+echo "Explicit user override: ieee80211w={$opts3['ieee80211w']}, ieee80211r={$opts3['ieee80211r']} -> OK\n";
 
 echo "\nALL STANDARDS TESTS PASSED!\n";
