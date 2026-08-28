@@ -5,7 +5,7 @@
 - **Board**: "Chainedbox L1 Pro" — an RK3328 (Rockchip) Android-TV-box-style device (`BOARD_NAME=RK.Chainedbox`, `BOARDFAMILY=rk3328`, `LINUXFAMILY=rockchip`), repurposed to run Armbian. This is the origin of the box's name.
 - **OS**: Armbian 26.5.1 "noble" (Ubuntu 24.04 LTS base), kernel `6.1.159-ophub` (aarch64). The `-ophub` kernel suffix is the tell: this isn't stock Armbian but a build from **[ophub/amlogic-s9xxx-armbian](https://github.com/ophub/amlogic-s9xxx-armbian)** — a third-party rebuild project that produces Armbian images for TV-box SoCs (Amlogic S9xxx, and by extension other boxes like this RK3328) that upstream Armbian doesn't officially support.
 - **Resources**: ~971 MiB RAM, 485 MiB swap.
-- **Network**: LAN-only at `10.0.0.100`, aliased as `chainedbox` in `~/.ssh/config`. No public IP/hostname; external access (if any) goes through the router/DDNS (`REDACTED-domain`, referenced in the nginx TLS cert).
+- **Network**: Dual-stack on trusted LAN at `10.0.0.100` / `fd39:10::100`, aliased as `chainedbox` in `~/.ssh/config`. Dual-homed to IoT VLAN (`10.0.1.15`). No public IP/hostname; external access (if any) goes through the router/DDNS (`REDACTED-domain`, referenced in the nginx TLS cert).
 
 ## Storage
 
