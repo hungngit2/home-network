@@ -279,27 +279,6 @@ $regions = $deviceManager->getRegions();
                             </select>
                         </div>
 
-                        <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                            <strong>Fast Roaming (802.11r)</strong>
-                            <label style="display: block; margin-top: 5px;">
-                                Mobility Domain (4 hex digits):
-                                <input type="text" name="mobility_domain" id="mobility_domain_input" placeholder="e.g. AABB">
-                                <small style="display:block; color:#777;">Enter a 4-digit hex code to enable Fast Roaming. Leave empty to disable.</small>
-                            </label>
-                        </div>
-
-                        <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                            <strong>Security Enhancements</strong>
-                            <label style="display: block; margin-top: 5px;">
-                                Management Frame Protection (802.11w):
-                                <select name="mfp" id="mfp_select">
-                                    <option value="0">Disabled</option>
-                                    <option value="1" selected>Optional (Preferred)</option>
-                                    <option value="2">Required</option>
-                                </select>
-                            </label>
-                        </div>
-
                         <div style="margin-top: 20px; display: flex; gap: 10px;">
                             <button type="submit" name="action" value="update_wifi" class="btn">Update SSID</button>
                             <button type="submit" name="action" value="remove_ssid" class="btn" style="background-color: #d9534f; border-color: #d43f3a;" onclick="return confirm('Are you sure you want to delete this network? This will remove the SSID from all radios.');">Delete Network</button>
@@ -339,29 +318,8 @@ $regions = $deviceManager->getRegions();
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        
-                            <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                                <strong>Fast Roaming (802.11r)</strong>
-                                <label style="display: block; margin-top: 5px;">
-                                    Mobility Domain (4 hex digits):
-                                    <input type="text" name="new_mobility_domain" placeholder="e.g. AABB">
-                                    <small style="display:block; color:#777;">Enter a 4-digit hex code to enable Fast Roaming. Leave empty to disable.</small>
-                                </label>
-                            </div>
 
-                        <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-                            <strong>Security Enhancements</strong>
-                            <label style="display: block; margin-top: 5px;">
-                                Management Frame Protection (802.11w):
-                                <select name="new_mfp">
-                                    <option value="0">Disabled</option>
-                                    <option value="1" selected>Optional (Preferred)</option>
-                                    <option value="2">Required</option>
-                                </select>
-                            </label>
-                        </div>
-
-                            <button type="submit" class="btn" style="background-color: #5bc0de; margin-top: 15px;">Create WiFi Network</button>
+                        <button type="submit" class="btn" style="background-color: #5bc0de; margin-top: 15px;">Create WiFi Network</button>
                     </form>
                     </div>
                 </div>
@@ -414,8 +372,6 @@ $regions = $deviceManager->getRegions();
                     document.getElementById('key_input').value = firstIface.key || '';
                     document.getElementById('encryption_display').textContent = firstIface.encryption || 'None';
                     document.getElementById('network_select').value = firstIface.network || 'lan';
-                    document.getElementById('mobility_domain_input').value = firstIface.mobility_domain || '';
-                    document.getElementById('mfp_select').value = firstIface.ieee80211w || '1';
                 }
             });
             

@@ -464,28 +464,6 @@ if (empty($availableNetworks)) {
                             </select>
                         </div>
                         
-                        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
-                            <details>
-                                <summary style="cursor: pointer; color: #555; font-size: 0.9em; font-weight: 600;">⚙️ Advanced Roaming & Security Settings (Optional)</summary>
-                                <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 4px;">
-                                    <div class="form-group">
-                                        <label for="mobility_domain">Fast Roaming Domain ID (802.11r/k/v)</label>
-                                        <input type="text" id="mobility_domain" name="mobility_domain" placeholder="e.g. 4f5e (4 hex characters)" maxlength="4" style="max-width: 200px;">
-                                        <div class="help-text">Allows devices to roam seamlessly between APs without dropping calls or video streams.</div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="mfp">Protected Management Frames (PMF)</label>
-                                        <select id="mfp" name="mfp" style="max-width: 250px;">
-                                            <option value="1" selected>Optional (Recommended - compatible with all devices)</option>
-                                            <option value="2">Required (WPA3-only devices)</option>
-                                            <option value="0">Disabled (Legacy)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
-                        
                         <div style="margin-top: 20px;">
                             <button type="submit" class="btn" style="background-color: #337ab7; padding: 10px 24px; font-size: 1.05em; font-weight: bold;">
                                 💾 Save & Apply Wi-Fi to Selected APs
@@ -532,20 +510,6 @@ if (empty($availableNetworks)) {
                                         <?= htmlspecialchars(strtoupper($net)) ?>
                                     </option>
                                 <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="new_mobility_domain">Fast Roaming Domain ID (optional)</label>
-                            <input type="text" id="new_mobility_domain" name="new_mobility_domain" placeholder="e.g. 5a6b" maxlength="4" style="max-width: 200px;">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="new_mfp">Protected Management Frames</label>
-                            <select id="new_mfp" name="new_mfp" style="max-width: 250px;">
-                                <option value="1" selected>Optional (Recommended)</option>
-                                <option value="2">Required</option>
-                                <option value="0">Disabled</option>
                             </select>
                         </div>
                         
@@ -602,13 +566,9 @@ if (empty($availableNetworks)) {
                     const settings = ssidSettings[selectedSSID];
                     const keyInput = document.getElementById('key');
                     const networkSelect = document.getElementById('network');
-                    const mobilityDomainInput = document.getElementById('mobility_domain');
-                    const mfpSelect = document.getElementById('mfp');
                     
                     if (keyInput) keyInput.value = settings.key || '';
                     if (networkSelect) networkSelect.value = settings.network || 'lan';
-                    if (mobilityDomainInput) mobilityDomainInput.value = settings.mobility_domain || '';
-                    if (mfpSelect) mfpSelect.value = settings.ieee80211w || '1';
                 }
             });
             
