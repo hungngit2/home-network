@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'add') {
         $name = $_POST['name'] ?? '';
         $url = $_POST['url'] ?? '';
-        $region = $_POST['region'] ?? 'Default';
+        $region = $_POST['region'] ?? null;
         $username = $_POST['username'] ?? 'root';
         $sshKey = $_POST['ssh_key'] ?? '';
         $port = $_POST['port'] ?? 22;
@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $devices = $deviceManager->getDevices();
 $groupedDevices = $deviceManager->getDevicesGroupedByRegion();
 $regions = $deviceManager->getRegions();
+$hasMultipleRegions = count($regions) > 1;
 $activeRegion = $_GET['region'] ?? 'all';
 ?>
 <!DOCTYPE html>
@@ -114,15 +115,19 @@ $activeRegion = $_GET['region'] ?? 'all';
                         <label for="name">Device Name</label>
                         <input type="text" id="name" name="name" placeholder="e.g. redmi-rm2100-f0" required>
                     </div>
-                    <div class="form-group">
-                        <label for="region">Region / Group</label>
-                        <input type="text" id="region" name="region" list="region-list" placeholder="e.g. Home, Office, Site 1, etc." value="Default">
-                        <datalist id="region-list">
-                            <?php foreach ($regions as $r): ?>
-                                <option value="<?= htmlspecialchars($r) ?>">
-                            <?php endforeach; ?>
-                        </datalist>
-                    </div>
+
+                    <?php if ($hasMultipleRegions): ?>
+                        <div class="form-group">
+                            <label for="region">Region / Group</label>
+                            <input type="text" id="region" name="region" list="region-list" placeholder="e.g. Home, Office, etc." value="<?= htmlspecialchars($regions[0] ?? '') ?>">
+                            <datalist id="region-list">
+                                <?php foreach ($regions as $r): ?>
+                                    <option value="<?= htmlspecialchars($r) ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="form-group">
                         <label for="url">Device IP Address / Hostname</label>
                         <input type="text" id="url" name="url" placeholder="10.0.0.200" required>
@@ -150,37 +155,43 @@ $activeRegion = $_GET['region'] ?? 'all';
             <?php if (empty($devices)): ?>
                 <p>No devices managed yet.</p>
             <?php else: ?>
-                <!-- Region Filter Tabs -->
-                <div class="region-tabs">
-                    <a href="index.php" class="region-tab <?= $activeRegion === 'all' ? 'active' : '' ?>">All Regions (<?= count($devices) ?>)</a>
-                    <?php foreach ($groupedDevices as $regName => $devList): ?>
-                        <a href="index.php?region=<?= urlencode($regName) ?>" class="region-tab <?= $activeRegion === $regName ? 'active' : '' ?>">
-                            <?= htmlspecialchars($regName) ?> (<?= count($devList) ?>)
-                        </a>
-                    <?php endforeach; ?>
-                </div>
+                <?php if ($hasMultipleRegions): ?>
+                    <!-- Region Filter Tabs (Only shown when multiple regions exist) -->
+                    <div class="region-tabs">
+                        <a href="index.php" class="region-tab <?= $activeRegion === 'all' ? 'active' : '' ?>">All Regions (<?= count($devices) ?>)</a>
+                        <?php foreach ($groupedDevices as $regName => $devList): ?>
+                            <a href="index.php?region=<?= urlencode($regName) ?>" class="region-tab <?= $activeRegion === $regName ? 'active' : '' ?>">
+                                <?= htmlspecialchars($regName) ?> (<?= count($devList) ?>)
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
 
                 <?php 
-                $displayGroups = ($activeRegion !== 'all' && isset($groupedDevices[$activeRegion])) 
+                $displayGroups = ($hasMultipleRegions && $activeRegion !== 'all' && isset($groupedDevices[$activeRegion])) 
                     ? [$activeRegion => $groupedDevices[$activeRegion]] 
                     : $groupedDevices;
                 ?>
 
                 <?php foreach ($displayGroups as $regName => $devList): ?>
-                    <div class="region-header">
-                        <h3 style="margin: 0; color: #337ab7;">
-                            Region: <?= htmlspecialchars($regName) ?>
-                            <span style="font-size: 0.8em; font-weight: normal; color: #777;">(<?= count($devList) ?> APs)</span>
-                        </h3>
-                        <a href="pages/bulk.php?region=<?= urlencode($regName) ?>" class="btn" style="background-color: #5cb85c; padding: 4px 10px; font-size: 0.85em;">
-                            Bulk Manage <?= htmlspecialchars($regName) ?>
-                        </a>
-                    </div>
+                    <?php if ($hasMultipleRegions): ?>
+                        <div class="region-header">
+                            <h3 style="margin: 0; color: #337ab7;">
+                                Region: <?= htmlspecialchars($regName) ?>
+                                <span style="font-size: 0.8em; font-weight: normal; color: #777;">(<?= count($devList) ?> APs)</span>
+                            </h3>
+                            <a href="pages/bulk.php?region=<?= urlencode($regName) ?>" class="btn" style="background-color: #5cb85c; padding: 4px 10px; font-size: 0.85em;">
+                                Bulk Manage <?= htmlspecialchars($regName) ?>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                     <table>
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Region</th>
+                                <?php if ($hasMultipleRegions): ?>
+                                    <th>Region</th>
+                                <?php endif; ?>
                                 <th>Host / IP</th>
                                 <th>Auth</th>
                                 <th>Actions</th>
@@ -194,9 +205,11 @@ $activeRegion = $_GET['region'] ?? 'all';
                                             <strong><?= htmlspecialchars($device['name']) ?></strong>
                                         </a>
                                     </td>
-                                    <td>
-                                        <span class="region-badge"><?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
-                                    </td>
+                                    <?php if ($hasMultipleRegions): ?>
+                                        <td>
+                                            <span class="region-badge"><?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+                                        </td>
+                                    <?php endif; ?>
                                     <td><code><?= htmlspecialchars($device['url']) ?></code></td>
                                     <td><span style="color: #2e7d32; font-weight: 500;">SSH Key</span></td>
                                     <td>

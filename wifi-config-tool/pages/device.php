@@ -157,18 +157,22 @@ $regions = $deviceManager->getRegions();
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 15px;">
             <h1 style="margin: 0;">
                 Manage: <?= htmlspecialchars($device['name']) ?>
-                <span class="region-badge" style="font-size: 0.45em; vertical-align: middle;">Region: <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+                <?php if (count($regions) > 1): ?>
+                    <span class="region-badge" style="font-size: 0.45em; vertical-align: middle;">Region: <?= htmlspecialchars($device['region'] ?? 'Default') ?></span>
+                <?php endif; ?>
             </h1>
-            <form method="post" style="display: flex; gap: 6px; align-items: center; margin: 0;">
-                <input type="hidden" name="action" value="update_region">
-                <input type="text" name="region" list="region-list" value="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" style="padding: 5px; width: 140px;" placeholder="Change Region">
-                <datalist id="region-list">
-                    <?php foreach ($regions as $r): ?>
-                        <option value="<?= htmlspecialchars($r) ?>">
-                    <?php endforeach; ?>
-                </datalist>
-                <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.85em; background-color: #337ab7;">Update Region</button>
-            </form>
+            <?php if (count($regions) > 1): ?>
+                <form method="post" style="display: flex; gap: 6px; align-items: center; margin: 0;">
+                    <input type="hidden" name="action" value="update_region">
+                    <input type="text" name="region" list="region-list" value="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" style="padding: 5px; width: 140px;" placeholder="Change Region">
+                    <datalist id="region-list">
+                        <?php foreach ($regions as $r): ?>
+                            <option value="<?= htmlspecialchars($r) ?>">
+                        <?php endforeach; ?>
+                    </datalist>
+                    <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.85em; background-color: #337ab7;">Update Region</button>
+                </form>
+            <?php endif; ?>
         </div>
         <p>URL: <a href="http://<?= htmlspecialchars($device['url']) ?>" target="_blank"><?= htmlspecialchars($device['url']) ?></a></p>
 

@@ -280,47 +280,63 @@ if (empty($availableNetworks)) {
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h3 style="margin: 0;">Select Target Devices</h3>
-                        <p style="margin: 5px 0 0 0; color: #666;">Choose which devices or regions to apply changes to:</p>
+                        <p style="margin: 5px 0 0 0; color: #666;">Choose which devices to apply changes to:</p>
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                         <button type="button" onclick="selectAll()" class="btn" style="background-color: #5bc0de; padding: 5px 12px; font-size: 0.9em;">Select All (<?= count($devices) ?>)</button>
-                        <?php foreach ($regions as $r): ?>
-                            <button type="button" onclick="selectRegion('<?= htmlspecialchars($r, ENT_QUOTES) ?>')" class="btn" style="background-color: #337ab7; padding: 5px 12px; font-size: 0.9em;">
-                                Select Region: <?= htmlspecialchars($r) ?>
-                            </button>
-                        <?php endforeach; ?>
+                        <?php if (count($regions) > 1): ?>
+                            <?php foreach ($regions as $r): ?>
+                                <button type="button" onclick="selectRegion('<?= htmlspecialchars($r, ENT_QUOTES) ?>')" class="btn" style="background-color: #337ab7; padding: 5px 12px; font-size: 0.9em;">
+                                    Select Region: <?= htmlspecialchars($r) ?>
+                                </button>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         <button type="button" onclick="selectNone()" class="btn" style="background-color: #777; padding: 5px 12px; font-size: 0.9em;">Deselect All</button>
                     </div>
                 </div>
 
                 <div style="margin-top: 15px;">
-                    <?php foreach ($groupedDevices as $regName => $devList): ?>
-                        <div style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                                <strong style="color: #337ab7; font-size: 1.05em;">
-                                    Region: <?= htmlspecialchars($regName) ?> (<?= count($devList) ?> APs)
-                                </strong>
-                                <div>
-                                    <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', true)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #5cb85c;">Check All</button>
-                                    <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', false)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #999;">Uncheck</button>
+                    <?php if (count($regions) > 1): ?>
+                        <?php foreach ($groupedDevices as $regName => $devList): ?>
+                            <div style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                                    <strong style="color: #337ab7; font-size: 1.05em;">
+                                        Region: <?= htmlspecialchars($regName) ?> (<?= count($devList) ?> APs)
+                                    </strong>
+                                    <div>
+                                        <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', true)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #5cb85c;">Check All</button>
+                                        <button type="button" onclick="toggleRegion('<?= htmlspecialchars($regName, ENT_QUOTES) ?>', false)" class="btn" style="padding: 2px 8px; font-size: 0.8em; background-color: #999;">Uncheck</button>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
+                                    <?php foreach ($devList as $device): ?>
+                                        <?php 
+                                        $shouldCheck = ($presetRegion === 'all' || $presetRegion === ($device['region'] ?? 'Default'));
+                                        ?>
+                                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                                            <input type="checkbox" class="device-checkbox" data-region="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" value="<?= htmlspecialchars($device['name']) ?>" <?= $shouldCheck ? 'checked' : '' ?>>
+                                            <div>
+                                                <strong><?= htmlspecialchars($device['name']) ?></strong>
+                                                <div style="font-size: 0.8em; color: #777;"><code><?= htmlspecialchars($device['url']) ?></code></div>
+                                            </div>
+                                        </label>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
-                                <?php foreach ($devList as $device): ?>
-                                    <?php 
-                                    $shouldCheck = ($presetRegion === 'all' || $presetRegion === ($device['region'] ?? 'Default'));
-                                    ?>
-                                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
-                                        <input type="checkbox" class="device-checkbox" data-region="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" value="<?= htmlspecialchars($device['name']) ?>" <?= $shouldCheck ? 'checked' : '' ?>>
-                                        <div>
-                                            <strong><?= htmlspecialchars($device['name']) ?></strong>
-                                            <div style="font-size: 0.8em; color: #777;"><code><?= htmlspecialchars($device['url']) ?></code></div>
-                                        </div>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+                            <?php foreach ($devices as $device): ?>
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                                    <input type="checkbox" class="device-checkbox" data-region="<?= htmlspecialchars($device['region'] ?? 'Default') ?>" value="<?= htmlspecialchars($device['name']) ?>" checked>
+                                    <div>
+                                        <strong><?= htmlspecialchars($device['name']) ?></strong>
+                                        <div style="font-size: 0.8em; color: #777;"><code><?= htmlspecialchars($device['url']) ?></code></div>
+                                    </div>
+                                </label>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 
