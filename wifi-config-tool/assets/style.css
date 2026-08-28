@@ -37,7 +37,7 @@ h3 {
     font-size: 1.1rem;
 }
 
-/* Responsive Table */
+/* Responsive Table (Optional Fallback) */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
@@ -51,7 +51,6 @@ table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.95rem;
-    min-width: 320px;
 }
 
 th, td {
@@ -68,8 +67,120 @@ th {
     border-bottom: 2px solid #e2e8f0;
 }
 
-tbody tr:hover {
-    background-color: #f8fafc;
+/* Modern Device Card List (Zero Scroll on Mobile) */
+.device-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.ap-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    gap: 12px;
+}
+
+.ap-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ap-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.ap-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ap-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.ap-name:hover {
+    color: #3182ce;
+}
+
+.ap-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: #64748b;
+}
+
+.ap-meta code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #334155;
+    font-size: 0.88em;
+}
+
+.ap-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-manage {
+    background-color: #3182ce;
+    color: #fff;
+    padding: 7px 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 34px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.btn-manage:hover {
+    background-color: #2b6cb0;
+}
+
+.btn-delete-icon {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    color: #dc2626;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.btn-delete-icon:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
 }
 
 /* Buttons */
@@ -314,12 +425,29 @@ select:focus {
         grid-template-columns: 1fr;
     }
 
-    table {
-        font-size: 0.88rem;
+    .ap-card {
+        padding: 11px 12px;
+        gap: 8px;
     }
 
-    th, td {
-        padding: 10px 8px;
+    .ap-name {
+        font-size: 0.95rem;
+    }
+
+    .ap-meta {
+        font-size: 0.8rem;
+    }
+
+    .btn-manage {
+        padding: 6px 10px;
+        font-size: 0.82rem;
+        min-height: 32px;
+    }
+
+    .btn-delete-icon {
+        padding: 6px 8px;
+        font-size: 0.82rem;
+        min-height: 32px;
     }
 
     .mobile-stack {
@@ -332,18 +460,5 @@ select:focus {
     .mobile-full-btn {
         width: 100%;
         text-align: center;
-    }
-
-    .action-btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .action-btn-group .btn {
-        width: 100%;
-        padding: 6px 10px;
-        font-size: 0.85rem;
-        min-height: 34px;
     }
 }
