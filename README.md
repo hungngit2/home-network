@@ -38,7 +38,7 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
            |        |    |            Chainedbox  (Armbian, RK3328 "L1 Pro")          |
            |        |    |   /mnt/appsrv (59G, configs+data) · /mnt/nasdata (687G)    |
            |        |    |-------------------------------------------------------------|
-           |        |    | nginx+PHP-FPM  -> /ytb dashboard, /iptv, /kod, /wifi, /jk   |
+           |        |    | nginx+PHP-FPM  -> /ytb dashboard, /iptv, /kod, /wifi-config-tool, /jk |
            |        |    | AdGuard Home -> Unbound -> upstreams                       |
            |        |    | avahi-daemon  -- mDNS reflect: LAN <-> IoT                  |
            |        |    | Jellyfin  -- media library                                 |
