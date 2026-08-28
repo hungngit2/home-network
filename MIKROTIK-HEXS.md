@@ -2,7 +2,7 @@
 
 ## Identity & hardware
 
-- **System identity**: `lotus` (aliased in `~/.ssh/config` as `home` / `hexs`)
+- **System identity**: `home` (aliased in `~/.ssh/config` as `home` / `hexs`)
 - **Model**: RB760iGS ("hEX S") — MikroTik's 5-port Gigabit router with one SFP cage, running RouterOS v7.24 (MediaTek MT7621A, MMIPS 1004Kc 880MHz dual-core / 4-threads, 256MB RAM).
 - **Serial number / Software ID**: present in the export header — not reproduced here; treat them like the credentials elsewhere in this repo (they identify/license this specific unit).
 - **Timezone**: Asia/Bangkok (`+07:00`).
@@ -37,7 +37,7 @@ Static/recursive routes handle the two check-gateway targets for each WAN (so fa
 
 ## VPN
 
-- **WireGuard inbound** (`vpn-in-lotus`, UDP `13231`, comment "lotus <- VPN") — the router's own remote-access VPN, fully dual-stack:
+- **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access VPN, fully dual-stack:
   - **IPv4 subnet**: `10.0.100.254/24` (peers on `10.0.100.1`–`.3`)
   - **IPv6 subnet**: `fd39:10:100::254/64` (peers on `fd39:10:100::1`–`::3/128`)
   - 3 peers configured (`iPhoneSE2`, `mac16`, `hpEnvy`).
