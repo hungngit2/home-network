@@ -34,9 +34,6 @@ class Standards {
             'ssid_overrides' => [
                 '*IoT*' => [
                     'ieee80211w' => '0'
-                ],
-                '*iot*' => [
-                    'ieee80211w' => '0'
                 ]
             ]
         ];
