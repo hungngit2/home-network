@@ -223,6 +223,8 @@ apt-get update -qq
 
 log_info "Installing core service dependencies..."
 apt-get install -y --no-install-recommends \
+    netplan.io \
+    network-manager \
     unbound \
     unbound-anchor \
     aria2 \
@@ -235,6 +237,7 @@ apt-get install -y --no-install-recommends \
     samba \
     certbot \
     python3-certbot-nginx \
+    openssl \
     mosh \
     git \
     curl \
@@ -259,8 +262,10 @@ log_info "Setting nightly 03:00 maintenance reboot crontab..."
 
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
+mkdir -p /etc/docker
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/daemon.json" -o /etc/docker/daemon.json
 sed -i "s|\"data-root\": \"/mnt/appsrv/docker\"|\"data-root\": \"${APPSRV_DIR}/docker\"|g" /etc/docker/daemon.json
+systemctl enable --now docker 2>/dev/null || true
 systemctl restart docker 2>/dev/null || true
 
 log_succ "Base packages and OS kernel tuning configured."
@@ -271,6 +276,7 @@ log_succ "Base packages and OS kernel tuning configured."
 log_head "Step 3/8: Configuring Netplan, Static IPv6 ULA & IoT VLAN ${VLAN10_ID}"
 
 mkdir -p /etc/netplan /etc/NetworkManager/system-connections
+systemctl enable --now NetworkManager 2>/dev/null || true
 
 # Deploy Netplan configs with dynamically substituted parameters
 cat << EOF > /etc/netplan/00-default-use-network-manager.yaml
@@ -414,11 +420,22 @@ PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || 
 log_info "Configuring PHP-FPM ${PHP_VER} memory pool..."
 mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d" /run/php
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/php/www.conf" -o "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
+sed -i "s|/run/php/php8.3-fpm.sock|/run/php/php${PHP_VER}-fpm.sock|g" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
 systemctl restart "php${PHP_VER}-fpm" 2>/dev/null || true
 systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
 
 # Ensure generic socket link for Nginx FastCGI
 ln -sf "/run/php/php${PHP_VER}-fpm.sock" /run/php/php-fpm.sock 2>/dev/null || true
+
+# Generate placeholder self-signed SSL cert if Let's Encrypt cert does not exist yet
+if [[ ! -f "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" ]]; then
+    log_info "Generating bootstrap self-signed SSL certificate for ${DDNS_DOMAIN}..."
+    mkdir -p "/etc/letsencrypt/live/${DDNS_DOMAIN}"
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "/etc/letsencrypt/live/${DDNS_DOMAIN}/privkey.pem" \
+        -out "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" \
+        -subj "/CN=${DDNS_DOMAIN}" 2>/dev/null || true
+fi
 
 # Deploy Nginx Default VHost to appsrv
 log_info "Deploying Nginx reverse proxy configuration..."
