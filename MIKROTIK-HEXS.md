@@ -77,14 +77,15 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 ## Scheduler & scripts
 
-- **`IGMP-Proxy-Fix`** — **disabled** (superseded by permanent bridge querier and switch port multicast-router tuning below).
+- **`IGMP-Proxy-Fix`** — **enabled (interval: 4h)**: Automatically resets the downstream `br-lan` interface in `/routing igmp-proxy` to purge stale Multicast Forwarding Cache (MFC) table entries (`upstream-interface=*FFFFFFFF`) that occur when ISP multicast sessions idle or upstream DHCP refreshes.
+- **`IPTV DHCP Client Hook`**: Runs on `/ip dhcp-client` for `br-iptv` whenever `$bound=1`, instantly cycling `br-lan` in `igmp-proxy` on lease renewal so multicast routing sockets never get stuck after an IP rebind.
 - **`Reboot-Weekly`** — exists but disabled. (Interesting contrast with Chainedbox's *enabled* nightly reboot — the router isn't rebooted on a schedule, only Chainedbox is.)
 - **`Check-AGHome`** — see [DNS](#dns) above; exists but disabled.
 
 ## IGMP / multicast (IPTV)
 
-- `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-querier=no` so the ISP BNG remains the authoritative querier), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s` — keeping the kernel multicast routes permanently armed and responsive even after long idle periods.
-- A bridge filter explicitly **drops multicast forwarded out `br-iptv`** (prevents LAN-sourced multicast leaking upstream to the ISP) while still accepting mDNS (`224.0.0.251`) and SSDP (`239.255.255.250`) forwarding elsewhere — so local service discovery (Chromecast, etc.) still works across the LAN/other bridges.
+- `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-router=permanent`), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s`.
+- **Why the IGMP Proxy Reset is Required**: When the ISP DHCP client on `br-iptv` renews its dynamic lease (every ~4–8 hours) or when multicast joins go idle, RouterOS's kernel MFC table can invalidate the upstream routing pointer (`upstream-interface=*FFFFFFFF`). Cycling `br-lan` re-initializes the kernel multicast socket and sends a fresh IGMP query to the LAN, keeping the IPTV stream permanently responsive.
 
 ## Services
 
