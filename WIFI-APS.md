@@ -59,19 +59,21 @@ All client SSIDs share: 802.11r fast roaming (`ieee80211r`, shared `mobility_dom
 To configure or reflash any OpenWrt AP in the fleet, SSH into the AP and run:
 
 ```bash
+# Interactive mode (presents AP selection menu: redmi-rm2100-f0, jcg-q20-f1, jcg-q20-f2, jcg-q20-f3):
 curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-openwrt-ap.sh | sh
+
+# Quick one-liner targeting a specific AP name:
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-openwrt-ap.sh | sh -s -- jcg-q20-f1
 ```
 
-### Non-Interactive / Automated Setup:
+### Automated / Non-Interactive Setup:
 
 ```bash
+# Non-interactive quick setup by AP name (auto-populates IP, 2.4G channel, and hostname):
 export NON_INTERACTIVE=true
-export AP_HOSTNAME="jcg-q20-f1"
-export AP_IP="10.0.0.201"
-export ROUTER_IP="10.0.0.254"
-export DNS_SERVER="10.0.0.100"
-export CHANNEL_2G="6"
-export CHANNEL_5G="36"
+export AP_NAME="jcg-q20-f1"
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-openwrt-ap.sh | sh
+```
 export SSID_LAN="lotus"
 export PASS_LAN="MaiThaoTonyToby39"
 export SSID_IOT="lotus IoT"

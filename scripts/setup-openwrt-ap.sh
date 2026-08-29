@@ -37,24 +37,8 @@ log_head() {
     echo "${BOLD}${CYAN}=== $* ===${NC}"
 }
 
-# --- Auto-Detection ---
-CURRENT_HOSTNAME=$(uci get system.@system[0].hostname 2>/dev/null || cat /proc/sys/kernel/hostname 2>/dev/null || echo "openwrt-ap")
-CURRENT_IP=$(ip -o -4 addr show dev br-lan.1 2>/dev/null | awk '{print $4}' | cut -d/ -f1 || ip -o -4 addr show dev br-lan 2>/dev/null | awk '{print $4}' | cut -d/ -f1 || echo "10.0.0.201")
-BOARD_MODEL=$(cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | cut -d: -f2 | xargs || echo "Generic OpenWrt AP")
-
-# Suggest default 2.4G channel based on last digit of IP
-SUGGESTED_2G="6"
-case "${CURRENT_IP}" in
-    *200) SUGGESTED_2G="1" ;;
-    *201) SUGGESTED_2G="6" ;;
-    *202) SUGGESTED_2G="11" ;;
-    *203) SUGGESTED_2G="1" ;;
-esac
-
 # --- Parameters & Defaults ---
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/hungngit2/home-network/main}"
-AP_HOSTNAME="${AP_HOSTNAME:-${CURRENT_HOSTNAME}}"
-AP_IP="${AP_IP:-${CURRENT_IP}}"
 ROUTER_IP="${ROUTER_IP:-10.0.0.254}"
 DNS_SERVER="${DNS_SERVER:-10.0.0.100}"
 SSID_LAN="${SSID_LAN:-lotus}"
@@ -66,10 +50,58 @@ PASS_GUEST="${PASS_GUEST:-Lotus@Heart}"
 MESH_ID="${MESH_ID:-lotus-mesh}"
 MESH_KEY="${MESH_KEY:-Lotus@Mesh}"
 MOBILITY_DOMAIN="${MOBILITY_DOMAIN:-1076}"
-CHANNEL_2G="${CHANNEL_2G:-${SUGGESTED_2G}}"
 CHANNEL_5G="${CHANNEL_5G:-36}"
 COUNTRY="${COUNTRY:-US}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
+
+# --- Auto-Detection ---
+CURRENT_HOSTNAME=$(uci get system.@system[0].hostname 2>/dev/null || cat /proc/sys/kernel/hostname 2>/dev/null || echo "openwrt-ap")
+CURRENT_IP=$(ip -o -4 addr show dev br-lan.1 2>/dev/null | awk '{print $4}' | cut -d/ -f1 || ip -o -4 addr show dev br-lan 2>/dev/null | awk '{print $4}' | cut -d/ -f1 || echo "10.0.0.201")
+BOARD_MODEL=$(cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | cut -d: -f2 | xargs || echo "Generic OpenWrt AP")
+
+# Initial values
+AP_HOSTNAME="${AP_HOSTNAME:-${AP_NAME:-${1:-${CURRENT_HOSTNAME}}}}"
+AP_IP="${AP_IP:-${CURRENT_IP}}"
+CHANNEL_2G="${CHANNEL_2G:-6}"
+
+# Helper: Apply fleet profile based on AP name or selection
+apply_ap_profile() {
+    target="$1"
+    case "${target}" in
+        1|redmi-rm2100-f0|10.0.0.200|ap-0|AP-0)
+            AP_HOSTNAME="redmi-rm2100-f0"
+            AP_IP="10.0.0.200"
+            CHANNEL_2G="1"
+            ;;
+        2|jcg-q20-f1|10.0.0.201|ap-1|AP-1)
+            AP_HOSTNAME="jcg-q20-f1"
+            AP_IP="10.0.0.201"
+            CHANNEL_2G="6"
+            ;;
+        3|jcg-q20-f2|10.0.0.202|ap-2|AP-2)
+            AP_HOSTNAME="jcg-q20-f2"
+            AP_IP="10.0.0.202"
+            CHANNEL_2G="11"
+            ;;
+        4|jcg-q20-f3|10.0.0.203|ap-3|AP-3)
+            AP_HOSTNAME="jcg-q20-f3"
+            AP_IP="10.0.0.203"
+            CHANNEL_2G="1"
+            ;;
+        *)
+            if [ -n "${target}" ]; then
+                AP_HOSTNAME="${target}"
+            fi
+            ;;
+    esac
+}
+
+# Apply profile if passed via environment or argument
+if [ -n "${AP_NAME:-}" ] || [ -n "${1:-}" ]; then
+    apply_ap_profile "${AP_NAME:-${1:-}}"
+elif [ "${AP_HOSTNAME}" != "openwrt-ap" ] && [ "${AP_HOSTNAME}" != "OpenWrt" ]; then
+    apply_ap_profile "${AP_HOSTNAME}"
+fi
 
 # --- Helper: Interactive Prompt with Default ---
 prompt_val() {
@@ -102,7 +134,21 @@ echo "${BOLD}OpenWrt Access Point Fleet Provisioning & Setup Installer${NC}"
 echo "Detected Hardware: ${GREEN}${BOARD_MODEL}${NC}\n"
 
 if [ "${NON_INTERACTIVE}" != "true" ]; then
-    echo "${YELLOW}Please review or adjust the configuration parameters below (press Enter to accept default):${NC}\n"
+    echo "${BOLD}Select AP Profile or enter AP name:${NC}"
+    echo "  1) ${GREEN}redmi-rm2100-f0${NC} (IP: 10.0.0.200 | 2.4G Ch 1  | Redmi AC2100)"
+    echo "  2) ${GREEN}jcg-q20-f1${NC}      (IP: 10.0.0.201 | 2.4G Ch 6  | JCG Q20)"
+    echo "  3) ${GREEN}jcg-q20-f2${NC}      (IP: 10.0.0.202 | 2.4G Ch 11 | JCG Q20)"
+    echo "  4) ${GREEN}jcg-q20-f3${NC}      (IP: 10.0.0.203 | 2.4G Ch 1  | JCG Q20)"
+    echo "  5) Custom / Use current: ${CYAN}${AP_HOSTNAME}${NC}"
+    echo ""
+    printf "%bEnter selection (1-5) or type AP name%b [%b%s%b]: " "${BOLD}" "${NC}" "${GREEN}" "${AP_HOSTNAME}" "${NC}"
+    read ap_choice < /dev/tty || ap_choice=""
+    if [ -n "${ap_choice}" ]; then
+        apply_ap_profile "${ap_choice}"
+    fi
+
+    echo ""
+    echo "${YELLOW}Review and confirm network parameters (press Enter to accept default):${NC}\n"
     prompt_val "AP Hostname" "AP_HOSTNAME"
     prompt_val "AP Static IPv4 Address" "AP_IP"
     prompt_val "Upstream Router / Gateway IP" "ROUTER_IP"
