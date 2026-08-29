@@ -72,7 +72,7 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
   - **IPv6 (NAT66 / Masquerade & `pd-WAN` Anchor)**:
     - **Why ULA + NAT66 across all segments (LAN, IoT, Guest, VPN)**: VNPT (ISP) only delegates a single `/64` prefix (insufficient for native multi-VLAN segmentation) and their upstream BRAS/BNG and OMC core routing suffer from routing loops and blackholes when handling individual downstream client SLAAC `/128` host routes. NAT66 collapses all outbound traffic from all segments into the router's single public GUA identity, completely bypassing VNPT's OMC routing mess while giving all internal VLANs and remote WireGuard clients rock-solid static ULA addressing (`fd39:...`).
     - **The `pd-WAN` Anchor Mechanism**: VNPT delegates only a prefix (`IA_PD`), without assigning a WAN GUA address (`IA_NA`) to `pppoe-out1` (link-local only). RouterOS's `action=masquerade` engine requires at least one active GUA bound on the router to use as the public source IP. Binding `from-pool=ipv6-wan1-pool` directly to `pppoe-out1` (`pd-WAN`, `advertise=no`) provides this public anchor address cleanly without broadcasting public RAs to any client VLANs.
-    - **Outbound Rule**: `action=masquerade chain=srcnat out-interface-list=wan src-address=!2001::/16`.
+    - **Outbound Rule**: `action=masquerade chain=srcnat out-interface-list=wan src-address=fc00::/7 comment="ULA -> Internet"`.
     - **Inbound Destination NAT**: Port-forwards `80,443` to Chainedbox (`fd39:10::100/128`), with explicit forward filter acceptance (`connection-nat-state=dstnat in-interface-list=wan`).
 
 ## Scheduler & scripts
