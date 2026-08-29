@@ -252,9 +252,9 @@ log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/sysctl.conf" -o /etc/sysctl.d/99-chainedbox.conf
 sysctl --system >/dev/null 2>&1 || true
 
-# Nightly reboot crontab
+# Nightly reboot crontab (idempotent)
 log_info "Setting nightly 03:00 maintenance reboot crontab..."
-echo "0 3 * * * /sbin/reboot" | crontab -
+(crontab -l 2>/dev/null | grep -v "/sbin/reboot" || true; echo "0 3 * * * /sbin/reboot") | crontab -
 
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
@@ -350,6 +350,17 @@ log_succ "Network dual-homed VLAN interfaces configured."
 # ==============================================================================
 log_head "Step 4/8: Configuring Unbound (${UNBOUND_PORT}), AdGuard Home (53/3000) & Avahi"
 
+# Disable systemd-resolved DNSStubListener if active to avoid port 53 collision
+if systemctl is-active --quiet systemd-resolved 2>/dev/null; then
+    log_info "Freeing port 53 by disabling systemd-resolved DNSStubListener..."
+    mkdir -p /etc/systemd/resolved.conf.d
+    cat << 'EOF' > /etc/systemd/resolved.conf.d/adguard-port53.conf
+[Resolve]
+DNSStubListener=no
+EOF
+    systemctl restart systemd-resolved 2>/dev/null || true
+fi
+
 # Configure Unbound on custom port
 log_info "Configuring Unbound DNS resolver on port ${UNBOUND_PORT}..."
 mkdir -p /etc/unbound/unbound.conf.d
@@ -393,22 +404,24 @@ systemctl enable avahi-daemon
 log_succ "DNS stack and Avahi mDNS reflector configured."
 
 # ==============================================================================
-# Step 5: Web Server (Nginx + PHP-FPM 8.3) & Web Applications
+# Step 5: Web Server (Nginx + PHP-FPM) & Web Applications
 # ==============================================================================
 log_head "Step 5/8: Configuring Nginx, PHP-FPM & Web Apps"
 
 # Detect PHP-FPM version
 PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || echo "8.3")
 log_info "Configuring PHP-FPM ${PHP_VER} memory pool..."
-mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d"
+mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d" /run/php
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/php/www.conf" -o "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
 systemctl restart "php${PHP_VER}-fpm" 2>/dev/null || true
 systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
 
+# Ensure generic socket link for Nginx FastCGI
+ln -sf "/run/php/php${PHP_VER}-fpm.sock" /run/php/php-fpm.sock 2>/dev/null || true
+
 # Deploy Nginx Default VHost to appsrv
 log_info "Deploying Nginx reverse proxy configuration..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/nginx/default.conf" -o "${APPSRV_DIR}/nginx/default"
-# Substitute dynamic paths and domains in nginx config
 sed -i "s|root /mnt/appsrv/www;|root ${APPSRV_DIR}/www;|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/nasdata/share/www/certbot/|${NASDATA_DIR}/share/www/certbot/|g" "${APPSRV_DIR}/nginx/default"
@@ -419,12 +432,24 @@ rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 ln -sf "${APPSRV_DIR}/nginx/default" /etc/nginx/sites-available/default
 ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Clone / Deploy Wi-Fi Config Tool
+# Clone / Deploy Wi-Fi Fleet Config Tool
 log_info "Deploying Wi-Fi Fleet Configuration Tool..."
-mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" "${APPSRV_DIR}/www/wifi-config-tool/configs"
+mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" \
+         "${APPSRV_DIR}/www/wifi-config-tool/configs" \
+         "${APPSRV_DIR}/www/wifi-config-tool/pages" \
+         "${APPSRV_DIR}/www/wifi-config-tool/src"
+
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/index.php" -o "${APPSRV_DIR}/www/wifi-config-tool/index.php"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/assets/style.css" -o "${APPSRV_DIR}/www/wifi-config-tool/assets/style.css"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/configs/config.json.example" -o "${APPSRV_DIR}/www/wifi-config-tool/configs/config.json"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/configs/standards.json" -o "${APPSRV_DIR}/www/wifi-config-tool/configs/standards.json"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/pages/device.php" -o "${APPSRV_DIR}/www/wifi-config-tool/pages/device.php"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/pages/bulk.php" -o "${APPSRV_DIR}/www/wifi-config-tool/pages/bulk.php"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/auth.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/auth.php"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/bootstrap.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/bootstrap.php"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/OpenWrtClient.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/OpenWrtClient.php"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/DeviceManager.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/DeviceManager.php"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/Standards.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/Standards.php"
 
 chown -R www-data:www-data "${APPSRV_DIR}/www"
 chmod -R 775 "${APPSRV_DIR}/www"
@@ -478,10 +503,16 @@ if ! command -v jellyfin >/dev/null 2>&1; then
     curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash 2>/dev/null || true
 fi
 
-log_info "Configuring Jellyfin environment flags..."
+log_info "Configuring Jellyfin environment flags and systemd unit..."
+mkdir -p "${APPSRV_DIR}/jellyfin/var-lib" "${APPSRV_DIR}/jellyfin/web"
+if [[ ! -f "${APPSRV_DIR}/jellyfin/web/index.html" && -d /usr/share/jellyfin/web ]]; then
+    cp -r /usr/share/jellyfin/web/* "${APPSRV_DIR}/jellyfin/web/" 2>/dev/null || true
+fi
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.env" -o "${APPSRV_DIR}/jellyfin/env"
 sed -i "s|/mnt/appsrv/jellyfin|${APPSRV_DIR}/jellyfin|g" "${APPSRV_DIR}/jellyfin/env"
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.service" -o /etc/systemd/system/jellyfin.service
+sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/jellyfin.service
+chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" 2>/dev/null || true
 systemctl daemon-reload
 systemctl restart jellyfin 2>/dev/null || true
 systemctl enable jellyfin 2>/dev/null || true
@@ -514,7 +545,10 @@ sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.co
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2-post-download.sh" -o "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.service" -o /etc/systemd/system/aria2.service
-sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" /etc/systemd/system/aria2.service
+sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service
+if ! mountpoint -q "${APPSRV_DIR}"; then
+    sed -i '/ConditionPathIsMountPoint/d' /etc/systemd/system/aria2.service
+fi
 
 systemctl daemon-reload
 systemctl enable aria2
@@ -528,7 +562,7 @@ log_succ "Samba and Aria2 services configured."
 log_head "Step 8/8: Setting up Home Assistant Container & Health Checks"
 
 # Deploy Home Assistant configuration files
-mkdir -p /opt/docker/homeassistant/config
+mkdir -p /opt/docker/homeassistant/config /opt/docker/homeassistant/media
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/homeassistant/configuration.yaml" -o /opt/docker/homeassistant/config/configuration.yaml
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/homeassistant/automations.yaml" -o /opt/docker/homeassistant/config/automations.yaml
 
@@ -553,11 +587,11 @@ echo -e "${BOLD}${GREEN}               Chainedbox System Bootstrap Completed!   
 echo -e "${BOLD}${GREEN}==============================================================================${NC}\n"
 
 echo -e "${BOLD}Active Service Status:${NC}"
-for s in nginx php${PHP_VER}-fpm unbound AdGuardHome avahi-daemon rtp2httpd smbd aria2 docker; do
+for s in nginx "php${PHP_VER}-fpm" unbound AdGuardHome avahi-daemon rtp2httpd smbd aria2 docker; do
     if systemctl is-active --quiet "$s" 2>/dev/null; then
-        echo -e "  • ${s,-20} [ ${GREEN}ACTIVE / RUNNING${NC} ]"
+        printf "  • %-20s [ ${GREEN}ACTIVE / RUNNING${NC} ]\n" "$s"
     else
-        echo -e "  • ${s,-20} [ ${YELLOW}INACTIVE / STOPPED${NC} ]"
+        printf "  • %-20s [ ${YELLOW}INACTIVE / STOPPED${NC} ]\n" "$s"
     fi
 done
 
@@ -571,3 +605,4 @@ echo -e "  • Jellyfin Media:      ${CYAN}http://${STATIC_IPV4}:8096/jellyfin/$
 echo -e "  • Samba Share Root:    ${CYAN}\\\\${STATIC_IPV4}\\downloads${NC} (or smb://${STATIC_IPV4})"
 
 echo -e "\n${BOLD}Note:${NC} You can reboot the system anytime with: ${CYAN}reboot${NC}\n"
+
