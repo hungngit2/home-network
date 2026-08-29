@@ -223,8 +223,6 @@ apt-get update -qq
 
 log_info "Installing core service dependencies..."
 apt-get install -y --no-install-recommends \
-    netplan.io \
-    network-manager \
     unbound \
     unbound-anchor \
     aria2 \
@@ -237,14 +235,12 @@ apt-get install -y --no-install-recommends \
     samba \
     certbot \
     python3-certbot-nginx \
-    openssl \
     mosh \
     git \
     curl \
     wget \
     jq \
     tar \
-    unzip \
     net-tools \
     avahi-daemon \
     avahi-utils \
@@ -256,16 +252,14 @@ log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/sysctl.conf" -o /etc/sysctl.d/99-chainedbox.conf
 sysctl --system >/dev/null 2>&1 || true
 
-# Nightly reboot crontab (idempotent)
+# Nightly reboot crontab
 log_info "Setting nightly 03:00 maintenance reboot crontab..."
-(crontab -l 2>/dev/null | grep -v "/sbin/reboot" || true; echo "0 3 * * * /sbin/reboot") | crontab -
+echo "0 3 * * * /sbin/reboot" | crontab -
 
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
-mkdir -p /etc/docker
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/daemon.json" -o /etc/docker/daemon.json
 sed -i "s|\"data-root\": \"/mnt/appsrv/docker\"|\"data-root\": \"${APPSRV_DIR}/docker\"|g" /etc/docker/daemon.json
-systemctl enable --now docker 2>/dev/null || true
 systemctl restart docker 2>/dev/null || true
 
 log_succ "Base packages and OS kernel tuning configured."
@@ -276,7 +270,6 @@ log_succ "Base packages and OS kernel tuning configured."
 log_head "Step 3/8: Configuring Netplan, Static IPv6 ULA & IoT VLAN ${VLAN10_ID}"
 
 mkdir -p /etc/netplan /etc/NetworkManager/system-connections
-systemctl enable --now NetworkManager 2>/dev/null || true
 
 # Deploy Netplan configs with dynamically substituted parameters
 cat << EOF > /etc/netplan/00-default-use-network-manager.yaml
@@ -357,17 +350,6 @@ log_succ "Network dual-homed VLAN interfaces configured."
 # ==============================================================================
 log_head "Step 4/8: Configuring Unbound (${UNBOUND_PORT}), AdGuard Home (53/3000) & Avahi"
 
-# Disable systemd-resolved DNSStubListener if active to avoid port 53 collision
-if systemctl is-active --quiet systemd-resolved 2>/dev/null; then
-    log_info "Freeing port 53 by disabling systemd-resolved DNSStubListener..."
-    mkdir -p /etc/systemd/resolved.conf.d
-    cat << 'EOF' > /etc/systemd/resolved.conf.d/adguard-port53.conf
-[Resolve]
-DNSStubListener=no
-EOF
-    systemctl restart systemd-resolved 2>/dev/null || true
-fi
-
 # Configure Unbound on custom port
 log_info "Configuring Unbound DNS resolver on port ${UNBOUND_PORT}..."
 mkdir -p /etc/unbound/unbound.conf.d
@@ -411,35 +393,22 @@ systemctl enable avahi-daemon
 log_succ "DNS stack and Avahi mDNS reflector configured."
 
 # ==============================================================================
-# Step 5: Web Server (Nginx + PHP-FPM) & Web Applications
+# Step 5: Web Server (Nginx + PHP-FPM 8.3) & Web Applications
 # ==============================================================================
 log_head "Step 5/8: Configuring Nginx, PHP-FPM & Web Apps"
 
 # Detect PHP-FPM version
 PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || echo "8.3")
 log_info "Configuring PHP-FPM ${PHP_VER} memory pool..."
-mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d" /run/php
+mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d"
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/php/www.conf" -o "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
-sed -i "s|/run/php/php8.3-fpm.sock|/run/php/php${PHP_VER}-fpm.sock|g" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
 systemctl restart "php${PHP_VER}-fpm" 2>/dev/null || true
 systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
-
-# Ensure generic socket link for Nginx FastCGI
-ln -sf "/run/php/php${PHP_VER}-fpm.sock" /run/php/php-fpm.sock 2>/dev/null || true
-
-# Generate placeholder self-signed SSL cert if Let's Encrypt cert does not exist yet
-if [[ ! -f "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" ]]; then
-    log_info "Generating bootstrap self-signed SSL certificate for ${DDNS_DOMAIN}..."
-    mkdir -p "/etc/letsencrypt/live/${DDNS_DOMAIN}"
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout "/etc/letsencrypt/live/${DDNS_DOMAIN}/privkey.pem" \
-        -out "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" \
-        -subj "/CN=${DDNS_DOMAIN}" 2>/dev/null || true
-fi
 
 # Deploy Nginx Default VHost to appsrv
 log_info "Deploying Nginx reverse proxy configuration..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/nginx/default.conf" -o "${APPSRV_DIR}/nginx/default"
+# Substitute dynamic paths and domains in nginx config
 sed -i "s|root /mnt/appsrv/www;|root ${APPSRV_DIR}/www;|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/nasdata/share/www/certbot/|${NASDATA_DIR}/share/www/certbot/|g" "${APPSRV_DIR}/nginx/default"
@@ -450,62 +419,15 @@ rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 ln -sf "${APPSRV_DIR}/nginx/default" /etc/nginx/sites-available/default
 ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Clone / Deploy Wi-Fi Fleet Config Tool
+# Clone / Deploy Wi-Fi Config Tool
 log_info "Deploying Wi-Fi Fleet Configuration Tool..."
-mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" \
-         "${APPSRV_DIR}/www/wifi-config-tool/configs" \
-         "${APPSRV_DIR}/www/wifi-config-tool/pages" \
-         "${APPSRV_DIR}/www/wifi-config-tool/src"
-
+mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" "${APPSRV_DIR}/www/wifi-config-tool/configs"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/index.php" -o "${APPSRV_DIR}/www/wifi-config-tool/index.php"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/assets/style.css" -o "${APPSRV_DIR}/www/wifi-config-tool/assets/style.css"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/configs/config.json.example" -o "${APPSRV_DIR}/www/wifi-config-tool/configs/config.json"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/configs/standards.json" -o "${APPSRV_DIR}/www/wifi-config-tool/configs/standards.json"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/pages/device.php" -o "${APPSRV_DIR}/www/wifi-config-tool/pages/device.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/pages/bulk.php" -o "${APPSRV_DIR}/www/wifi-config-tool/pages/bulk.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/auth.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/auth.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/bootstrap.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/bootstrap.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/OpenWrtClient.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/OpenWrtClient.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/DeviceManager.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/DeviceManager.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/Standards.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/Standards.php"
 
-# Clone / Deploy YouTube OwnTone Dashboard
-log_info "Deploying YouTube OwnTone Dashboard to ${APPSRV_DIR}/www/ytb..."
-if [[ -d "${APPSRV_DIR}/www/ytb/.git" ]]; then
-    git -C "${APPSRV_DIR}/www/ytb" pull 2>/dev/null || true
-else
-    rm -rf "${APPSRV_DIR}/www/ytb"
-    git clone https://github.com/hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" 2>/dev/null || \
-    git clone git@github.com:hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" || true
-fi
-
-# Clone / Deploy AriaNg Web UI
-log_info "Deploying AriaNg Web UI to ${APPSRV_DIR}/www/aria2..."
-mkdir -p "${APPSRV_DIR}/www/aria2"
-if [[ -d "${APPSRV_DIR}/www/aria2/.git" ]]; then
-    git -C "${APPSRV_DIR}/www/aria2" pull 2>/dev/null || true
-elif [[ ! -f "${APPSRV_DIR}/www/aria2/index.html" ]]; then
-    rm -rf "${APPSRV_DIR}/www/aria2"
-    if ! git clone https://github.com/mayswind/AriaNg.git "${APPSRV_DIR}/www/aria2" 2>/dev/null && \
-       ! git clone git@github.com:mayswind/AriaNg.git "${APPSRV_DIR}/www/aria2" 2>/dev/null; then
-        log_info "Downloading latest prebuilt AriaNg release bundle..."
-        mkdir -p "${APPSRV_DIR}/www/aria2"
-        curl -s -L "https://github.com/mayswind/AriaNg/releases/download/1.3.14/AriaNg-1.3.14-AllInOne.zip" -o /tmp/ariang.zip
-        unzip -o -q /tmp/ariang.zip -d "${APPSRV_DIR}/www/aria2"
-        rm -f /tmp/ariang.zip
-    fi
-fi
-
-# Deploy JK BMS Configuration Tool
-log_info "Deploying JK BMS Configuration Tool to ${APPSRV_DIR}/www/jk..."
-mkdir -p "${APPSRV_DIR}/www/jk"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/index.html" -o "${APPSRV_DIR}/www/jk/index.html"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/styles.css" -o "${APPSRV_DIR}/www/jk/styles.css"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/jk-bms-generator.js" -o "${APPSRV_DIR}/www/jk/jk-bms-generator.js"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/clipboard.min.js" -o "${APPSRV_DIR}/www/jk/clipboard.min.js"
-
-chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
-chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
+chown -R www-data:www-data "${APPSRV_DIR}/www"
+chmod -R 775 "${APPSRV_DIR}/www"
 
 systemctl restart nginx
 systemctl enable nginx
@@ -556,16 +478,10 @@ if ! command -v jellyfin >/dev/null 2>&1; then
     curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash 2>/dev/null || true
 fi
 
-log_info "Configuring Jellyfin environment flags and systemd unit..."
-mkdir -p "${APPSRV_DIR}/jellyfin/var-lib" "${APPSRV_DIR}/jellyfin/web"
-if [[ ! -f "${APPSRV_DIR}/jellyfin/web/index.html" && -d /usr/share/jellyfin/web ]]; then
-    cp -r /usr/share/jellyfin/web/* "${APPSRV_DIR}/jellyfin/web/" 2>/dev/null || true
-fi
+log_info "Configuring Jellyfin environment flags..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.env" -o "${APPSRV_DIR}/jellyfin/env"
 sed -i "s|/mnt/appsrv/jellyfin|${APPSRV_DIR}/jellyfin|g" "${APPSRV_DIR}/jellyfin/env"
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.service" -o /etc/systemd/system/jellyfin.service
-sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/jellyfin.service
-chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" 2>/dev/null || true
 systemctl daemon-reload
 systemctl restart jellyfin 2>/dev/null || true
 systemctl enable jellyfin 2>/dev/null || true
@@ -598,10 +514,7 @@ sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.co
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2-post-download.sh" -o "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.service" -o /etc/systemd/system/aria2.service
-sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service
-if ! mountpoint -q "${APPSRV_DIR}"; then
-    sed -i '/ConditionPathIsMountPoint/d' /etc/systemd/system/aria2.service
-fi
+sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" /etc/systemd/system/aria2.service
 
 systemctl daemon-reload
 systemctl enable aria2
@@ -615,7 +528,7 @@ log_succ "Samba and Aria2 services configured."
 log_head "Step 8/8: Setting up Home Assistant Container & Health Checks"
 
 # Deploy Home Assistant configuration files
-mkdir -p /opt/docker/homeassistant/config /opt/docker/homeassistant/media
+mkdir -p /opt/docker/homeassistant/config
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/homeassistant/configuration.yaml" -o /opt/docker/homeassistant/config/configuration.yaml
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/homeassistant/automations.yaml" -o /opt/docker/homeassistant/config/automations.yaml
 
@@ -658,4 +571,3 @@ echo -e "  • Jellyfin Media:      ${CYAN}http://${STATIC_IPV4}:8096/jellyfin/$
 echo -e "  • Samba Share Root:    ${CYAN}\\\\${STATIC_IPV4}\\downloads${NC} (or smb://${STATIC_IPV4})"
 
 echo -e "\n${BOLD}Note:${NC} You can reboot the system anytime with: ${CYAN}reboot${NC}\n"
-
