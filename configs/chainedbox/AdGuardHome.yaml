@@ -137,6 +137,7 @@ user_rules:
   - '@@||mytv.vn^$important'
   - '||cdn.lichviet.org^$important'
   - '||api.lichviet.org^$important'
+  - '@@||browser.events.data.msn.com^$important'
   - ""
 dhcp:
   enabled: false

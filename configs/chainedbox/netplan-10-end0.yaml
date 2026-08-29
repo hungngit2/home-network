@@ -1,0 +1,14 @@
+network:
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+    end0:
+      dhcp4: true
+      dhcp6: true
+      ipv6-address-generation: eui64
+      addresses:
+        - fd39:10::100/64
+      networkmanager:
+        passthrough:
+          ipv6.token: "::100"
+          ipv6.addr-gen-mode: "eui64"
