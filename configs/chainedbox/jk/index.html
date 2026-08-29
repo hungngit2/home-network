@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
+    <title>JK BMS Monitor - Password Generator</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>JK BMS Monitor</h1>
+        <p class="subtitle">Password Generator Tool</p>
+      </header>
+
+      <!-- Global Countdown -->
+      <div class="global-countdown">
+        <div class="countdown-container">
+          <span class="countdown-label">Codes valid for:</span>
+          <span id="countdown" class="countdown">--:--</span>
+        </div>
+      </div>
+
+      <main class="main-content">
+        <!-- Settings Password Section -->
+        <section class="password-section">
+          <h2>Settings Code Generator</h2>
+
+          <div class="input-group">
+            <label for="serialInput" class="input-label">
+              Serial Number (JK-BMS-App):
+            </label>
+            <input
+              type="text"
+              id="serialInput"
+              class="serial-input"
+              placeholder="Enter at least 10 hex characters"
+              value="506177F46002383"
+              maxlength="32"
+            />
+            <div class="input-hint">Only hexadecimal characters (0-9, A-F) allowed</div>
+          </div>
+
+          <div class="password-display">
+            <label class="password-label">Generated Password:</label>
+            <div class="password-container">
+              <span id="generatedPassword" class="password-value">N/A</span>
+              <button id="copyPassword" class="copy-btn" title="Copy to clipboard">
+                <span class="copy-icon">📋</span>
+              </button>
+            </div>
+          </div>
+        </section>
+        <!-- Force Update Code Section -->
+        <section class="code-section">
+          <div class="section-header">
+            <h2>Force Update Code</h2>
+          </div>
+
+          <div class="code-display">
+            <div id="update-code" class="code-value">Loading...</div>
+            <button id="copyForceCode" class="copy-btn" title="Copy to clipboard">
+              <span class="copy-icon">📋</span>
+            </button>
+          </div>
+
+          <p class="description">
+            This code is used to upload firmware with JK-BMS-Monitor using the "Force Updating" button.
+          </p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>© 2025 JK BMS Password Generator</p>
+      </footer>
+    </div>
+
+    <div id="notification" class="notification hidden">
+      <span class="notification-text"></span>
+    </div>
+
+    <script src="clipboard.min.js"></script>
+    <script src="jk-bms-generator.js"></script>
+  </body>
+</html>

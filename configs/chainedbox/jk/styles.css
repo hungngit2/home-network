@@ -1,0 +1,422 @@
+/* CSS Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Light mode colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-accent: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --accent-color: #0066cc;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-accent: #3a3a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-color: #404040;
+    --accent-color: #4da6ff;
+    --success-color: #40d561;
+    --warning-color: #ffeb3b;
+    --error-color: #ff5252;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Base Typography */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Layout */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 10px 0;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.header h1 {
+  color: var(--accent-color);
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Sections */
+.code-section,
+.password-section {
+  background-color: var(--bg-secondary);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s ease;
+}
+
+.code-section:hover,
+.password-section:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Global Countdown */
+.global-countdown {
+  text-align: center;
+  margin: 5px 0 10px 0;
+}
+
+.global-countdown .countdown-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--accent-color);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 25px;
+  box-shadow: var(--shadow);
+}
+
+.global-countdown .countdown-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+}
+
+.global-countdown .countdown {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-weight: 700;
+  font-size: 1.2rem;
+  min-width: 70px;
+  color: white;
+}
+
+/* Countdown */
+.countdown-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-accent);
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.countdown-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.countdown {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-weight: 600;
+  color: var(--accent-color);
+  font-size: 1rem;
+  min-width: 60px;
+}
+
+/* Code Display */
+.code-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.code-value {
+  background-color: var(--bg-accent);
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  border: 2px solid var(--border-color);
+  flex: 1;
+  text-align: center;
+  letter-spacing: 2px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Input Group */
+.input-group {
+  margin-bottom: 25px;
+}
+
+.input-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.serial-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Monaco', 'Menlo', monospace;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.serial-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.serial-input.error {
+  border-color: var(--error-color);
+}
+
+.input-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Password Display */
+.password-display {
+  margin-top: 20px;
+}
+
+.password-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.password-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.password-value {
+  background-color: var(--bg-accent);
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  border: 2px solid var(--border-color);
+  flex: 1;
+  text-align: center;
+  letter-spacing: 1px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Copy Button */
+.copy-btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-btn:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+}
+
+.copy-icon {
+  font-size: 1.2rem;
+}
+
+/* Description */
+.description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--success-color);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-hover);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  font-weight: 500;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.notification.hidden {
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .global-countdown {
+    margin: 5px 0 10px 0;
+    padding: 15px;
+  }
+
+  .global-countdown .countdown-container {
+    padding: 5px 10px;
+  }
+
+  .global-countdown .countdown-label {
+    font-size: 0.9rem;
+  }
+
+  .global-countdown .countdown {
+    font-size: 1.1rem;
+  }
+
+  .code-section,
+  .password-section {
+    padding: 20px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .code-display,
+  .password-container {
+    gap: 15px;
+  }
+
+  .copy-btn {
+    justify-content: center;
+  }
+
+  .code-value,
+  .password-value {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .code-section,
+  .password-section {
+    padding: 15px;
+  }
+
+  .code-value,
+  .password-value {
+    font-size: 1rem;
+    padding: 12px 16px;
+  }
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}

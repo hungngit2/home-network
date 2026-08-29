@@ -479,6 +479,14 @@ elif [[ ! -f "${APPSRV_DIR}/www/aria2/index.html" ]]; then
     fi
 fi
 
+# Deploy JK BMS Configuration Tool
+log_info "Deploying JK BMS Configuration Tool to ${APPSRV_DIR}/www/jk..."
+mkdir -p "${APPSRV_DIR}/www/jk"
+curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/index.html" -o "${APPSRV_DIR}/www/jk/index.html"
+curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/styles.css" -o "${APPSRV_DIR}/www/jk/styles.css"
+curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/jk-bms-generator.js" -o "${APPSRV_DIR}/www/jk/jk-bms-generator.js"
+curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jk/clipboard.min.js" -o "${APPSRV_DIR}/www/jk/clipboard.min.js"
+
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
