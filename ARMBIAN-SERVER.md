@@ -41,10 +41,16 @@ Per-directory detail not covered elsewhere:
 - **`samba/smb.conf`** — the real Samba config; `/etc/samba/smb.conf` is just a symlink to it (same pattern as nginx/AdGuard Home/aria2 — config kept on `appsrv` so it survives an OS reflash).
 - **`ytb-owntone/`** — runtime state for the dashboard/OwnTone integration: `pipes/youtube.fifo` (a named pipe OwnTone reads as an audio source — likely fed by a `yt-dlp`-style downloader driven by `backend.php`/`queue-daemon.php`), `cache/` (downloaded audio, e.g. `dUkGrSPbSOE.audio`), and `data/` (`queue_state.json`, `playlist.json`, `confirmed_playing.json`, `resolved_stream.json`, `last_search.json`, `playback.lock` — the lock file the nginx `fastcgi_ignore_client_abort` comment refers to). This is the actual bridge between the web dashboard and OwnTone's playback.
 
-## Automated Bootstrap Installer (`setup-chainedbox.sh`)
+## Automated Bootstrap Installers (`setup-debian.sh` & `setup-chainedbox.sh`)
 
-To rebuild or provision a fresh Armbian install on Chainedbox from scratch, run the master bootstrap installer directly via GitHub:
+To rebuild or provision a fresh **Debian** or **Armbian** server from scratch, run the bootstrap installer directly via GitHub:
 
+### Universal Debian / Armbian Setup:
+```bash
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
+```
+
+### Chainedbox-Specific Armbian Setup:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-chainedbox.sh | sudo bash
 ```
