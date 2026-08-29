@@ -1,0 +1,27 @@
+# OpenWrt usteer Band-Steering & Roaming Optimization Template
+# Managed by scripts/setup-openwrt-ap.sh
+
+config usteer
+	option network 'lan'
+	option syslog '1'
+	option local_mode '0'
+	option ipv6 '0'
+	option debug_level '1'
+	list ssid_list '${SSID_LAN}'
+	list ssid_list '${SSID_GUEST}'
+	option max_neighbor_reports '8'
+	option probe_steering '1'
+	option assoc_steering '1'
+	option initial_connect_delay '20'
+	option roam_scan_snr '-70'
+	option roam_scan_tries '3'
+	option roam_scan_interval '10000'
+	option roam_trigger_snr '-74'
+	option roam_trigger_interval '30000'
+	option signal_diff_threshold '8'
+	option min_snr '-82'
+	option min_snr_kick_delay '5000'
+	option band_steering_interval '120000'
+	option band_steering_min_snr '-65'
+	option band_steering_threshold '5'
+	option link_measurement_interval '30000'
