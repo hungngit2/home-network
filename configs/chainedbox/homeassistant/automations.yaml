@@ -1,0 +1,21 @@
+- id: '1781580392967'
+  alias: Bike Overcharge Cutoff
+  description: 'Automatically cut power to bike charger when power consumption drops below 10W'
+  triggers:
+  - type: power
+    device_id: 01523d6cb975fbc9ef844ed4331409d4
+    entity_id: b6731993b5fb757901d4f90b3f6dedf6
+    domain: sensor
+    trigger: device
+    below: 10
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 01523d6cb975fbc9ef844ed4331409d4
+    entity_id: 2cc28aefed6d2ddd22cc970e48a0e9ac
+    domain: switch
+  mode: single

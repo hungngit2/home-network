@@ -256,3 +256,24 @@ Plus the standard `[homes]`, `[printers]`, `[print$]` shares (unused — no prin
 
 - `0 3 * * * /sbin/reboot` — nightly reboot at 03:00, most likely to work around the low-RAM/occasional-hang situation rather than for any config reason.
 - `certbot.timer` — runs twice daily, renews the `REDACTED-domain` cert via the `/mnt/nasdata/share/www/certbot` webroot.
+
+## Configuration backups (`configs/chainedbox/`)
+
+All service configurations on Chainedbox are structured by application under `configs/chainedbox/`:
+
+| Directory | Service / Component | Included Files |
+|---|---|---|
+| [`network/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/network) | Netplan & NetworkManager | `00-default-use-network-manager.yaml`, `10-end0.yaml` (IPv6 ULA `fd39:10::100/64`), `90-vlan10.yaml` (VLAN 10), `Wired-connection-1.nmconnection` |
+| [`adguard-home/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/adguard-home) | AdGuard Home DNS Blocker | `AdGuardHome.yaml` (schema v34, custom upstream rules & filter lists) |
+| [`unbound/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/unbound) | Unbound DNS Resolver | `custom-port.conf` (port 5335), `remote-control.conf` |
+| [`avahi/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/avahi) | mDNS Reflector | `avahi-daemon.conf` (`allow-interfaces=end0,end0.10`, `enable-reflector=yes`) |
+| [`nginx/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/nginx) | Reverse Proxy & Web Server | `default.conf` (reverse proxy routes, directory security blocks, SSL) |
+| [`php/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/php) | PHP-FPM FastCGI Pool | `php8.3-fpm-www.conf` (`pm.max_children=5`, `listen.mode=0660`) |
+| [`rtp2httpd/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/rtp2httpd) | IPTV Multicast Streamer | `rtp2httpd.conf` (`mcast-rejoin-interval=30`, `external-m3u`), `rtp2httpd.service` |
+| [`jellyfin/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/jellyfin) | Media Server | `jellyfin.env`, `jellyfin.service` |
+| [`owntone/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/owntone) | DAAP / AirPlay Music Server | `owntone.service`, `owntone-memorymax-override.conf` |
+| [`homeassistant/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/homeassistant) | Smart Home Automation | `configuration.yaml`, `automations.yaml` |
+| [`aria2/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/aria2) | Download Daemon | `aria2.conf`, `aria2.service`, `aria2-post-download.sh` |
+| [`samba/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/samba) | File Sharing | `smb.conf` (`apps`, `docs`, `downloads`, `media` shares) |
+| [`system/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/system) | Kernel & OS Base | `sysctl.conf` (BBR, swappiness 100), `fstab`, `crontab-root`, `daemon.json` |
+

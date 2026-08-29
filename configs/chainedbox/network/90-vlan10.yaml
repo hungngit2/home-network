@@ -1,3 +1,6 @@
+# Netplan configuration for IoT VLAN 10 (end0.10)
+# Enables Chainedbox dual-homed connectivity to IoT segment (NVR, cameras, smart-home)
+
 network:
   version: 2
   vlans:

@@ -1,3 +1,6 @@
+# Netplan configuration for primary LAN interface (end0)
+# Static IPv6 ULA for deterministic DNS / SSH / Web service endpoints
+
 network:
   version: 2
   renderer: NetworkManager
