@@ -11,7 +11,6 @@ network:
       id: 10
       link: "end0"
       networkmanager:
-        uuid: "f4e8c7b4-f994-4e48-b1d7-747a4e73739f"
         name: "vlan10"
         passthrough:
           ethernet._: ""

@@ -35,6 +35,17 @@ log_head() {
     echo -e "\n${BOLD}${CYAN}=== $* ===${NC}"
 }
 
+# --- Helper: Generate RFC4122 UUID Dynamically ---
+generate_uuid() {
+    if [[ -r /proc/sys/kernel/random/uuid ]]; then
+        cat /proc/sys/kernel/random/uuid
+    elif command -v uuidgen >/dev/null 2>&1; then
+        uuidgen
+    else
+        od -x -N 16 /dev/urandom | head -1 | awk '{printf "%s%s-%s-%s-%s-%s%s%s", $2, $3, $4, $5, $6, $7, $8, $9}'
+    fi
+}
+
 # --- Root Check ---
 if [[ "${EUID}" -ne 0 ]]; then
     log_err "This installation script must be run as root (or with sudo)."
@@ -256,7 +267,6 @@ network:
       id: ${VLAN10_ID}
       link: "end0"
       networkmanager:
-        uuid: "f4e8c7b4-f994-4e48-b1d7-747a4e73739f"
         name: "vlan${VLAN10_ID}"
         passthrough:
           ethernet._: ""
@@ -266,10 +276,11 @@ network:
           proxy._: ""
 EOF
 
+WIRED_UUID=$(generate_uuid)
 cat << EOF > "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
 [connection]
 id=Wired connection 1
-uuid=ed0bd3e4-c5e8-3bb3-846f-3655e4391ad9
+uuid=${WIRED_UUID}
 type=ethernet
 autoconnect-priority=-999
 interface-name=end0
