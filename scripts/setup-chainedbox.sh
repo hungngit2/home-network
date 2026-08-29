@@ -4,15 +4,23 @@
 # https://github.com/hungngit2/home-network
 # ==============================================================================
 # Usage:
-#   Interactive mode:
+#   Interactive mode (prompts for any custom value with intelligent defaults):
 #     curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-chainedbox.sh | sudo bash
 #
-#   Non-interactive mode (with custom env vars):
+#   Non-interactive mode (fully automated with environment variables):
 #     export NON_INTERACTIVE=true
 #     export STATIC_IPV4="10.0.0.100"
 #     export STATIC_IPV6_ULA="fd39:10::100/64"
 #     export IPV6_TOKEN="::100"
+#     export IFACE_NAME="end0"
+#     export VLAN10_ID="10"
 #     export DDNS_DOMAIN="lotus.ddns.net"
+#     export APPSRV_DIR="/mnt/appsrv"
+#     export NASDATA_DIR="/mnt/nasdata"
+#     export MYTV_AUTH_USER="mytv"
+#     export MYTV_AUTH_PASS="MyTV@1076"
+#     export SMB_NETBIOS_NAME="chainedbox"
+#     export SMB_WORKGROUP="WORKGROUP"
 #     curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-chainedbox.sh | sudo bash
 # ==============================================================================
 
@@ -52,17 +60,33 @@ if [[ "${EUID}" -ne 0 ]]; then
     exit 1
 fi
 
-# --- Default Parameters ---
+# --- Auto-Detect System Defaults ---
+DETECTED_IFACE=$(ip -o -4 route show to default 2>/dev/null | awk '{print $5}' | head -n1 || echo "")
+if [[ -z "${DETECTED_IFACE}" ]]; then
+    DETECTED_IFACE=$(ip -o link show 2>/dev/null | awk -F': ' '{print $2}' | grep -E '^(end|eth|en)' | head -n1 || echo "end0")
+fi
+
+DETECTED_IPV4=$(ip -o -4 addr show dev "${DETECTED_IFACE}" 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n1 || echo "10.0.0.100")
+if [[ -z "${DETECTED_IPV4}" || "${DETECTED_IPV4}" == "127."* ]]; then
+    DETECTED_IPV4="10.0.0.100"
+fi
+
+# --- Configurable Parameters (Overridable via Env Vars or Interactive Prompt) ---
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/hungngit2/home-network/main}"
-APPSRV_DIR="${APPSRV_DIR:-/mnt/appsrv}"
-NASDATA_DIR="${NASDATA_DIR:-/mnt/nasdata}"
-STATIC_IPV4="${STATIC_IPV4:-10.0.0.100}"
+IFACE_NAME="${IFACE_NAME:-${DETECTED_IFACE}}"
+STATIC_IPV4="${STATIC_IPV4:-${DETECTED_IPV4}}"
 STATIC_IPV6_ULA="${STATIC_IPV6_ULA:-fd39:10::100/64}"
 IPV6_TOKEN="${IPV6_TOKEN:-::100}"
 VLAN10_ID="${VLAN10_ID:-10}"
 DDNS_DOMAIN="${DDNS_DOMAIN:-lotus.ddns.net}"
+APPSRV_DIR="${APPSRV_DIR:-/mnt/appsrv}"
+NASDATA_DIR="${NASDATA_DIR:-/mnt/nasdata}"
 MYTV_AUTH_USER="${MYTV_AUTH_USER:-mytv}"
 MYTV_AUTH_PASS="${MYTV_AUTH_PASS:-MyTV@1076}"
+RTP2HTTPD_PORT="${RTP2HTTPD_PORT:-5140}"
+UNBOUND_PORT="${UNBOUND_PORT:-5335}"
+SMB_NETBIOS_NAME="${SMB_NETBIOS_NAME:-chainedbox}"
+SMB_WORKGROUP="${SMB_WORKGROUP:-WORKGROUP}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 
 # --- Helper: Interactive Prompt with Default ---
@@ -95,7 +119,8 @@ echo -e "${NC}"
 echo -e "${BOLD}Armbian RK3328 Home Server Automated Bootstrap Installer${NC}\n"
 
 if [[ "${NON_INTERACTIVE}" != "true" ]]; then
-    echo -e "${YELLOW}Please review or adjust the configuration settings below (press Enter to accept default):${NC}\n"
+    echo -e "${YELLOW}Please review or adjust any configuration settings below (press Enter to accept default):${NC}\n"
+    prompt_val "Primary Ethernet Interface" "IFACE_NAME"
     prompt_val "Primary Server IPv4 Address" "STATIC_IPV4"
     prompt_val "Static IPv6 ULA Address/Prefix" "STATIC_IPV6_ULA"
     prompt_val "IPv6 Host Token" "IPV6_TOKEN"
@@ -103,10 +128,16 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
     prompt_val "DDNS / Host Domain" "DDNS_DOMAIN"
     prompt_val "App Data Mount Path" "APPSRV_DIR"
     prompt_val "Bulk NAS Storage Mount Path" "NASDATA_DIR"
+    prompt_val "IPTV Web Auth User" "MYTV_AUTH_USER"
     prompt_val "IPTV Web Auth Password" "MYTV_AUTH_PASS"
+    prompt_val "IPTV Proxy Port" "RTP2HTTPD_PORT"
+    prompt_val "Unbound Port" "UNBOUND_PORT"
+    prompt_val "Samba NetBIOS Name" "SMB_NETBIOS_NAME"
+    prompt_val "Samba Workgroup" "SMB_WORKGROUP"
 fi
 
-echo -e "\n${BOLD}Target Settings:${NC}"
+echo -e "\n${BOLD}Configuration Summary:${NC}"
+echo -e "  • Network Interface:   ${GREEN}${IFACE_NAME}${NC}"
 echo -e "  • IPv4 Address:        ${GREEN}${STATIC_IPV4}${NC}"
 echo -e "  • IPv6 ULA Address:    ${GREEN}${STATIC_IPV6_ULA}${NC}"
 echo -e "  • IPv6 Token:          ${GREEN}${IPV6_TOKEN}${NC}"
@@ -114,6 +145,9 @@ echo -e "  • IoT VLAN ID:         ${GREEN}${VLAN10_ID}${NC}"
 echo -e "  • DDNS Domain:         ${GREEN}${DDNS_DOMAIN}${NC}"
 echo -e "  • App Directory:       ${GREEN}${APPSRV_DIR}${NC}"
 echo -e "  • NAS Directory:       ${GREEN}${NASDATA_DIR}${NC}"
+echo -e "  • IPTV Auth User/Pass: ${GREEN}${MYTV_AUTH_USER} / ****${NC}"
+echo -e "  • IPTV Port:           ${GREEN}${RTP2HTTPD_PORT}${NC}"
+echo -e "  • Samba Name:          ${GREEN}${SMB_NETBIOS_NAME}${NC}"
 echo -e "  • GitHub Raw Base:     ${CYAN}${REPO_RAW_BASE}${NC}"
 
 if [[ "${NON_INTERACTIVE}" != "true" ]]; then
@@ -143,9 +177,13 @@ fi
 # Create directory hierarchy on appsrv
 mkdir -p \
     "${APPSRV_DIR}/adguard-home" \
-    "${APPSRV_DIR}/aria2" \
+    "${APPSRV_DIR}/aria2/.aria2" \
     "${APPSRV_DIR}/docker" \
-    "${APPSRV_DIR}/jellyfin" \
+    "${APPSRV_DIR}/jellyfin/config" \
+    "${APPSRV_DIR}/jellyfin/log" \
+    "${APPSRV_DIR}/jellyfin/cache" \
+    "${APPSRV_DIR}/jellyfin/tmp" \
+    "${APPSRV_DIR}/jellyfin/web" \
     "${APPSRV_DIR}/nginx/log" \
     "${APPSRV_DIR}/samba" \
     "${APPSRV_DIR}/www" \
@@ -170,7 +208,7 @@ fi
 
 # Set appropriate directory ownerships
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
-chmod 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
+chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
 log_succ "Storage hierarchy and symlinks prepared successfully."
 
@@ -221,6 +259,7 @@ echo "0 3 * * * /sbin/reboot" | crontab -
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/daemon.json" -o /etc/docker/daemon.json
+sed -i "s|\"data-root\": \"/mnt/appsrv/docker\"|\"data-root\": \"${APPSRV_DIR}/docker\"|g" /etc/docker/daemon.json
 systemctl restart docker 2>/dev/null || true
 
 log_succ "Base packages and OS kernel tuning configured."
@@ -228,23 +267,23 @@ log_succ "Base packages and OS kernel tuning configured."
 # ==============================================================================
 # Step 3: Network & Dual-Homed VLAN Configuration
 # ==============================================================================
-log_head "Step 3/8: Configuring Netplan, Static IPv6 ULA & IoT VLAN 10"
+log_head "Step 3/8: Configuring Netplan, Static IPv6 ULA & IoT VLAN ${VLAN10_ID}"
 
 mkdir -p /etc/netplan /etc/NetworkManager/system-connections
 
-# Deploy Netplan configs with substituted variables
+# Deploy Netplan configs with dynamically substituted parameters
 cat << EOF > /etc/netplan/00-default-use-network-manager.yaml
 network:
   version: 2
   renderer: NetworkManager
 EOF
 
-cat << EOF > /etc/netplan/10-end0.yaml
+cat << EOF > /etc/netplan/10-${IFACE_NAME}.yaml
 network:
   version: 2
   renderer: NetworkManager
   ethernets:
-    end0:
+    ${IFACE_NAME}:
       dhcp4: true
       dhcp6: true
       ipv6-address-generation: eui64
@@ -256,16 +295,16 @@ network:
           ipv6.addr-gen-mode: "eui64"
 EOF
 
-cat << EOF > /etc/netplan/90-vlan10.yaml
+cat << EOF > /etc/netplan/90-vlan${VLAN10_ID}.yaml
 network:
   version: 2
   vlans:
-    end0.${VLAN10_ID}:
+    ${IFACE_NAME}.${VLAN10_ID}:
       renderer: NetworkManager
       dhcp4: true
       dhcp6: true
       id: ${VLAN10_ID}
-      link: "end0"
+      link: "${IFACE_NAME}"
       networkmanager:
         name: "vlan${VLAN10_ID}"
         passthrough:
@@ -283,7 +322,7 @@ id=Wired connection 1
 uuid=${WIRED_UUID}
 type=ethernet
 autoconnect-priority=-999
-interface-name=end0
+interface-name=${IFACE_NAME}
 
 [ethernet]
 
@@ -309,12 +348,13 @@ log_succ "Network dual-homed VLAN interfaces configured."
 # ==============================================================================
 # Step 4: DNS Stack (Unbound + AdGuard Home) & Avahi mDNS
 # ==============================================================================
-log_head "Step 4/8: Configuring Unbound (5335), AdGuard Home (53/3000) & Avahi"
+log_head "Step 4/8: Configuring Unbound (${UNBOUND_PORT}), AdGuard Home (53/3000) & Avahi"
 
-# Configure Unbound on custom port 5335
-log_info "Configuring Unbound DNS resolver on port 5335..."
+# Configure Unbound on custom port
+log_info "Configuring Unbound DNS resolver on port ${UNBOUND_PORT}..."
 mkdir -p /etc/unbound/unbound.conf.d
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/unbound/custom-port.conf" -o /etc/unbound/unbound.conf.d/custom-port.conf
+sed -i "s/port: 5335/port: ${UNBOUND_PORT}/g" /etc/unbound/unbound.conf.d/custom-port.conf
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/unbound/remote-control.conf" -o /etc/unbound/unbound.conf.d/remote-control.conf
 systemctl restart unbound
 systemctl enable unbound
@@ -330,8 +370,11 @@ if [[ ! -f /opt/AdGuardHome/AdGuardHome ]]; then
     /opt/AdGuardHome/AdGuardHome -s install >/dev/null 2>&1 || true
 fi
 
-# Download AdGuardHome.yaml template to /mnt/appsrv
+# Download AdGuardHome.yaml template to appsrv and substitute variables
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/adguard-home/AdGuardHome.yaml" -o "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
+sed -i "s|/mnt/appsrv/adguard-home/|${APPSRV_DIR}/adguard-home/|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
+sed -i "s|127.0.0.1:5335|127.0.0.1:${UNBOUND_PORT}|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
+sed -i "s|REDACTED-domain|${DDNS_DOMAIN}|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 
 # Symlink AdGuardHome config
 systemctl stop AdGuardHome 2>/dev/null || true
@@ -341,8 +384,9 @@ systemctl start AdGuardHome 2>/dev/null || true
 systemctl enable AdGuardHome 2>/dev/null || true
 
 # Avahi-daemon mDNS reflector
-log_info "Configuring Avahi mDNS reflector bridging end0 and end0.${VLAN10_ID}..."
+log_info "Configuring Avahi mDNS reflector bridging ${IFACE_NAME} and ${IFACE_NAME}.${VLAN10_ID}..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/avahi/avahi-daemon.conf" -o /etc/avahi/avahi-daemon.conf
+sed -i "s/allow-interfaces=end0,end0.10/allow-interfaces=${IFACE_NAME},${IFACE_NAME}.${VLAN10_ID}/g" /etc/avahi/avahi-daemon.conf
 systemctl restart avahi-daemon
 systemctl enable avahi-daemon
 
@@ -351,7 +395,7 @@ log_succ "DNS stack and Avahi mDNS reflector configured."
 # ==============================================================================
 # Step 5: Web Server (Nginx + PHP-FPM 8.3) & Web Applications
 # ==============================================================================
-log_head "Step 5/8: Configuring Nginx, PHP-FPM 8.3 & Web Apps"
+log_head "Step 5/8: Configuring Nginx, PHP-FPM & Web Apps"
 
 # Detect PHP-FPM version
 PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || echo "8.3")
@@ -364,8 +408,12 @@ systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
 # Deploy Nginx Default VHost to appsrv
 log_info "Deploying Nginx reverse proxy configuration..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/nginx/default.conf" -o "${APPSRV_DIR}/nginx/default"
-# Replace domain placeholder with configured DDNS domain
-sed -i "s/REDACTED-domain/${DDNS_DOMAIN}/g" "${APPSRV_DIR}/nginx/default"
+# Substitute dynamic paths and domains in nginx config
+sed -i "s|root /mnt/appsrv/www;|root ${APPSRV_DIR}/www;|g" "${APPSRV_DIR}/nginx/default"
+sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/default"
+sed -i "s|/mnt/nasdata/share/www/certbot/|${NASDATA_DIR}/share/www/certbot/|g" "${APPSRV_DIR}/nginx/default"
+sed -i "s|http://localhost:5140/tv/|http://localhost:${RTP2HTTPD_PORT}/tv/|g" "${APPSRV_DIR}/nginx/default"
+sed -i "s|REDACTED-domain|${DDNS_DOMAIN}|g" "${APPSRV_DIR}/nginx/default"
 
 rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 ln -sf "${APPSRV_DIR}/nginx/default" /etc/nginx/sites-available/default
@@ -373,9 +421,8 @@ ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Clone / Deploy Wi-Fi Config Tool
 log_info "Deploying Wi-Fi Fleet Configuration Tool..."
-mkdir -p "${APPSRV_DIR}/www/wifi-config-tool"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/index.php" -o "${APPSRV_DIR}/www/wifi-config-tool/index.php"
 mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" "${APPSRV_DIR}/www/wifi-config-tool/configs"
+curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/index.php" -o "${APPSRV_DIR}/www/wifi-config-tool/index.php"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/assets/style.css" -o "${APPSRV_DIR}/www/wifi-config-tool/assets/style.css"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/configs/config.json.example" -o "${APPSRV_DIR}/www/wifi-config-tool/configs/config.json"
 
@@ -388,12 +435,12 @@ systemctl enable nginx
 log_succ "Nginx, PHP-FPM, and Web Tools deployed."
 
 # ==============================================================================
-# Step 6: IPTV Multicast Relay (rtp2httpd) & OwnTone / Jellyfin
+# Step 6: IPTV Multicast Relay (rtp2httpd) & Media Services
 # ==============================================================================
 log_head "Step 6/8: Configuring IPTV Streaming (rtp2httpd) & Media Services"
 
 # Install rtp2httpd
-log_info "Setting up rtp2httpd IPTV relay..."
+log_info "Setting up rtp2httpd IPTV relay on port ${RTP2HTTPD_PORT}..."
 if [[ ! -f /usr/local/bin/rtp2httpd ]]; then
     log_info "Downloading latest rtp2httpd binary for ARM64..."
     RTP2HTTPD_URL=$(curl -s https://api.github.com/repos/hungngit2/rtp2httpd/releases/latest | grep "browser_download_url.*linux-arm64" | cut -d '"' -f 4 || true)
@@ -408,15 +455,18 @@ fi
 
 # Deploy rtp2httpd.conf & service
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/rtp2httpd/rtp2httpd.conf" -o /etc/rtp2httpd.conf
-sed -i "s/web-auth-password = <REDACTED>/web-auth-password = ${MYTV_AUTH_PASS}/g" /etc/rtp2httpd.conf
+sed -i "s|external-m3u = http://10.0.0.100/iptv/|external-m3u = http://${STATIC_IPV4}/iptv/|g" /etc/rtp2httpd.conf
+sed -i "s|web-auth-user = mytv|web-auth-user = ${MYTV_AUTH_USER}|g" /etc/rtp2httpd.conf
+sed -i "s|web-auth-password = <REDACTED>|web-auth-password = ${MYTV_AUTH_PASS}|g" /etc/rtp2httpd.conf
+sed -i "s|\* 5140|\* ${RTP2HTTPD_PORT}|g" /etc/rtp2httpd.conf
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/rtp2httpd/rtp2httpd.service" -o /etc/systemd/system/rtp2httpd.service
 
 systemctl daemon-reload
 systemctl enable rtp2httpd
 systemctl restart rtp2httpd 2>/dev/null || true
 
-# Configure OwnTone
-log_info "Configuring OwnTone server..."
+# Configure OwnTone memory drop-in
+log_info "Configuring OwnTone server memory drop-in..."
 mkdir -p /etc/systemd/system/owntone.service.d
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/owntone/owntone-memorymax-override.conf" -o /etc/systemd/system/owntone.service.d/50-MemoryMax.conf
 systemctl daemon-reload
@@ -424,6 +474,7 @@ systemctl daemon-reload
 # Configure Jellyfin env
 log_info "Configuring Jellyfin environment flags..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.env" -o "${APPSRV_DIR}/jellyfin/env"
+sed -i "s|/mnt/appsrv/jellyfin|${APPSRV_DIR}/jellyfin|g" "${APPSRV_DIR}/jellyfin/env"
 
 log_succ "IPTV streamer and media service definitions configured."
 
@@ -435,6 +486,10 @@ log_head "Step 7/8: Configuring Samba Shares & Aria2 Daemon"
 # Samba
 log_info "Configuring Samba file shares for ${NASDATA_DIR}..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/samba/smb.conf" -o "${APPSRV_DIR}/samba/smb.conf"
+sed -i "s|netbios name = chainedbox|netbios name = ${SMB_NETBIOS_NAME}|g" "${APPSRV_DIR}/samba/smb.conf"
+sed -i "s|workgroup = WORKGROUP|workgroup = ${SMB_WORKGROUP}|g" "${APPSRV_DIR}/samba/smb.conf"
+sed -i "s|/mnt/nasdata|${NASDATA_DIR}|g" "${APPSRV_DIR}/samba/smb.conf"
+
 rm -f /etc/samba/smb.conf
 ln -sf "${APPSRV_DIR}/samba/smb.conf" /etc/samba/smb.conf
 systemctl restart smbd nmbd
@@ -443,9 +498,13 @@ systemctl enable smbd nmbd
 # Aria2
 log_info "Configuring Aria2 daemon & post-download trigger..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.conf" -o "${APPSRV_DIR}/aria2/aria2.conf"
+sed -i "s|dir=/mnt/nasdata/downloads|dir=${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2.conf"
+sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.conf"
+
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2-post-download.sh" -o "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.service" -o /etc/systemd/system/aria2.service
+sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" /etc/systemd/system/aria2.service
 
 systemctl daemon-reload
 systemctl enable aria2
@@ -495,7 +554,7 @@ done
 echo -e "\n${BOLD}Quick Access Endpoints:${NC}"
 echo -e "  • AdGuard Home Admin:  ${CYAN}http://${STATIC_IPV4}:3000${NC} (or https://${DDNS_DOMAIN})"
 echo -e "  • Wi-Fi Config Tool:   ${CYAN}http://${STATIC_IPV4}/wifi-config-tool/${NC}"
-echo -e "  • IPTV Stream Proxy:   ${CYAN}http://${STATIC_IPV4}:5140/tv/${NC} (or http://${STATIC_IPV4}/tv/)"
+echo -e "  • IPTV Stream Proxy:   ${CYAN}http://${STATIC_IPV4}:${RTP2HTTPD_PORT}/tv/${NC} (or http://${STATIC_IPV4}/tv/)"
 echo -e "  • Home Assistant:      ${CYAN}http://${STATIC_IPV4}:8123${NC}"
 echo -e "  • OwnTone Music:       ${CYAN}http://${STATIC_IPV4}:3689${NC}"
 echo -e "  • Jellyfin Media:      ${CYAN}http://${STATIC_IPV4}:8096/jellyfin/${NC}"

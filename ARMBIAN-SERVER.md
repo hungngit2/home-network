@@ -51,16 +51,24 @@ curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts
 
 ### Supported Custom Environment Variables (for Non-Interactive Deployments)
 
+All settings are auto-detected with sensible defaults, or customizable via environment variables:
+
 ```bash
 export NON_INTERACTIVE=true
-export STATIC_IPV4="10.0.0.100"
-export STATIC_IPV6_ULA="fd39:10::100/64"
-export IPV6_TOKEN="::100"
-export VLAN10_ID="10"
-export DDNS_DOMAIN="lotus.ddns.net"
-export APPSRV_DIR="/mnt/appsrv"
-export NASDATA_DIR="/mnt/nasdata"
-export MYTV_AUTH_PASS="MyTV@1076"
+export IFACE_NAME="end0"                 # Primary network interface (auto-detected if unset)
+export STATIC_IPV4="10.0.0.100"          # Primary server IPv4 address
+export STATIC_IPV6_ULA="fd39:10::100/64" # Static IPv6 ULA address/prefix
+export IPV6_TOKEN="::100"                # IPv6 host token
+export VLAN10_ID="10"                    # IoT VLAN ID
+export DDNS_DOMAIN="lotus.ddns.net"      # DDNS / Host domain for TLS & redirection
+export APPSRV_DIR="/mnt/appsrv"          # App data mount path
+export NASDATA_DIR="/mnt/nasdata"        # Bulk storage mount path
+export MYTV_AUTH_USER="mytv"             # IPTV web auth username
+export MYTV_AUTH_PASS="MyTV@1076"        # IPTV web auth password
+export RTP2HTTPD_PORT="5140"             # IPTV proxy port
+export UNBOUND_PORT="5335"               # Unbound recursive resolver port
+export SMB_NETBIOS_NAME="chainedbox"     # Samba server NetBIOS name
+export SMB_WORKGROUP="WORKGROUP"         # Samba workgroup
 
 curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-chainedbox.sh | sudo bash
 ```
