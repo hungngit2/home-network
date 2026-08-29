@@ -41,13 +41,41 @@ Per-directory detail not covered elsewhere:
 - **`samba/smb.conf`** — the real Samba config; `/etc/samba/smb.conf` is just a symlink to it (same pattern as nginx/AdGuard Home/aria2 — config kept on `appsrv` so it survives an OS reflash).
 - **`ytb-owntone/`** — runtime state for the dashboard/OwnTone integration: `pipes/youtube.fifo` (a named pipe OwnTone reads as an audio source — likely fed by a `yt-dlp`-style downloader driven by `backend.php`/`queue-daemon.php`), `cache/` (downloaded audio, e.g. `dUkGrSPbSOE.audio`), and `data/` (`queue_state.json`, `playlist.json`, `confirmed_playing.json`, `resolved_stream.json`, `last_search.json`, `playback.lock` — the lock file the nginx `fastcgi_ignore_client_abort` comment refers to). This is the actual bridge between the web dashboard and OwnTone's playback.
 
-## Base packages
+## Automated Bootstrap Installer (`setup-chainedbox.sh`)
+
+To rebuild or provision a fresh Armbian install on Chainedbox from scratch, run the master bootstrap installer directly via GitHub:
 
 ```bash
-apt update && apt upgrade -y && apt install -y unbound unbound-anchor aria2 nginx php php-fpm php-gd php-curl php-mbstring build-essential devscripts fakeroot debhelper samba certbot python3-certbot-nginx mosh
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-chainedbox.sh | sudo bash
 ```
 
-Non-apt services ([AdGuard Home](https://github.com/AdguardTeam/AdGuardHome), [Jellyfin](https://jellyfin.org/), [rtp2httpd](https://github.com/hungngit2/rtp2httpd), [OwnTone](https://github.com/hungngit2/owntone-server), Docker Engine, Home Assistant) are each installed via their own curl-pipe-to-shell script or as a Docker container — none of them get picked up by `apt upgrade`, so re-run each project's own install/update script to update.
+### Supported Custom Environment Variables (for Non-Interactive Deployments)
+
+```bash
+export NON_INTERACTIVE=true
+export STATIC_IPV4="10.0.0.100"
+export STATIC_IPV6_ULA="fd39:10::100/64"
+export IPV6_TOKEN="::100"
+export VLAN10_ID="10"
+export DDNS_DOMAIN="lotus.ddns.net"
+export APPSRV_DIR="/mnt/appsrv"
+export NASDATA_DIR="/mnt/nasdata"
+export MYTV_AUTH_PASS="MyTV@1076"
+
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-chainedbox.sh | sudo bash
+```
+
+The script automatically executes:
+1. **Storage Setup**: Mount validation and directory structure provisioning on `/mnt/appsrv` and `/mnt/nasdata`.
+2. **System & Kernel Tuning**: Package installations, Docker setup, and sysctl optimizations (BBR, swappiness 100).
+3. **Network & VLANs**: Netplan + NetworkManager configuration for `end0` (static ULA `fd39:10::100/64`) and IoT VLAN `end0.10`.
+4. **DNS & mDNS**: Unbound (`5335`), AdGuard Home (`53`/`3000`), and Avahi mDNS reflector.
+5. **Web Stack**: Nginx + PHP-FPM 8.3 pool, web tools, and reverse proxy routes.
+6. **Media Services**: `rtp2httpd` (IPTV multicast streamer), OwnTone, and Jellyfin.
+7. **Storage & Downloads**: Samba file shares and Aria2 daemon.
+8. **Smart Home**: Docker-based Home Assistant container.
+
+## Base packages
 
 ## Network & VLANs
 
