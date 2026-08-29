@@ -439,21 +439,14 @@ log_succ "Nginx, PHP-FPM, and Web Tools deployed."
 # ==============================================================================
 log_head "Step 6/8: Configuring IPTV Streaming (rtp2httpd) & Media Services"
 
-# Install rtp2httpd
-log_info "Setting up rtp2httpd IPTV relay on port ${RTP2HTTPD_PORT}..."
-if [[ ! -f /usr/local/bin/rtp2httpd ]]; then
-    log_info "Downloading latest rtp2httpd binary for ARM64..."
-    RTP2HTTPD_URL=$(curl -s https://api.github.com/repos/hungngit2/rtp2httpd/releases/latest | grep "browser_download_url.*linux-arm64" | cut -d '"' -f 4 || true)
-    if [[ -n "${RTP2HTTPD_URL}" ]]; then
-        curl -s -L "${RTP2HTTPD_URL}" -o /tmp/rtp2httpd.tar.gz
-        tar -xzf /tmp/rtp2httpd.tar.gz -C /tmp/
-        mv /tmp/rtp2httpd /usr/local/bin/rtp2httpd
-        chmod +x /usr/local/bin/rtp2httpd
-        rm -f /tmp/rtp2httpd.tar.gz
-    fi
+# 1. Install & Configure rtp2httpd via Official GitHub Installer
+log_info "Installing rtp2httpd via official GitHub installer..."
+if ! command -v rtp2httpd >/dev/null 2>&1; then
+    curl -fsSL https://raw.githubusercontent.com/hungngit2/rtp2httpd/main/scripts/install-armbian.sh | sh
 fi
 
-# Deploy rtp2httpd.conf & service
+# Deploy tuned rtp2httpd.conf & customize parameters
+log_info "Applying tuned rtp2httpd configuration..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/rtp2httpd/rtp2httpd.conf" -o /etc/rtp2httpd.conf
 sed -i "s|external-m3u = http://10.0.0.100/iptv/|external-m3u = http://${STATIC_IPV4}/iptv/|g" /etc/rtp2httpd.conf
 sed -i "s|web-auth-user = mytv|web-auth-user = ${MYTV_AUTH_USER}|g" /etc/rtp2httpd.conf
@@ -465,16 +458,33 @@ systemctl daemon-reload
 systemctl enable rtp2httpd
 systemctl restart rtp2httpd 2>/dev/null || true
 
-# Configure OwnTone memory drop-in
+# 2. Install & Configure OwnTone Server via Official GitHub Installer
+log_info "Installing OwnTone server via official GitHub installer..."
+if ! command -v owntone >/dev/null 2>&1; then
+    curl -fsSL https://raw.githubusercontent.com/hungngit2/owntone-server/master/install.sh | bash
+fi
+
 log_info "Configuring OwnTone server memory drop-in..."
 mkdir -p /etc/systemd/system/owntone.service.d
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/owntone/owntone-memorymax-override.conf" -o /etc/systemd/system/owntone.service.d/50-MemoryMax.conf
 systemctl daemon-reload
+systemctl restart owntone 2>/dev/null || true
+systemctl enable owntone 2>/dev/null || true
 
-# Configure Jellyfin env
+# 3. Install & Configure Jellyfin
+log_info "Setting up Jellyfin Media Server..."
+if ! command -v jellyfin >/dev/null 2>&1; then
+    log_info "Installing Jellyfin via official Debian/Ubuntu installer..."
+    curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash 2>/dev/null || true
+fi
+
 log_info "Configuring Jellyfin environment flags..."
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.env" -o "${APPSRV_DIR}/jellyfin/env"
 sed -i "s|/mnt/appsrv/jellyfin|${APPSRV_DIR}/jellyfin|g" "${APPSRV_DIR}/jellyfin/env"
+curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.service" -o /etc/systemd/system/jellyfin.service
+systemctl daemon-reload
+systemctl restart jellyfin 2>/dev/null || true
+systemctl enable jellyfin 2>/dev/null || true
 
 log_succ "IPTV streamer and media service definitions configured."
 
