@@ -84,8 +84,9 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 ## IGMP / multicast (IPTV)
 
-- `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-router=permanent`), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s`.
-- **Why the IGMP Proxy Reset is Required**: When the ISP DHCP client on `br-iptv` renews its dynamic lease (every ~4–8 hours) or when multicast joins go idle, RouterOS's kernel MFC table can invalidate the upstream routing pointer (`upstream-interface=*FFFFFFFF`). Cycling `br-lan` re-initializes the kernel multicast socket and sends a fresh IGMP query to the LAN, keeping the IPTV stream permanently responsive.
+- **Architecture**: `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-querier=yes`, `igmp-version=2`), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s`.
+- **The Upstream IGMPv2 Protocol Fix**: RouterOS 7's IGMP Proxy defaults to IGMPv3 (`224.0.0.22`), which VNPT's IGMPv2 multicast BNGs ignore. Enabling `multicast-querier=yes` and `igmp-version=2` on `br-iptv` forces RouterOS's IGMP proxy into **IGMPv2 compatibility mode**, ensuring all upstream joins are transmitted as native IGMPv2 reports directly to the channel multicast IP (e.g. `232.84.1.117`), which triggers the ISP stream immediately.
+- **Automated Socket Recovery**: The DHCP client hook on `br-iptv` and 4h watchdog scheduler automatically cycle `br-lan` to purge stale kernel MFC table entries (`upstream-interface=*FFFFFFFF`) across dynamic DHCP renewals.
 
 ## Services
 
