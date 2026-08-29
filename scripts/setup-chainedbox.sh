@@ -241,6 +241,7 @@ apt-get install -y --no-install-recommends \
     wget \
     jq \
     tar \
+    unzip \
     net-tools \
     avahi-daemon \
     avahi-utils \
@@ -459,6 +460,23 @@ else
     rm -rf "${APPSRV_DIR}/www/ytb"
     git clone https://github.com/hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" 2>/dev/null || \
     git clone git@github.com:hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" || true
+fi
+
+# Clone / Deploy AriaNg Web UI
+log_info "Deploying AriaNg Web UI to ${APPSRV_DIR}/www/aria2..."
+mkdir -p "${APPSRV_DIR}/www/aria2"
+if [[ -d "${APPSRV_DIR}/www/aria2/.git" ]]; then
+    git -C "${APPSRV_DIR}/www/aria2" pull 2>/dev/null || true
+elif [[ ! -f "${APPSRV_DIR}/www/aria2/index.html" ]]; then
+    rm -rf "${APPSRV_DIR}/www/aria2"
+    if ! git clone https://github.com/mayswind/AriaNg.git "${APPSRV_DIR}/www/aria2" 2>/dev/null && \
+       ! git clone git@github.com:mayswind/AriaNg.git "${APPSRV_DIR}/www/aria2" 2>/dev/null; then
+        log_info "Downloading latest prebuilt AriaNg release bundle..."
+        mkdir -p "${APPSRV_DIR}/www/aria2"
+        curl -s -L "https://github.com/mayswind/AriaNg/releases/download/1.3.14/AriaNg-1.3.14-AllInOne.zip" -o /tmp/ariang.zip
+        unzip -o -q /tmp/ariang.zip -d "${APPSRV_DIR}/www/aria2"
+        rm -f /tmp/ariang.zip
+    fi
 fi
 
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
