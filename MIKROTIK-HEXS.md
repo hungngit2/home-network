@@ -77,8 +77,8 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 ## Scheduler & scripts
 
-- **`IGMP-Proxy-Fix`** — **enabled (interval: 4h)**: Automatically resets the downstream `br-lan` interface in `/routing igmp-proxy` to purge stale Multicast Forwarding Cache (MFC) table entries (`upstream-interface=*FFFFFFFF`) that occur when ISP multicast sessions idle or upstream DHCP refreshes.
-- **`IPTV DHCP Client Hook`**: Runs on `/ip dhcp-client` for `br-iptv` whenever `$bound=1`, instantly cycling `br-lan` in `igmp-proxy` on lease renewal so multicast routing sockets never get stuck after an IP rebind.
+- **`IPTV DHCP Client Hook`** — **active**: Event-driven script attached directly to `/ip dhcp-client` for `br-iptv`. Whenever the dynamic IPTV lease binds or renews (`$bound=1`), it automatically cycles `br-lan` in `/routing igmp-proxy` so the kernel MFC table is instantly refreshed with valid upstream sockets.
+- **`IGMP-Proxy-Fix`** — **disabled** (superseded by the event-driven IPTV DHCP client hook above).
 - **`Reboot-Weekly`** — exists but disabled. (Interesting contrast with Chainedbox's *enabled* nightly reboot — the router isn't rebooted on a schedule, only Chainedbox is.)
 - **`Check-AGHome`** — see [DNS](#dns) above; exists but disabled.
 
@@ -86,7 +86,7 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 - **Architecture**: `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-querier=yes`, `igmp-version=2`), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s`.
 - **The Upstream IGMPv2 Protocol Fix**: RouterOS 7's IGMP Proxy defaults to IGMPv3 (`224.0.0.22`), which VNPT's IGMPv2 multicast BNGs ignore. Enabling `multicast-querier=yes` and `igmp-version=2` on `br-iptv` forces RouterOS's IGMP proxy into **IGMPv2 compatibility mode**, ensuring all upstream joins are transmitted as native IGMPv2 reports directly to the channel multicast IP (e.g. `232.84.1.117`), which triggers the ISP stream immediately.
-- **Automated Socket Recovery**: The DHCP client hook on `br-iptv` and 4h watchdog scheduler automatically cycle `br-lan` to purge stale kernel MFC table entries (`upstream-interface=*FFFFFFFF`) across dynamic DHCP renewals.
+- **Automated Socket Recovery**: The event-driven DHCP client hook on `br-iptv` automatically cycles `br-lan` to purge stale kernel MFC table entries (`upstream-interface=*FFFFFFFF`) across dynamic DHCP renewals without relying on polling schedulers.
 
 ## Services
 
