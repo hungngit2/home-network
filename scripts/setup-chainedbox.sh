@@ -451,8 +451,18 @@ curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/OpenWrtClient.php" -o "${APPSR
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/DeviceManager.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/DeviceManager.php"
 curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/src/Standards.php" -o "${APPSRV_DIR}/www/wifi-config-tool/src/Standards.php"
 
-chown -R www-data:www-data "${APPSRV_DIR}/www"
-chmod -R 775 "${APPSRV_DIR}/www"
+# Clone / Deploy YouTube OwnTone Dashboard
+log_info "Deploying YouTube OwnTone Dashboard to ${APPSRV_DIR}/www/ytb..."
+if [[ -d "${APPSRV_DIR}/www/ytb/.git" ]]; then
+    git -C "${APPSRV_DIR}/www/ytb" pull 2>/dev/null || true
+else
+    rm -rf "${APPSRV_DIR}/www/ytb"
+    git clone https://github.com/hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" 2>/dev/null || \
+    git clone git@github.com:hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" || true
+fi
+
+chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
+chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
 systemctl restart nginx
 systemctl enable nginx
