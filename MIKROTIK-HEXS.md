@@ -30,22 +30,20 @@ WAN: **dual-WAN with failover/load-balancing**:
 This is the most involved piece of the config — several routing tables plus a mangle chain implement per-connection load balancing across WAN 1/WAN 2, with two carve-outs on top:
 
 1. **Vietnam-vs-rest split (implicit)**: `to-wan1`/`to-wan2` routing tables both default-route out their respective WAN, selected via connection marks (`wan1`/`wan2`) that mangle assigns per-connection using `per-connection-classifier` (an 7:1-ish hash-based split across both WANs — "Connection 1"–"Connection 7" rules). This is standard PCC load-balancing, not literally IP-based.
-2. **"Unblock Sites" → forced through VPN-out**: a `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list — BBC's IP ranges and a Medium.com IP) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP.
-3. **The giant `Vietnam` address-list** (line ~271, hundreds of CIDR blocks covering Vietnamese ISP/hosting IP space) — **defined but not referenced by any live mangle/routing rule** in this export. The two mangle rules that would have used it (`"To Wan 2"`, `"To VPN"`, both `disabled=yes`) are disabled. This looks like leftover infrastructure for a "Vietnam traffic stays on local ISP, everything else via VPN" policy that either hasn't been turned on yet or was superseded by the PCC load-balancing approach — worth clarifying intent before deleting the list, since it's clearly maintained (recently-dated ranges) despite being unused.
+2. **"Unblock Sites" → forced through VPN-out**: a `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list of geo-blocked services) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP. Unused legacy GeoIP static address lists have been purged to keep config lightweight and conserve flash memory.
 
-Static/recursive routes handle the two check-gateway targets for each WAN (so failover actually triggers on ping loss) and recursive routes for the WireGuard "VPN out" tunnels' endpoint reachability.
+Static/recursive routes handle the check-gateway targets for each WAN (so failover actually triggers on ping loss) and recursive primary + fallback routes (`distance=1` primary, `distance=2` fallback with `check-gateway=ping`) for the WireGuard "VPN out" tunnels.
 
 ## VPN
 
-- **WireGuard inbound** (`vpn-in-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access & site-to-site VPN, fully dual-stack:
+- **WireGuard inbound** (`wg-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access & site-to-site VPN, fully dual-stack:
   - **IPv4 subnet**: `10.0.100.254/24` (road-warrior client peers on `10.0.100.1`–`.3`, site-to-site peer on `10.0.100.100`)
   - **IPv6 subnet**: `fd39:10:100::254/64` (road-warrior client peers on `fd39:10:100::1`–`::3/128`, site-to-site peer on `fd39:10:100::100/128`)
   - Peers configured:
     - **Remote client peers**: Road-warrior mobile & laptop devices (`10.0.100.1`–`.3/32`, `fd39:10:100::1`–`::3/128`)
-    - **Site-to-site peer** (`site2-to-home`): Remote Site 2 gateway router (`10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static routes on `vpn-in-home`)
-- **WireGuard outbound ×2** — `vpn-out1` ("VPN → SG") and `vpn-out2` ("VPN → HK") — these are the tunnels traffic gets routed into for the geo-unblocking rule above.
-- **OpenVPN server** (`ovpn-server1`, UDP, client-cert required) — a second, separate remote-access VPN path alongside WireGuard.
-- IPsec is present only as defaults/DPD tuning (`dpd-interval=2m`) — no active IPsec peers configured in this export.
+    - **Site-to-site peer** (`site1-to-site2`): Remote site (Site 2) OpenWrt gateway (`10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static routes on `wg-home`)
+      - ⚠️ **Must set `endpoint-address=<site2-wan-ip> endpoint-port=13231`** on this peer (Site 2's current WAN IP). See [Troubleshooting](#troubleshooting).
+- **WireGuard outbound ×2** — `wg-vpn-out1` (Primary, `distance=1`) and `wg-vpn-out2` (Fallback, `distance=2`) — these are the tunnels traffic gets routed into for the geo-unblocking rule above, configured with recursive ping health checks.
 
 ## DNS
 
@@ -99,3 +97,25 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 | NTP client | enabled; NTP server also enabled (broadcast/multicast, `local-clock-stratum=10`) — the router serves time to the LAN in addition to syncing itself against Cloudflare/`vn.pool.ntp.org`/`asia.pool.ntp.org` |
 | `/tool sniffer` | stopped / default (no active filters) |
 | Kid Control | disabled / no active profiles |
+
+## Troubleshooting
+
+### Site-to-Site VPN drops after reboot
+
+**Symptom**: The remote site router sends WireGuard handshake initiations every ~5s to this router's WAN IP on port `13231`. The IPv4 firewall rule accepts the packets. But this router's WireGuard sends **zero responses** — `rx=0 tx=0`, `current-endpoint-address=""` forever.
+
+**Root cause (2026-08-30)**: After upgrading to **RouterOS 7.24**, WireGuard in pure passive/responder mode (peer with `endpoint-address=""`) silently drops valid handshake initiations without responding. This was not observed on earlier versions — likely a regression introduced in 7.24, or a RouterOS design limitation that was masked by a warm session surviving the previous reboot.
+
+**Fix**: Set `endpoint-address` and `endpoint-port` on the site-to-site peer so this router also acts as an initiator (bidirectional):
+
+```
+# Get Site 2's current WAN IP first (run on Site 2 router):
+#   ip address show dev pppoe-internet | grep 'inet '
+
+/interface/wireguard/peers/set [find name=site2-to-home] \
+  endpoint-address=<site2-wan-ip> endpoint-port=13231
+```
+
+> **Rule of thumb**: For site-to-site WireGuard on MikroTik, **always configure endpoints on both sides**. This lets either peer recover from a dropped session independently and avoids the passive-responder issue entirely.
+>
+> Note: Site 2's WAN IP is assigned dynamically by the ISP (PPPoE). If it changes after a reconnect, update the endpoint accordingly — or set up a dynamic DNS hostname for Site 2 and use that instead.
