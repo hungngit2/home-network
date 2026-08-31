@@ -701,6 +701,22 @@ JELLYFIN_NOWEBAPP_OPT=""
 JELLYFIN_ADDITIONAL_OPTS=""
 EOF
 
+# Hardware acceleration: enable Intel VAAPI if /dev/dri/renderD128 is available
+# Intel Atom Cherry Trail / Braswell uses the i965 VA-API driver
+if [[ -e /dev/dri/renderD128 ]]; then
+    log_info "Intel GPU detected — installing VA-API driver and enabling Jellyfin hardware acceleration..."
+    apt-get install -y --no-install-recommends i965-va-driver vainfo libva-drm2 2>/dev/null || true
+    # Grant jellyfin access to the GPU render node
+    usermod -aG render,video jellyfin 2>/dev/null || true
+    # Deploy encoding.xml to enable VAAPI (only if not already customised by user)
+    if [[ ! -f "${APPSRV_DIR}/jellyfin/config/encoding.xml" ]]; then
+        fetch_repo_file "configs/chainedbox/jellyfin/encoding.xml" "${APPSRV_DIR}/jellyfin/config/encoding.xml"
+    fi
+    log_succ "Jellyfin hardware acceleration (VAAPI) enabled."
+else
+    log_info "No /dev/dri/renderD128 found — Jellyfin will use software transcoding."
+fi
+
 chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" 2>/dev/null || true
 systemctl daemon-reload
 systemctl reset-failed jellyfin 2>/dev/null || true

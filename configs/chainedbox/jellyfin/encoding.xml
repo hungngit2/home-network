@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EncodingOptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <!-- Intel VA-API hardware acceleration (Cherry Trail Atom / Braswell / Skylake+) -->
+  <HardwareAccelerationType>vaapi</HardwareAccelerationType>
+  <VaapiDevice>/dev/dri/renderD128</VaapiDevice>
+  <EnableDecodingColorDepth10Hevc>false</EnableDecodingColorDepth10Hevc>
+  <EnableDecodingColorDepth10Vp9>false</EnableDecodingColorDepth10Vp9>
+  <EnableHardwareEncoding>true</EnableHardwareEncoding>
+  <AllowHevcEncoding>false</AllowHevcEncoding>
+  <AllowAv1Encoding>false</AllowAv1Encoding>
+  <EncoderPreset>auto</EncoderPreset>
+  <EncodingThreadCount>-1</EncodingThreadCount>
+  <TranscodingTempPath>/tmp/jellyfin-transcode</TranscodingTempPath>
+</EncodingOptions>
