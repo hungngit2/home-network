@@ -563,19 +563,34 @@ if ! command -v jellyfin >/dev/null 2>&1; then
         'curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash' 2>/dev/null || true
 fi
 
-log_info "Configuring Jellyfin environment flags and systemd unit..."
-mkdir -p "${APPSRV_DIR}/jellyfin/var-lib" "${APPSRV_DIR}/jellyfin/web"
-if [[ ! -f "${APPSRV_DIR}/jellyfin/web/index.html" && -d /usr/share/jellyfin/web ]]; then
-    cp -r /usr/share/jellyfin/web/* "${APPSRV_DIR}/jellyfin/web/" 2>/dev/null || true
-fi
-fetch_repo_file "configs/chainedbox/jellyfin/jellyfin.env" "${APPSRV_DIR}/jellyfin/env"
-sed -i "s|/mnt/appsrv/jellyfin|${APPSRV_DIR}/jellyfin|g" "${APPSRV_DIR}/jellyfin/env"
-fetch_repo_file "configs/chainedbox/jellyfin/jellyfin.service" "/etc/systemd/system/jellyfin.service"
-sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/jellyfin.service
+log_info "Configuring Jellyfin data directories and environment..."
+mkdir -p \
+    "${APPSRV_DIR}/jellyfin/config" \
+    "${APPSRV_DIR}/jellyfin/log" \
+    "${APPSRV_DIR}/jellyfin/cache" \
+    "${APPSRV_DIR}/jellyfin/tmp"
+
+# Remove any stale custom service override — use the package-installed service from /lib/systemd/system/
+rm -f /etc/systemd/system/jellyfin.service
+
+# Write data dir overrides to /etc/default/jellyfin (where the package service reads from)
+cat > /etc/default/jellyfin << EOF
+JELLYFIN_DATA_DIR="${APPSRV_DIR}/jellyfin"
+JELLYFIN_CONFIG_DIR="${APPSRV_DIR}/jellyfin/config"
+JELLYFIN_LOG_DIR="${APPSRV_DIR}/jellyfin/log"
+JELLYFIN_CACHE_DIR="${APPSRV_DIR}/jellyfin/cache"
+JELLYFIN_WEB_OPT=""
+JELLYFIN_FFMPEG_OPT="--ffmpeg=/usr/lib/jellyfin-ffmpeg/ffmpeg"
+JELLYFIN_SERVICE_OPT=""
+JELLYFIN_NOWEBAPP_OPT=""
+JELLYFIN_ADDITIONAL_OPTS=""
+EOF
+
 chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" 2>/dev/null || true
 systemctl daemon-reload
-systemctl restart jellyfin 2>/dev/null || true
+systemctl reset-failed jellyfin 2>/dev/null || true
 systemctl enable jellyfin 2>/dev/null || true
+systemctl restart jellyfin 2>/dev/null || true
 
 log_succ "IPTV streamer and media service definitions configured."
 
