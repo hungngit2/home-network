@@ -116,7 +116,7 @@ fetch_repo_file() {
     local rel_path="$1"
     local dest_path="$2"
     mkdir -p "$(dirname "${dest_path}")"
-    curl -fsSL "${REPO_RAW_BASE}/${rel_path}?ts=$(date +%s)" -o "${dest_path}"
+    curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 15 "${REPO_RAW_BASE}/${rel_path}?ts=$(date +%s)" -o "${dest_path}"
 }
 
 # --- Helper: Interactive Prompt with Default ---
@@ -478,10 +478,11 @@ if [[ ! -f /opt/AdGuardHome/AdGuardHome ]]; then
         aarch64|arm64) ARCH="arm64" ;;
         armv7l) ARCH="armv7" ;;
     esac
-    mkdir -p /opt/AdGuardHome
-    curl -s -L "https://static.adtidy.org/adguardhome/release/AdGuardHome_linux_${ARCH}.tar.gz" | tar -xz -C /tmp/
-    mv /tmp/AdGuardHome/AdGuardHome /opt/AdGuardHome/AdGuardHome
-    rm -rf /tmp/AdGuardHome
+    mkdir -p /opt/AdGuardHome /tmp/agh_dl
+    curl -fSL --retry 5 --retry-delay 2 --connect-timeout 20 "https://static.adtidy.org/adguardhome/release/AdGuardHome_linux_${ARCH}.tar.gz" -o /tmp/agh_dl/AdGuardHome.tar.gz
+    tar -xzf /tmp/agh_dl/AdGuardHome.tar.gz -C /tmp/agh_dl/
+    mv /tmp/agh_dl/AdGuardHome/AdGuardHome /opt/AdGuardHome/AdGuardHome
+    rm -rf /tmp/agh_dl
     /opt/AdGuardHome/AdGuardHome -s install >/dev/null 2>&1 || true
 fi
 
