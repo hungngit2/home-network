@@ -528,14 +528,28 @@ systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
 # Ensure generic socket link for Nginx FastCGI
 ln -sf "/run/php/php${PHP_VER}-fpm.sock" /run/php/php-fpm.sock 2>/dev/null || true
 
-# Generate placeholder self-signed SSL cert if Let's Encrypt cert does not exist yet
+# Generate placeholder self-signed SSL cert & Certbot params if not present
+mkdir -p "/etc/letsencrypt/live/${DDNS_DOMAIN}"
 if [[ ! -f "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" ]]; then
     log_info "Generating bootstrap self-signed SSL certificate for ${DDNS_DOMAIN}..."
-    mkdir -p "/etc/letsencrypt/live/${DDNS_DOMAIN}"
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout "/etc/letsencrypt/live/${DDNS_DOMAIN}/privkey.pem" \
         -out "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" \
         -subj "/CN=${DDNS_DOMAIN}" 2>/dev/null || true
+fi
+
+if [[ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]]; then
+    cat << 'EOF' > /etc/letsencrypt/options-ssl-nginx.conf
+ssl_session_cache shared:le_nginx_SSL:1m;
+ssl_session_timeout 1440m;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers off;
+ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384";
+EOF
+fi
+
+if [[ ! -f /etc/letsencrypt/ssl-dhparams.pem ]]; then
+    openssl dhparam -dsaparam -out /etc/letsencrypt/ssl-dhparams.pem 2048 2>/dev/null || true
 fi
 
 # Deploy Nginx Default VHost to appsrv
