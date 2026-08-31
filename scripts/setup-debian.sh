@@ -645,17 +645,25 @@ systemctl daemon-reload
 systemctl enable rtp2httpd
 systemctl restart rtp2httpd 2>/dev/null || true
 
-# 2. Install & Configure OwnTone Server via Official GitHub Installer
-log_info "Installing OwnTone server via official GitHub installer..."
+# 2. Install & Configure OwnTone Server
+log_info "Installing OwnTone server..."
 if ! command -v owntone >/dev/null 2>&1; then
-    curl -fsSL https://raw.githubusercontent.com/hungngit2/owntone-server/master/install.sh | bash
+    if [[ "$(dpkg --print-architecture 2>/dev/null)" == "arm64" ]]; then
+        log_info "Installing OwnTone via ARM64 release package..."
+        curl -fsSL https://raw.githubusercontent.com/hungngit2/owntone-server/master/install.sh | bash 2>/dev/null || true
+    else
+        log_info "Installing OwnTone via apt..."
+        apt-get install -y owntone 2>/dev/null || true
+    fi
 fi
 
-log_info "Configuring OwnTone server memory drop-in..."
-fetch_repo_file "configs/chainedbox/owntone/owntone-memorymax-override.conf" "/etc/systemd/system/owntone.service.d/50-MemoryMax.conf"
-systemctl daemon-reload
-systemctl restart owntone 2>/dev/null || true
-systemctl enable owntone 2>/dev/null || true
+if command -v owntone >/dev/null 2>&1; then
+    log_info "Configuring OwnTone server memory drop-in..."
+    fetch_repo_file "configs/chainedbox/owntone/owntone-memorymax-override.conf" "/etc/systemd/system/owntone.service.d/50-MemoryMax.conf"
+    systemctl daemon-reload
+    systemctl restart owntone 2>/dev/null || true
+    systemctl enable owntone 2>/dev/null || true
+fi
 
 # 3. Install & Configure Jellyfin
 log_info "Setting up Jellyfin Media Server..."
