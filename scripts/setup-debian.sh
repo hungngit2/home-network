@@ -479,7 +479,7 @@ if [[ ! -f /opt/AdGuardHome/AdGuardHome ]]; then
         armv7l) ARCH="armv7" ;;
     esac
     mkdir -p /opt/AdGuardHome /tmp/agh_dl
-    curl -fSL --retry 5 --retry-delay 2 --connect-timeout 20 "https://static.adtidy.org/adguardhome/release/AdGuardHome_linux_${ARCH}.tar.gz" -o /tmp/agh_dl/AdGuardHome.tar.gz
+    curl -fSL -C - --retry 10 --retry-delay 2 --connect-timeout 20 "https://static.adtidy.org/adguardhome/release/AdGuardHome_linux_${ARCH}.tar.gz" -o /tmp/agh_dl/AdGuardHome.tar.gz
     tar -xzf /tmp/agh_dl/AdGuardHome.tar.gz -C /tmp/agh_dl/
     mv /tmp/agh_dl/AdGuardHome/AdGuardHome /opt/AdGuardHome/AdGuardHome
     rm -rf /tmp/agh_dl
