@@ -57,13 +57,16 @@ Static/recursive routes handle the check-gateway targets for each WAN (so failov
 Standard MikroTik default-configuration baseline (established/related/untracked accept, drop-invalid, drop-from-WAN-unless-DSTNATed) plus:
 
 - **IGMP/UDP accepted inbound from `br-iptv`** — lets the ISP's multicast IPTV stream traffic actually reach the router.
-- **WireGuard inbound port (`13231`) accepted** from the WAN IP address-list.
+- **Address Lists for Subnets & Hosts**:
+  - **`sala-lan`**: Remote site network (`10.1.0.0/16` on IPv4, `fd86:10::/48` on IPv6).
+  - **`home-lan`**: Local site subnets (`10.0.0.0/16` on IPv4, `fd39:10::/48` on IPv6).
+  - **`home-servers`**: Application servers permitted for inter-site & IoT access (`10.0.0.100`, `10.0.0.101` on IPv4; `fd39:10::100/128`, `fd39:10::101/128` on IPv6).
 - **IoT & Guest isolation**:
-  - **IPv4**: IoT can reach Chainedbox (`10.0.0.100`) directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
-  - **IPv6**: Mirrors IPv4 exactly — allows IoT to Chainedbox (`fd39:10::100/128`) and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
-- **Site-to-Site Access Control (Site 2 $\rightarrow$ Home)**:
-  - **IPv4 (`10.1.0.0/16`)**: Blocked from accessing Home LAN (`10.0.0.0/16`), with explicit exceptions only for Chainedbox (`10.0.0.100`): DNS (`:53` UDP/TCP), Web (`:80, :443`), IPTV proxy (`:5140` rtp2httpd), and ICMP.
-  - **IPv6 (`fd86:10::/48`)**: Blocked from accessing Home ULA (`fd39:10::/48`), with explicit exceptions only for Chainedbox (`fd39:10::100/128`): DNS (`:53` UDP/TCP), Web (`:80, :443`), IPTV proxy (`:5140` rtp2httpd), and ICMPv6.
+  - **IPv4**: IoT can reach `home-servers` directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
+  - **IPv6**: Mirrors IPv4 exactly — allows IoT to `home-servers` and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
+- **Site-to-Site Access Control (`sala-lan` $\rightarrow$ Home)**:
+  - **IPv4**: `sala-lan` is blocked from accessing `home-lan`, with explicit exceptions only for `home-servers`: DNS (`:53` UDP/TCP), Web (`:80, :443`), IPTV proxy (`:5140` rtp2httpd), and ICMP.
+  - **IPv6**: `sala-lan` is blocked from accessing `home-lan`, with explicit exceptions only for `home-servers`: DNS (`:53` UDP/TCP), Web (`:80, :443`), IPTV proxy (`:5140` rtp2httpd), and ICMPv6.
 - **FastTrack**: Rule #1 in the `forward` chain on both IPv4 (`FastTrack: IPv4`) and IPv6 (`FastTrack: IPv6`), hardware-accelerating established/related flows and keeping router CPU load at ~10-15%.
 - **NAT**: 
   - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`).
