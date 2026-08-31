@@ -64,7 +64,7 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
   - **`wan-ip`**: Dynamic Cloud DDNS FQDN (`your-router-id.sn.mynetname.net` on IPv4 & IPv6).
   - **`rfc1918`**: RFC 1918 private IPv4 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
   - **`dns-internal`**: Internal DNS forwarders (`10.0.0.100`, `10.0.0.200`–`203`).
-  - **`unblock-sites`**: Domain-based FQDN bypass list (`address=<domain>`) in both IPv4 and IPv6 address-lists. In IPv6, matching forward traffic is rejected with `icmp-admin-prohibited` to force immediate client Happy Eyeballs fallback to the IPv4 WireGuard VPN tunnel (`to-vpn-out`).
+  - **`unblock-sites`**: Domain-based FQDN bypass list (`address=<domain>`) in IPv4 address-list for automatic DNS-tracked VPN routing (`to-vpn-out`).
 - **IoT & Guest isolation**:
   - **IPv4**: IoT can reach `local-servers` directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
   - **IPv6**: Mirrors IPv4 exactly — allows IoT to `local-servers` and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
