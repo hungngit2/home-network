@@ -459,6 +459,9 @@ fi
 
 # Configure Unbound on custom port
 log_info "Configuring Unbound DNS resolver on port ${UNBOUND_PORT}..."
+mkdir -p /etc/unbound/unbound.conf.d /var/lib/unbound
+unbound-anchor -a /var/lib/unbound/root.key 2>/dev/null || true
+chown -R unbound:unbound /var/lib/unbound /etc/unbound 2>/dev/null || true
 fetch_repo_file "configs/chainedbox/unbound/unbound-custom-port.conf" "/etc/unbound/unbound.conf.d/custom-port.conf"
 sed -i "s/port: 5335/port: ${UNBOUND_PORT}/g" /etc/unbound/unbound.conf.d/custom-port.conf
 fetch_repo_file "configs/chainedbox/unbound/unbound-remote-control.conf" "/etc/unbound/unbound.conf.d/remote-control.conf"
