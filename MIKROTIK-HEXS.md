@@ -58,19 +58,19 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 - **IGMP/UDP accepted inbound from `br-iptv`** — lets the ISP's multicast IPTV stream traffic actually reach the router.
 - **Address Lists for Subnets & Hosts**:
-  - **`home-servers`**: Application servers permitted for inter-site & IoT access (`10.0.0.100`, `10.0.0.101` on IPv4; `fd39:10::100/128`, `fd39:10::101/128` on IPv6).
-  - **`sala-lan`**: Remote site network (`10.1.0.0/16` on IPv4, `fd86:10::/48` on IPv6).
-  - **`home-lan`**: Local site umbrella (`10.0.0.0/16` on IPv4, `fd39:10::/48` on IPv6).
+  - **`lotus-servers`**: Application servers permitted for inter-site & IoT access (`10.0.0.100`, `10.0.0.101` on IPv4; `fd39:10::100/128`, `fd39:10::101/128` on IPv6).
+  - **`sala-network`**: Remote site network (`10.1.0.0/16` on IPv4, `fd86:10::/48` on IPv6).
+  - **`lotus-network`**: Local site umbrella (`10.0.0.0/16` on IPv4, `fd39:10::/48` on IPv6).
   - **`wan-ip`**: Dynamic Cloud DDNS FQDN (`f94b0f9e4d9f.sn.mynetname.net` on IPv4 & IPv6).
   - **`rfc1918`**: RFC 1918 private IPv4 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
   - **`dns-internal`**: Internal DNS forwarders (`10.0.0.100`, `10.0.0.200`–`203`).
   - **`unblock-sites`**: Domain/IP bypass list for selective VPN routing.
 - **IoT & Guest isolation**:
-  - **IPv4**: IoT can reach `home-servers` directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
-  - **IPv6**: Mirrors IPv4 exactly — allows IoT to `home-servers` and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
-- **Site-to-Site Access Control (`sala-lan` $\rightarrow$ Home)**:
-  - **IPv4**: `sala-lan` is blocked from accessing `home-lan`, with explicit exceptions only for `home-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMP.
-  - **IPv6**: `sala-lan` is blocked from accessing `home-lan`, with explicit exceptions only for `home-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMPv6.
+  - **IPv4**: IoT can reach `lotus-servers` directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
+  - **IPv6**: Mirrors IPv4 exactly — allows IoT to `lotus-servers` and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
+- **Site-to-Site Access Control (`sala-network` $\rightarrow$ Home)**:
+  - **IPv4**: `sala-network` is blocked from accessing `lotus-network`, with explicit exceptions only for `lotus-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMP.
+  - **IPv6**: `sala-network` is blocked from accessing `lotus-network`, with explicit exceptions only for `lotus-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMPv6.
 - **FastTrack**: Rule #1 in the `forward` chain on both IPv4 (`FastTrack: IPv4`) and IPv6 (`FastTrack: IPv6`), hardware-accelerating established/related flows and keeping router CPU load at ~10-15%.
 - **NAT**: 
   - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`).
