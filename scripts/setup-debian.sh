@@ -75,6 +75,18 @@ fi
 
 DETECTED_HOSTNAME=$(cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo "debian-server")
 
+# --- Detect Storage Layout (Dedicated External Disks vs Single-Drive Local) ---
+if mountpoint -q /mnt/appsrv 2>/dev/null || [[ -d /mnt/appsrv && -d /mnt/nasdata ]]; then
+    DEFAULT_USE_EXTERNAL="true"
+    DEFAULT_APPSRV="/mnt/appsrv"
+    DEFAULT_NASDATA="/mnt/nasdata"
+else
+    # Standard single-disk layout (x86_64 mini PC, standard PC, VM, etc.)
+    DEFAULT_USE_EXTERNAL="false"
+    DEFAULT_APPSRV="/opt/appsrv"
+    DEFAULT_NASDATA="/srv/nasdata"
+fi
+
 # --- Configurable Parameters (Overridable via Env Vars or Interactive Prompt) ---
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/hungngit2/home-network/main}"
 IFACE_NAME="${IFACE_NAME:-${DETECTED_IFACE}}"
@@ -83,8 +95,9 @@ STATIC_IPV6_ULA="${STATIC_IPV6_ULA:-fd39:10::100/64}"
 IPV6_TOKEN="${IPV6_TOKEN:-::100}"
 VLAN10_ID="${VLAN10_ID:-10}"
 DDNS_DOMAIN="${DDNS_DOMAIN:-lotus.ddns.net}"
-APPSRV_DIR="${APPSRV_DIR:-/mnt/appsrv}"
-NASDATA_DIR="${NASDATA_DIR:-/mnt/nasdata}"
+USE_EXTERNAL_DISKS="${USE_EXTERNAL_DISKS:-${DEFAULT_USE_EXTERNAL}}"
+APPSRV_DIR="${APPSRV_DIR:-${DEFAULT_APPSRV}}"
+NASDATA_DIR="${NASDATA_DIR:-${DEFAULT_NASDATA}}"
 MYTV_AUTH_USER="${MYTV_AUTH_USER:-mytv}"
 MYTV_AUTH_PASS="${MYTV_AUTH_PASS:-MyTV@1076}"
 RTP2HTTPD_PORT="${RTP2HTTPD_PORT:-5140}"
@@ -135,8 +148,33 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
     prompt_val "IPv6 Host Token" "IPV6_TOKEN"
     prompt_val "IoT VLAN ID" "VLAN10_ID"
     prompt_val "DDNS / Host Domain" "DDNS_DOMAIN"
-    prompt_val "App Data Mount Path" "APPSRV_DIR"
-    prompt_val "Bulk NAS Storage Mount Path" "NASDATA_DIR"
+
+    # Storage Disk Layout Prompt
+    if [[ "${DEFAULT_USE_EXTERNAL}" == "true" ]]; then
+        EXT_PROMPT_DEFAULT="Y/n"
+    else
+        EXT_PROMPT_DEFAULT="y/N"
+    fi
+    echo -ne "${BOLD}Use dedicated external disk mountpoints (/mnt/appsrv & /mnt/nasdata)?${NC} [${GREEN}${EXT_PROMPT_DEFAULT}${NC}]: "
+    read -r ext_ans < /dev/tty || true
+    if [[ "${ext_ans}" =~ ^[Yy] ]]; then
+        USE_EXTERNAL_DISKS="true"
+        if [[ "${APPSRV_DIR}" == "/opt/appsrv" ]]; then APPSRV_DIR="/mnt/appsrv"; fi
+        if [[ "${NASDATA_DIR}" == "/srv/nasdata" ]]; then NASDATA_DIR="/mnt/nasdata"; fi
+        prompt_val "App Data Mount Path" "APPSRV_DIR"
+        prompt_val "Bulk NAS Storage Mount Path" "NASDATA_DIR"
+    elif [[ "${ext_ans}" =~ ^[Nn] ]] || [[ -z "${ext_ans}" && "${DEFAULT_USE_EXTERNAL}" == "false" ]]; then
+        USE_EXTERNAL_DISKS="false"
+        if [[ "${APPSRV_DIR}" == "/mnt/appsrv" ]]; then APPSRV_DIR="/opt/appsrv"; fi
+        if [[ "${NASDATA_DIR}" == "/mnt/nasdata" ]]; then NASDATA_DIR="/srv/nasdata"; fi
+        prompt_val "App Data Storage Path" "APPSRV_DIR"
+        prompt_val "Bulk NAS Storage Path" "NASDATA_DIR"
+    else
+        USE_EXTERNAL_DISKS="true"
+        prompt_val "App Data Mount Path" "APPSRV_DIR"
+        prompt_val "Bulk NAS Storage Mount Path" "NASDATA_DIR"
+    fi
+
     prompt_val "IPTV Web Auth User" "MYTV_AUTH_USER"
     prompt_val "IPTV Web Auth Password" "MYTV_AUTH_PASS"
     prompt_val "IPTV Proxy Port" "RTP2HTTPD_PORT"
@@ -152,6 +190,7 @@ echo -e "  • IPv6 ULA Address:    ${GREEN}${STATIC_IPV6_ULA}${NC}"
 echo -e "  • IPv6 Token:          ${GREEN}${IPV6_TOKEN}${NC}"
 echo -e "  • IoT VLAN ID:         ${GREEN}${VLAN10_ID}${NC}"
 echo -e "  • DDNS Domain:         ${GREEN}${DDNS_DOMAIN}${NC}"
+echo -e "  • Storage Layout:      ${GREEN}$([[ "${USE_EXTERNAL_DISKS}" == "true" ]] && echo "Dedicated External Disks" || echo "Local Single-Drive Filesystem")${NC}"
 echo -e "  • App Directory:       ${GREEN}${APPSRV_DIR}${NC}"
 echo -e "  • NAS Directory:       ${GREEN}${NASDATA_DIR}${NC}"
 echo -e "  • IPTV Auth User/Pass: ${GREEN}${MYTV_AUTH_USER} / ****${NC}"
@@ -176,11 +215,19 @@ log_head "Step 1/8: Preparing Storage & Directory Hierarchy"
 # Verify or create mount directories
 mkdir -p "${APPSRV_DIR}" "${NASDATA_DIR}"
 
-if ! mountpoint -q "${APPSRV_DIR}"; then
-    log_warn "${APPSRV_DIR} is not currently a mounted partition. Using filesystem path."
-fi
-if ! mountpoint -q "${NASDATA_DIR}"; then
-    log_warn "${NASDATA_DIR} is not currently a mounted partition. Using filesystem path."
+if [[ "${USE_EXTERNAL_DISKS}" == "true" || "${APPSRV_DIR}" == "/mnt/"* ]]; then
+    if ! mountpoint -q "${APPSRV_DIR}"; then
+        log_warn "${APPSRV_DIR} is not currently a mounted partition. Using filesystem path."
+    else
+        log_succ "${APPSRV_DIR} is confirmed as an active mountpoint."
+    fi
+    if ! mountpoint -q "${NASDATA_DIR}"; then
+        log_warn "${NASDATA_DIR} is not currently a mounted partition. Using filesystem path."
+    else
+        log_succ "${NASDATA_DIR} is confirmed as an active mountpoint."
+    fi
+else
+    log_info "Using local single-drive filesystem storage at ${APPSRV_DIR} and ${NASDATA_DIR}."
 fi
 
 # Create directory hierarchy on appsrv

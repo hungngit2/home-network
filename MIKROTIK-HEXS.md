@@ -17,9 +17,9 @@ Three physical LAN segments plus a VPN-delivered "LAN" segment, layered over 5 E
 | `br-lan` | Trusted home LAN | `ether1` (Switch), `ether2` (Wifi), `ether3` (**Chainedbox**, `10.0.0.100`), `ether4` | `10.0.0.0/24` (`.1`–`.210` pool, `.254` gateway) |
 | `br-iot` | IoT / cameras / NVR — isolated from LAN | `ether5` ("IoT - NVR"), `vlan-e1.10`, `vlan-e2.10`, `vlan-e3.10` | `10.0.1.0/24` |
 | `br-guest` | Guest Wi-Fi — isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
-| `br-iptv` | ISP multicast IPTV feed | `vlan-sfp1.99`, `vlan-sfp1.1100` (trusted, unicast/multicast flood off) | DHCP client (`IPTV`), no default route |
+| `br-iptv` | ISP IPTV bridge | `vlan-sfp1.99` (Multicast / IGMP), `vlan-sfp1.1100` (Portal Web / DHCP) | DHCP client (`IPTV`), no default route |
 
-`ether1` and `ether2` are trunked (carry VLANs 10 and 12 for IoT/Guest respectively, alongside their default untagged LAN membership) — i.e. the same physical switch port to the AP/Wi-Fi gear back-hauls all three segments via VLAN tags. `sfp1` (comment: "SFP - Hisense LTE3415-SCA+") carries the PPPoE VLAN (10), the IPTV VLAN (1100), and a management VLAN (99).
+`ether1` and `ether2` are trunked (carry VLANs 10 and 12 for IoT/Guest respectively, alongside their default untagged LAN membership) — i.e. the same physical switch port to the AP/Wi-Fi gear back-hauls all three segments via VLAN tags. `sfp1` (comment: "SFP - Hisense LTE3415-SCA+") carries the PPPoE VLAN (10), the IPTV Portal VLAN (1100), and the Multicast VLAN (99), bridged together on `br-iptv` to feed the IGMP Proxy and DHCP client untagged frames.
 
 WAN: **dual-WAN with failover/load-balancing**:
 - **WAN 1** — PPPoE (`pppoe-out1`, user redacted) over `vlan-sfp1.10`, via VNPT (Vietnamese ISP), through the SFP-connected Hisense LTE3415 (an LTE-to-Ethernet/SFP bridge device, despite the "SFP" naming — it's actually another modem, not a fiber ONT).
