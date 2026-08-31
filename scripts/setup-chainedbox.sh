@@ -507,6 +507,9 @@ systemctl enable smbd nmbd
 
 # Aria2
 log_info "Configuring Aria2 daemon & post-download trigger..."
+mkdir -p "${APPSRV_DIR}/aria2/.aria2" "${NASDATA_DIR}/downloads"
+touch "${APPSRV_DIR}/aria2/.aria2/aria2.session"
+fetch_repo_file "configs/chainedbox/aria2/aria2.conf" "${APPSRV_DIR}/aria2/aria2.conf" 2>/dev/null || \
 curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.conf" -o "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|dir=/mnt/nasdata/downloads|dir=${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.conf"

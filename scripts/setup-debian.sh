@@ -590,21 +590,14 @@ else
     git clone git@github.com:hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" || true
 fi
 
-# Clone / Deploy AriaNg Web UI
+# Deploy AriaNg Web UI
 log_info "Deploying AriaNg Web UI to ${APPSRV_DIR}/www/aria2..."
 mkdir -p "${APPSRV_DIR}/www/aria2"
-if [[ -d "${APPSRV_DIR}/www/aria2/.git" ]]; then
-    git -C "${APPSRV_DIR}/www/aria2" pull 2>/dev/null || true
-elif [[ ! -f "${APPSRV_DIR}/www/aria2/index.html" ]]; then
-    rm -rf "${APPSRV_DIR}/www/aria2"
-    if ! git clone https://github.com/mayswind/AriaNg.git "${APPSRV_DIR}/www/aria2" 2>/dev/null && \
-       ! git clone git@github.com:mayswind/AriaNg.git "${APPSRV_DIR}/www/aria2" 2>/dev/null; then
-        log_info "Downloading latest prebuilt AriaNg release bundle..."
-        mkdir -p "${APPSRV_DIR}/www/aria2"
-        curl -s -L "https://github.com/mayswind/AriaNg/releases/download/1.3.14/AriaNg-1.3.14-AllInOne.zip" -o /tmp/ariang.zip
-        unzip -o -q /tmp/ariang.zip -d "${APPSRV_DIR}/www/aria2"
-        rm -f /tmp/ariang.zip
-    fi
+if [[ ! -f "${APPSRV_DIR}/www/aria2/index.html" ]]; then
+    rm -rf "${APPSRV_DIR}/www/aria2"/* "${APPSRV_DIR}/www/aria2"/.* 2>/dev/null || true
+    curl -fSL --retry 3 --retry-delay 2 "https://github.com/mayswind/AriaNg/releases/download/1.3.14/AriaNg-1.3.14-AllInOne.zip" -o /tmp/ariang.zip
+    unzip -o -q /tmp/ariang.zip -d "${APPSRV_DIR}/www/aria2"
+    rm -f /tmp/ariang.zip
 fi
 
 # Deploy JK BMS Configuration Tool
