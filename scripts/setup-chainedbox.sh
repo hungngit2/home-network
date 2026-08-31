@@ -556,7 +556,11 @@ systemctl enable owntone 2>/dev/null || true
 log_info "Setting up Jellyfin Media Server..."
 if ! command -v jellyfin >/dev/null 2>&1; then
     log_info "Installing Jellyfin via official Debian/Ubuntu installer..."
-    curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash 2>/dev/null || true
+    # Expand /tmp to 3GB — Jellyfin installer requires 2GB free in /tmp for dotnet/ffmpeg extraction
+    mount -o remount,size=3G /tmp 2>/dev/null || true
+    # SKIP_CONFIRM=1 bypasses the interactive press-Enter prompt when running non-interactively
+    SKIP_CONFIRM=1 DEBIAN_FRONTEND=noninteractive bash -c \
+        'curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash' 2>/dev/null || true
 fi
 
 log_info "Configuring Jellyfin environment flags and systemd unit..."
