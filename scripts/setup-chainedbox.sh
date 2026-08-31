@@ -89,6 +89,14 @@ SMB_NETBIOS_NAME="${SMB_NETBIOS_NAME:-chainedbox}"
 SMB_WORKGROUP="${SMB_WORKGROUP:-WORKGROUP}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 
+# --- Helper: Fetch Repository File with Cache-Busting ---
+fetch_repo_file() {
+    local rel_path="$1"
+    local dest_path="$2"
+    mkdir -p "$(dirname "${dest_path}")"
+    curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 15 "${REPO_RAW_BASE}/${rel_path}?ts=$(date +%s)" -o "${dest_path}"
+}
+
 # --- Helper: Interactive Prompt with Default ---
 prompt_val() {
     local prompt_text="$1"
@@ -235,31 +243,35 @@ apt-get install -y --no-install-recommends \
     samba \
     certbot \
     python3-certbot-nginx \
+    openssl \
     mosh \
     git \
     curl \
     wget \
     jq \
     tar \
+    unzip \
     net-tools \
     avahi-daemon \
     avahi-utils \
     docker.io \
+    docker-cli \
     ca-certificates
 
 # Apply custom sysctl tuning
 log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/sysctl.conf" -o /etc/sysctl.d/99-chainedbox.conf
+fetch_repo_file "configs/chainedbox/system/sysctl.conf" "/etc/sysctl.d/99-chainedbox.conf"
 sysctl --system >/dev/null 2>&1 || true
 
-# Nightly reboot crontab
+# Nightly reboot crontab (idempotent)
 log_info "Setting nightly 03:00 maintenance reboot crontab..."
-echo "0 3 * * * /sbin/reboot" | crontab -
+(crontab -l 2>/dev/null | grep -v "/sbin/reboot" || true; echo "0 3 * * * /sbin/reboot") | crontab -
 
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/system/daemon.json" -o /etc/docker/daemon.json
+fetch_repo_file "configs/chainedbox/system/daemon.json" "/etc/docker/daemon.json"
 sed -i "s|\"data-root\": \"/mnt/appsrv/docker\"|\"data-root\": \"${APPSRV_DIR}/docker\"|g" /etc/docker/daemon.json
+systemctl enable --now docker 2>/dev/null || true
 systemctl restart docker 2>/dev/null || true
 
 log_succ "Base packages and OS kernel tuning configured."
@@ -352,10 +364,12 @@ log_head "Step 4/8: Configuring Unbound (${UNBOUND_PORT}), AdGuard Home (53/3000
 
 # Configure Unbound on custom port
 log_info "Configuring Unbound DNS resolver on port ${UNBOUND_PORT}..."
-mkdir -p /etc/unbound/unbound.conf.d
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/unbound/custom-port.conf" -o /etc/unbound/unbound.conf.d/custom-port.conf
+mkdir -p /etc/unbound/unbound.conf.d /var/lib/unbound
+unbound-anchor -a /var/lib/unbound/root.key 2>/dev/null || true
+chown -R unbound:unbound /var/lib/unbound /etc/unbound 2>/dev/null || true
+fetch_repo_file "configs/chainedbox/unbound/unbound-custom-port.conf" "/etc/unbound/unbound.conf.d/custom-port.conf"
 sed -i "s/port: 5335/port: ${UNBOUND_PORT}/g" /etc/unbound/unbound.conf.d/custom-port.conf
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/unbound/remote-control.conf" -o /etc/unbound/unbound.conf.d/remote-control.conf
+fetch_repo_file "configs/chainedbox/unbound/unbound-remote-control.conf" "/etc/unbound/unbound.conf.d/remote-control.conf"
 systemctl restart unbound
 systemctl enable unbound
 
@@ -363,15 +377,16 @@ systemctl enable unbound
 log_info "Setting up AdGuard Home..."
 if [[ ! -f /opt/AdGuardHome/AdGuardHome ]]; then
     log_info "Downloading official AdGuard Home binary for ARM64..."
-    mkdir -p /opt/AdGuardHome
-    curl -s -L "https://static.adtidy.org/adguardhome/release/AdGuardHome_linux_arm64.tar.gz" | tar -xz -C /tmp/
-    mv /tmp/AdGuardHome/AdGuardHome /opt/AdGuardHome/AdGuardHome
-    rm -rf /tmp/AdGuardHome
+    mkdir -p /opt/AdGuardHome /tmp/agh_dl
+    curl -fSL -C - --retry 10 --retry-delay 2 --connect-timeout 20 "https://static.adtidy.org/adguardhome/release/AdGuardHome_linux_arm64.tar.gz" -o /tmp/agh_dl/AdGuardHome.tar.gz
+    tar -xzf /tmp/agh_dl/AdGuardHome.tar.gz -C /tmp/agh_dl/
+    mv /tmp/agh_dl/AdGuardHome/AdGuardHome /opt/AdGuardHome/AdGuardHome
+    rm -rf /tmp/agh_dl
     /opt/AdGuardHome/AdGuardHome -s install >/dev/null 2>&1 || true
 fi
 
 # Download AdGuardHome.yaml template to appsrv and substitute variables
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/adguard-home/AdGuardHome.yaml" -o "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
+fetch_repo_file "configs/chainedbox/adguard-home/AdGuardHome.yaml" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 sed -i "s|/mnt/appsrv/adguard-home/|${APPSRV_DIR}/adguard-home/|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 sed -i "s|127.0.0.1:5335|127.0.0.1:${UNBOUND_PORT}|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 sed -i "s|REDACTED-domain|${DDNS_DOMAIN}|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
@@ -385,7 +400,7 @@ systemctl enable AdGuardHome 2>/dev/null || true
 
 # Avahi-daemon mDNS reflector
 log_info "Configuring Avahi mDNS reflector bridging ${IFACE_NAME} and ${IFACE_NAME}.${VLAN10_ID}..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/avahi/avahi-daemon.conf" -o /etc/avahi/avahi-daemon.conf
+fetch_repo_file "configs/chainedbox/avahi/avahi-daemon.conf" "/etc/avahi/avahi-daemon.conf"
 sed -i "s/allow-interfaces=end0,end0.10/allow-interfaces=${IFACE_NAME},${IFACE_NAME}.${VLAN10_ID}/g" /etc/avahi/avahi-daemon.conf
 systemctl restart avahi-daemon
 systemctl enable avahi-daemon
@@ -400,14 +415,42 @@ log_head "Step 5/8: Configuring Nginx, PHP-FPM & Web Apps"
 # Detect PHP-FPM version
 PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || echo "8.3")
 log_info "Configuring PHP-FPM ${PHP_VER} memory pool..."
-mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/php/www.conf" -o "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
+mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d" /run/php
+fetch_repo_file "configs/chainedbox/php/www.conf" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
+sed -i "s|/run/php/php8.3-fpm.sock|/run/php/php${PHP_VER}-fpm.sock|g" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
 systemctl restart "php${PHP_VER}-fpm" 2>/dev/null || true
 systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
 
+# Ensure generic socket link for Nginx FastCGI
+ln -sf "/run/php/php${PHP_VER}-fpm.sock" /run/php/php-fpm.sock 2>/dev/null || true
+
+# Generate placeholder self-signed SSL cert & Certbot params if not present
+mkdir -p "/etc/letsencrypt/live/${DDNS_DOMAIN}"
+if [[ ! -f "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" ]]; then
+    log_info "Generating bootstrap self-signed SSL certificate for ${DDNS_DOMAIN}..."
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "/etc/letsencrypt/live/${DDNS_DOMAIN}/privkey.pem" \
+        -out "/etc/letsencrypt/live/${DDNS_DOMAIN}/fullchain.pem" \
+        -subj "/CN=${DDNS_DOMAIN}" 2>/dev/null || true
+fi
+
+if [[ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]]; then
+    cat << 'EOF' > /etc/letsencrypt/options-ssl-nginx.conf
+ssl_session_cache shared:le_nginx_SSL:1m;
+ssl_session_timeout 1440m;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers off;
+ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384";
+EOF
+fi
+
+if [[ ! -f /etc/letsencrypt/ssl-dhparams.pem ]]; then
+    openssl dhparam -dsaparam -out /etc/letsencrypt/ssl-dhparams.pem 2048 2>/dev/null || true
+fi
+
 # Deploy Nginx Default VHost to appsrv
 log_info "Deploying Nginx reverse proxy configuration..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/nginx/default.conf" -o "${APPSRV_DIR}/nginx/default"
+fetch_repo_file "configs/chainedbox/nginx/default.conf" "${APPSRV_DIR}/nginx/default"
 # Substitute dynamic paths and domains in nginx config
 sed -i "s|root /mnt/appsrv/www;|root ${APPSRV_DIR}/www;|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/default"
@@ -421,13 +464,52 @@ ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Clone / Deploy Wi-Fi Config Tool
 log_info "Deploying Wi-Fi Fleet Configuration Tool..."
-mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" "${APPSRV_DIR}/www/wifi-config-tool/configs"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/index.php" -o "${APPSRV_DIR}/www/wifi-config-tool/index.php"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/assets/style.css" -o "${APPSRV_DIR}/www/wifi-config-tool/assets/style.css"
-curl -fsSL "${REPO_RAW_BASE}/wifi-config-tool/configs/config.json.example" -o "${APPSRV_DIR}/www/wifi-config-tool/configs/config.json"
+mkdir -p "${APPSRV_DIR}/www/wifi-config-tool/assets" \
+         "${APPSRV_DIR}/www/wifi-config-tool/configs" \
+         "${APPSRV_DIR}/www/wifi-config-tool/pages" \
+         "${APPSRV_DIR}/www/wifi-config-tool/src"
 
-chown -R www-data:www-data "${APPSRV_DIR}/www"
-chmod -R 775 "${APPSRV_DIR}/www"
+fetch_repo_file "wifi-config-tool/index.php" "${APPSRV_DIR}/www/wifi-config-tool/index.php"
+fetch_repo_file "wifi-config-tool/assets/style.css" "${APPSRV_DIR}/www/wifi-config-tool/assets/style.css"
+fetch_repo_file "wifi-config-tool/configs/config.json.example" "${APPSRV_DIR}/www/wifi-config-tool/configs/config.json"
+fetch_repo_file "wifi-config-tool/configs/standards.json" "${APPSRV_DIR}/www/wifi-config-tool/configs/standards.json"
+fetch_repo_file "wifi-config-tool/pages/device.php" "${APPSRV_DIR}/www/wifi-config-tool/pages/device.php"
+fetch_repo_file "wifi-config-tool/pages/bulk.php" "${APPSRV_DIR}/www/wifi-config-tool/pages/bulk.php"
+fetch_repo_file "wifi-config-tool/src/auth.php" "${APPSRV_DIR}/www/wifi-config-tool/src/auth.php"
+fetch_repo_file "wifi-config-tool/src/bootstrap.php" "${APPSRV_DIR}/www/wifi-config-tool/src/bootstrap.php"
+fetch_repo_file "wifi-config-tool/src/OpenWrtClient.php" "${APPSRV_DIR}/www/wifi-config-tool/src/OpenWrtClient.php"
+fetch_repo_file "wifi-config-tool/src/DeviceManager.php" "${APPSRV_DIR}/www/wifi-config-tool/src/DeviceManager.php"
+fetch_repo_file "wifi-config-tool/src/Standards.php" "${APPSRV_DIR}/www/wifi-config-tool/src/Standards.php"
+
+# Clone / Deploy YouTube OwnTone Dashboard
+log_info "Deploying YouTube OwnTone Dashboard to ${APPSRV_DIR}/www/ytb..."
+if [[ -d "${APPSRV_DIR}/www/ytb/.git" ]]; then
+    git -C "${APPSRV_DIR}/www/ytb" pull 2>/dev/null || true
+else
+    rm -rf "${APPSRV_DIR}/www/ytb"
+    git clone https://github.com/hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" 2>/dev/null || \
+    git clone git@github.com:hungngit2/ytb-owntone-dashboard.git "${APPSRV_DIR}/www/ytb" || true
+fi
+
+# Deploy AriaNg Web UI
+log_info "Deploying AriaNg Web UI to ${APPSRV_DIR}/www/aria2..."
+mkdir -p "${APPSRV_DIR}/www/aria2"
+if [[ ! -f "${APPSRV_DIR}/www/aria2/index.html" ]]; then
+    rm -rf "${APPSRV_DIR}/www/aria2"/* "${APPSRV_DIR}/www/aria2"/.* 2>/dev/null || true
+    curl -fSL --retry 3 --retry-delay 2 "https://github.com/mayswind/AriaNg/releases/download/1.3.14/AriaNg-1.3.14-AllInOne.zip" -o /tmp/ariang.zip
+    unzip -o -q /tmp/ariang.zip -d "${APPSRV_DIR}/www/aria2"
+    rm -f /tmp/ariang.zip
+fi
+
+# Deploy JK BMS Configuration Tool
+log_info "Deploying JK BMS Configuration Tool to ${APPSRV_DIR}/www/jk..."
+fetch_repo_file "configs/chainedbox/jk/index.html" "${APPSRV_DIR}/www/jk/index.html"
+fetch_repo_file "configs/chainedbox/jk/styles.css" "${APPSRV_DIR}/www/jk/styles.css"
+fetch_repo_file "configs/chainedbox/jk/jk-bms-generator.js" "${APPSRV_DIR}/www/jk/jk-bms-generator.js"
+fetch_repo_file "configs/chainedbox/jk/clipboard.min.js" "${APPSRV_DIR}/www/jk/clipboard.min.js"
+
+chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
+chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
 systemctl restart nginx
 systemctl enable nginx
@@ -447,12 +529,12 @@ fi
 
 # Deploy tuned rtp2httpd.conf & customize parameters
 log_info "Applying tuned rtp2httpd configuration..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/rtp2httpd/rtp2httpd.conf" -o /etc/rtp2httpd.conf
+fetch_repo_file "configs/chainedbox/rtp2httpd/rtp2httpd.conf" "/etc/rtp2httpd.conf"
 sed -i "s|external-m3u = http://10.0.0.100/iptv/|external-m3u = http://${STATIC_IPV4}/iptv/|g" /etc/rtp2httpd.conf
 sed -i "s|web-auth-user = mytv|web-auth-user = ${MYTV_AUTH_USER}|g" /etc/rtp2httpd.conf
 sed -i "s|web-auth-password = <REDACTED>|web-auth-password = ${MYTV_AUTH_PASS}|g" /etc/rtp2httpd.conf
 sed -i "s|\* 5140|\* ${RTP2HTTPD_PORT}|g" /etc/rtp2httpd.conf
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/rtp2httpd/rtp2httpd.service" -o /etc/systemd/system/rtp2httpd.service
+fetch_repo_file "configs/chainedbox/rtp2httpd/rtp2httpd.service" "/etc/systemd/system/rtp2httpd.service"
 
 systemctl daemon-reload
 systemctl enable rtp2httpd
@@ -465,8 +547,7 @@ if ! command -v owntone >/dev/null 2>&1; then
 fi
 
 log_info "Configuring OwnTone server memory drop-in..."
-mkdir -p /etc/systemd/system/owntone.service.d
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/owntone/owntone-memorymax-override.conf" -o /etc/systemd/system/owntone.service.d/50-MemoryMax.conf
+fetch_repo_file "configs/chainedbox/owntone/owntone-memorymax-override.conf" "/etc/systemd/system/owntone.service.d/50-MemoryMax.conf"
 systemctl daemon-reload
 systemctl restart owntone 2>/dev/null || true
 systemctl enable owntone 2>/dev/null || true
@@ -478,10 +559,16 @@ if ! command -v jellyfin >/dev/null 2>&1; then
     curl -fsSL https://repo.jellyfin.org/install-debuntu.sh | bash 2>/dev/null || true
 fi
 
-log_info "Configuring Jellyfin environment flags..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.env" -o "${APPSRV_DIR}/jellyfin/env"
+log_info "Configuring Jellyfin environment flags and systemd unit..."
+mkdir -p "${APPSRV_DIR}/jellyfin/var-lib" "${APPSRV_DIR}/jellyfin/web"
+if [[ ! -f "${APPSRV_DIR}/jellyfin/web/index.html" && -d /usr/share/jellyfin/web ]]; then
+    cp -r /usr/share/jellyfin/web/* "${APPSRV_DIR}/jellyfin/web/" 2>/dev/null || true
+fi
+fetch_repo_file "configs/chainedbox/jellyfin/jellyfin.env" "${APPSRV_DIR}/jellyfin/env"
 sed -i "s|/mnt/appsrv/jellyfin|${APPSRV_DIR}/jellyfin|g" "${APPSRV_DIR}/jellyfin/env"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/jellyfin/jellyfin.service" -o /etc/systemd/system/jellyfin.service
+fetch_repo_file "configs/chainedbox/jellyfin/jellyfin.service" "/etc/systemd/system/jellyfin.service"
+sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/jellyfin.service
+chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" 2>/dev/null || true
 systemctl daemon-reload
 systemctl restart jellyfin 2>/dev/null || true
 systemctl enable jellyfin 2>/dev/null || true
@@ -495,7 +582,7 @@ log_head "Step 7/8: Configuring Samba Shares & Aria2 Daemon"
 
 # Samba
 log_info "Configuring Samba file shares for ${NASDATA_DIR}..."
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/samba/smb.conf" -o "${APPSRV_DIR}/samba/smb.conf"
+fetch_repo_file "configs/chainedbox/samba/smb.conf" "${APPSRV_DIR}/samba/smb.conf"
 sed -i "s|netbios name = chainedbox|netbios name = ${SMB_NETBIOS_NAME}|g" "${APPSRV_DIR}/samba/smb.conf"
 sed -i "s|workgroup = WORKGROUP|workgroup = ${SMB_WORKGROUP}|g" "${APPSRV_DIR}/samba/smb.conf"
 sed -i "s|/mnt/nasdata|${NASDATA_DIR}|g" "${APPSRV_DIR}/samba/smb.conf"
@@ -509,15 +596,17 @@ systemctl enable smbd nmbd
 log_info "Configuring Aria2 daemon & post-download trigger..."
 mkdir -p "${APPSRV_DIR}/aria2/.aria2" "${NASDATA_DIR}/downloads"
 touch "${APPSRV_DIR}/aria2/.aria2/aria2.session"
-fetch_repo_file "configs/chainedbox/aria2/aria2.conf" "${APPSRV_DIR}/aria2/aria2.conf" 2>/dev/null || \
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.conf" -o "${APPSRV_DIR}/aria2/aria2.conf"
+fetch_repo_file "configs/chainedbox/aria2/aria2.conf" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|dir=/mnt/nasdata/downloads|dir=${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.conf"
 
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2-post-download.sh" -o "${APPSRV_DIR}/aria2/aria2-post-download.sh"
+fetch_repo_file "configs/chainedbox/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/aria2/aria2.service" -o /etc/systemd/system/aria2.service
-sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" /etc/systemd/system/aria2.service
+fetch_repo_file "configs/chainedbox/aria2/aria2.service" "/etc/systemd/system/aria2.service"
+sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service
+if ! mountpoint -q "${APPSRV_DIR}"; then
+    sed -i '/ConditionPathIsMountPoint/d' /etc/systemd/system/aria2.service
+fi
 
 systemctl daemon-reload
 systemctl enable aria2
@@ -531,9 +620,9 @@ log_succ "Samba and Aria2 services configured."
 log_head "Step 8/8: Setting up Home Assistant Container & Health Checks"
 
 # Deploy Home Assistant configuration files
-mkdir -p /opt/docker/homeassistant/config
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/homeassistant/configuration.yaml" -o /opt/docker/homeassistant/config/configuration.yaml
-curl -fsSL "${REPO_RAW_BASE}/configs/chainedbox/homeassistant/automations.yaml" -o /opt/docker/homeassistant/config/automations.yaml
+mkdir -p /opt/docker/homeassistant/config /opt/docker/homeassistant/media
+fetch_repo_file "configs/chainedbox/homeassistant/configuration.yaml" "/opt/docker/homeassistant/config/configuration.yaml"
+fetch_repo_file "configs/chainedbox/homeassistant/automations.yaml" "/opt/docker/homeassistant/config/automations.yaml"
 
 log_info "Deploying / starting Home Assistant container..."
 if ! docker ps -a --format '{{.Names}}' | grep -q '^homeassistant$'; then
@@ -567,6 +656,9 @@ done
 echo -e "\n${BOLD}Quick Access Endpoints:${NC}"
 echo -e "  • AdGuard Home Admin:  ${CYAN}http://${STATIC_IPV4}:3000${NC} (or https://${DDNS_DOMAIN})"
 echo -e "  • Wi-Fi Config Tool:   ${CYAN}http://${STATIC_IPV4}/wifi-config-tool/${NC}"
+echo -e "  • JK BMS Generator:    ${CYAN}http://${STATIC_IPV4}/jk/${NC}"
+echo -e "  • AriaNg Web UI:       ${CYAN}http://${STATIC_IPV4}/aria2/${NC}"
+echo -e "  • YouTube Dashboard:   ${CYAN}http://${STATIC_IPV4}/ytb/${NC}"
 echo -e "  • IPTV Stream Proxy:   ${CYAN}http://${STATIC_IPV4}:${RTP2HTTPD_PORT}/tv/${NC} (or http://${STATIC_IPV4}/tv/)"
 echo -e "  • Home Assistant:      ${CYAN}http://${STATIC_IPV4}:8123${NC}"
 echo -e "  • OwnTone Music:       ${CYAN}http://${STATIC_IPV4}:3689${NC}"
