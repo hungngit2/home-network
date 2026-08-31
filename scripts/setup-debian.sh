@@ -694,12 +694,17 @@ JELLYFIN_DATA_DIR="${APPSRV_DIR}/jellyfin"
 JELLYFIN_CONFIG_DIR="${APPSRV_DIR}/jellyfin/config"
 JELLYFIN_LOG_DIR="${APPSRV_DIR}/jellyfin/log"
 JELLYFIN_CACHE_DIR="${APPSRV_DIR}/jellyfin/cache"
-JELLYFIN_WEB_OPT=""
+JELLYFIN_WEB_OPT="--webdir=/usr/share/jellyfin/web"
 JELLYFIN_FFMPEG_OPT="--ffmpeg=/usr/lib/jellyfin-ffmpeg/ffmpeg"
 JELLYFIN_SERVICE_OPT=""
 JELLYFIN_NOWEBAPP_OPT=""
 JELLYFIN_ADDITIONAL_OPTS=""
 EOF
+
+# Deploy network.xml to configure BaseUrl (/jellyfin) for reverse proxy compatibility
+if [[ ! -f "${APPSRV_DIR}/jellyfin/config/network.xml" ]]; then
+    fetch_repo_file "configs/chainedbox/jellyfin/network.xml" "${APPSRV_DIR}/jellyfin/config/network.xml"
+fi
 
 # Hardware acceleration: enable Intel VAAPI if /dev/dri/renderD128 is available
 # Intel Atom Cherry Trail / Braswell uses the i965 VA-API driver
@@ -717,7 +722,8 @@ else
     log_info "No /dev/dri/renderD128 found — Jellyfin will use software transcoding."
 fi
 
-chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" 2>/dev/null || true
+mkdir -p /var/lib/jellyfin
+chown -R jellyfin:jellyfin "${APPSRV_DIR}/jellyfin" /var/lib/jellyfin 2>/dev/null || true
 systemctl daemon-reload
 systemctl reset-failed jellyfin 2>/dev/null || true
 systemctl enable jellyfin 2>/dev/null || true

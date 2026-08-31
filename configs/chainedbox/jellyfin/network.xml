@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NetworkConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <BaseUrl>/jellyfin</BaseUrl>
+  <EnableIPv4>true</EnableIPv4>
+  <EnableIPv6>true</EnableIPv6>
+  <RequireHttps>false</RequireHttps>
+  <InternalHttpPort>8096</InternalHttpPort>
+  <InternalHttpsPort>8920</InternalHttpsPort>
+  <PublicHttpPort>8096</PublicHttpPort>
+  <PublicHttpsPort>8920</PublicHttpsPort>
+</NetworkConfiguration>
