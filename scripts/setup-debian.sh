@@ -274,6 +274,20 @@ log_succ "Storage hierarchy and symlinks prepared successfully."
 # ==============================================================================
 log_head "Step 2/8: Installing Base Packages & Applying Kernel Sysctl"
 
+# Ensure functional online APT repositories (especially on fresh offline USB ISO installations)
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release
+    OS_CODENAME="${VERSION_CODENAME:-${UBUNTU_CODENAME:-trixie}}"
+    if ! grep -qE '^\s*deb\s+http' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+        log_warn "No active online APT repositories detected. Configuring official Debian ${OS_CODENAME} mirrors..."
+        cat << EOF > /etc/apt/sources.list
+deb http://deb.debian.org/debian ${OS_CODENAME} main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security ${OS_CODENAME}-security main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian ${OS_CODENAME}-updates main contrib non-free non-free-firmware
+EOF
+    fi
+fi
+
 export DEBIAN_FRONTEND=noninteractive
 log_info "Updating apt package index..."
 apt-get update -qq
@@ -332,17 +346,27 @@ log_succ "Base packages and OS kernel tuning configured."
 # ==============================================================================
 log_head "Step 3/8: Configuring Netplan, Static IPv6 ULA & IoT VLAN ${VLAN10_ID}"
 
-mkdir -p /etc/netplan /etc/NetworkManager/system-connections
-systemctl enable --now NetworkManager 2>/dev/null || true
+# Check if primary interface is Wi-Fi or wired
+IS_WIRELESS=false
+if [[ "${IFACE_NAME}" == "wl"* ]] || [[ -d "/sys/class/net/${IFACE_NAME}/wireless" ]] || command -v iw >/dev/null 2>&1 && iw dev "${IFACE_NAME}" info >/dev/null 2>&1; then
+    IS_WIRELESS=true
+fi
 
-# Deploy Netplan configs with dynamically substituted parameters
-cat << EOF > /etc/netplan/00-default-use-network-manager.yaml
+if [[ "${IS_WIRELESS}" == "true" ]]; then
+    log_info "Primary interface ${IFACE_NAME} is wireless (Wi-Fi)."
+    log_info "Preserving active Wi-Fi configuration and skipping wired Netplan/VLAN profiles to maintain wireless link."
+else
+    mkdir -p /etc/netplan /etc/NetworkManager/system-connections
+    systemctl enable --now NetworkManager 2>/dev/null || true
+
+    # Deploy Netplan configs with dynamically substituted parameters
+    cat << EOF > /etc/netplan/00-default-use-network-manager.yaml
 network:
   version: 2
   renderer: NetworkManager
 EOF
 
-cat << EOF > /etc/netplan/10-${IFACE_NAME}.yaml
+    cat << EOF > /etc/netplan/10-${IFACE_NAME}.yaml
 network:
   version: 2
   renderer: NetworkManager
@@ -359,7 +383,7 @@ network:
           ipv6.addr-gen-mode: "eui64"
 EOF
 
-cat << EOF > /etc/netplan/90-vlan${VLAN10_ID}.yaml
+    cat << EOF > /etc/netplan/90-vlan${VLAN10_ID}.yaml
 network:
   version: 2
   vlans:
@@ -379,8 +403,8 @@ network:
           proxy._: ""
 EOF
 
-WIRED_UUID=$(generate_uuid)
-cat << EOF > "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
+    WIRED_UUID=$(generate_uuid)
+    cat << EOF > "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
 [connection]
 id=Wired connection 1
 uuid=${WIRED_UUID}
@@ -401,13 +425,14 @@ token=${IPV6_TOKEN}
 [proxy]
 EOF
 
-chmod 600 "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
-chmod 600 /etc/netplan/*.yaml
+    chmod 600 "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
+    chmod 600 /etc/netplan/*.yaml
 
-log_info "Applying Netplan network configuration..."
-netplan apply 2>/dev/null || true
+    log_info "Applying Netplan network configuration..."
+    netplan apply 2>/dev/null || true
+fi
 
-log_succ "Network dual-homed VLAN interfaces configured."
+log_succ "Network interfaces configured."
 
 # ==============================================================================
 # Step 4: DNS Stack (Unbound + AdGuard Home) & Avahi mDNS
