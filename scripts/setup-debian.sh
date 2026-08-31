@@ -328,6 +328,7 @@ apt-get install -y --no-install-recommends \
     avahi-daemon \
     avahi-utils \
     docker.io \
+    docker-cli \
     ca-certificates
 
 # Apply custom sysctl tuning
@@ -626,10 +627,18 @@ log_succ "Nginx, PHP-FPM, and Web Tools deployed."
 # ==============================================================================
 log_head "Step 6/8: Configuring IPTV Streaming (rtp2httpd) & Media Services"
 
-# 1. Install & Configure rtp2httpd via Official GitHub Installer
-log_info "Installing rtp2httpd via official GitHub installer..."
+# 1. Install & Configure rtp2httpd via Official GitHub Release
+log_info "Installing rtp2httpd via official GitHub release..."
 if ! command -v rtp2httpd >/dev/null 2>&1; then
+    ARCH_RTP="x86_64"
+    case $(uname -m) in
+        aarch64|arm64) ARCH_RTP="aarch64" ;;
+        x86_64) ARCH_RTP="x86_64" ;;
+        armv7l) ARCH_RTP="armv7-eabihf" ;;
+    esac
+    curl -fsSL --retry 5 --retry-delay 2 "https://github.com/hungngit2/rtp2httpd/releases/latest/download/rtp2httpd-1.0.4-${ARCH_RTP}" -o /usr/local/bin/rtp2httpd 2>/dev/null || \
     curl -fsSL https://raw.githubusercontent.com/hungngit2/rtp2httpd/main/scripts/install-armbian.sh | sh
+    chmod +x /usr/local/bin/rtp2httpd 2>/dev/null || true
 fi
 
 # Deploy tuned rtp2httpd.conf & customize parameters
@@ -707,6 +716,8 @@ systemctl enable smbd nmbd
 
 # Aria2
 log_info "Configuring Aria2 daemon & post-download trigger..."
+mkdir -p "${APPSRV_DIR}/aria2/.aria2" "${NASDATA_DIR}/downloads"
+touch "${APPSRV_DIR}/aria2/.aria2/aria2.session"
 fetch_repo_file "configs/chainedbox/aria2/aria2.conf" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|dir=/mnt/nasdata/downloads|dir=${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.conf"
