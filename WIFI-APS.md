@@ -73,16 +73,16 @@ curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts
 export NON_INTERACTIVE=true
 export AP_NAME="jcg-q20-f1"
 curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-openwrt-ap.sh | sh
-```
-export SSID_LAN="lotus"
-export PASS_LAN="MaiThaoTonyToby39"
-export SSID_IOT="lotus IoT"
-export PASS_IOT="IoT@1076"
-export SSID_GUEST="lotus⁺"
-export PASS_GUEST="Lotus@Heart"
-export MESH_ID="lotus-mesh"
-export MESH_KEY="Lotus@Mesh"
-export MOBILITY_DOMAIN="1076"
+```bash
+export SSID_LAN="Home-WiFi"
+export PASS_LAN="YourLanPassword123"
+export SSID_IOT="Home-IoT"
+export PASS_IOT="YourIotPassword123"
+export SSID_GUEST="Home-Guest"
+export PASS_GUEST="YourGuestPassword123"
+export MESH_ID="mesh-backhaul"
+export MESH_KEY="YourMeshPassword123"
+export MOBILITY_DOMAIN="1001"
 
 curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-openwrt-ap.sh | sh
 ```
