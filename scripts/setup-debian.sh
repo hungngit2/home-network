@@ -307,6 +307,8 @@ apt-get install -y --no-install-recommends \
     unbound \
     unbound-anchor \
     aria2 \
+    ffmpeg \
+    python3 \
     nginx \
     php \
     php-fpm \
@@ -579,6 +581,20 @@ fetch_repo_file "wifi-config-tool/src/bootstrap.php" "${APPSRV_DIR}/www/wifi-con
 fetch_repo_file "wifi-config-tool/src/OpenWrtClient.php" "${APPSRV_DIR}/www/wifi-config-tool/src/OpenWrtClient.php"
 fetch_repo_file "wifi-config-tool/src/DeviceManager.php" "${APPSRV_DIR}/www/wifi-config-tool/src/DeviceManager.php"
 fetch_repo_file "wifi-config-tool/src/Standards.php" "${APPSRV_DIR}/www/wifi-config-tool/src/Standards.php"
+
+# Install / Update yt-dlp binary for YouTube Dashboard
+log_info "Installing / updating yt-dlp to /usr/local/bin/yt-dlp..."
+ARCH="$(uname -m)"
+if [[ "$ARCH" == "aarch64" ]]; then
+    YTDLP_BIN_URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_aarch64"
+elif [[ "$ARCH" == "x86_64" ]]; then
+    YTDLP_BIN_URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"
+else
+    YTDLP_BIN_URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
+fi
+curl -fsSL --retry 3 --retry-delay 2 "$YTDLP_BIN_URL" -o /usr/local/bin/yt-dlp || \
+wget -q --tries=3 -O /usr/local/bin/yt-dlp "$YTDLP_BIN_URL" || true
+chmod a+rx /usr/local/bin/yt-dlp 2>/dev/null || true
 
 # Clone / Deploy YouTube OwnTone Dashboard
 log_info "Deploying YouTube OwnTone Dashboard to ${APPSRV_DIR}/www/ytb..."
