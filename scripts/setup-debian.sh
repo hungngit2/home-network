@@ -10,20 +10,17 @@
 #     curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
 #
 #   Non-interactive mode (fully automated with environment variables):
-#     export NON_INTERACTIVE=true
-#     export STATIC_IPV4="10.0.0.100"
-#     export STATIC_IPV6_ULA="fd39:10::100/64"
-#     export IPV6_TOKEN="::100"
-#     export IFACE_NAME="eth0"
-#     export VLAN10_ID="10"
-#     export DDNS_DOMAIN="lotus.ddns.net"
-#     export APPSRV_DIR="/mnt/appsrv"
-#     export NASDATA_DIR="/mnt/nasdata"
-#     export MYTV_AUTH_USER="admin"
-#     export MYTV_AUTH_PASS="admin"
-#     export SMB_NETBIOS_NAME="debian-server"
-#     export SMB_WORKGROUP="WORKGROUP"
-#     curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
+#     Single-disk SATA/NVMe (e.g. 10.0.0.99 with 64GB SATA rootfs):
+#       export STATIC_IPV4="10.0.0.99"
+#       export APPSRV_DIR="/appsrv"
+#       export NASDATA_DIR="/nasdata"
+#       curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
+#
+#     Dedicated external storage disks (e.g. 10.0.0.100 with /mnt/appsrv & /mnt/nasdata):
+#       export STATIC_IPV4="10.0.0.100"
+#       export APPSRV_DIR="/mnt/appsrv"
+#       export NASDATA_DIR="/mnt/nasdata"
+#       curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
 # ==============================================================================
 
 set -euo pipefail
@@ -68,31 +65,34 @@ if [[ -z "${DETECTED_IFACE}" ]]; then
     DETECTED_IFACE=$(ip -o link show 2>/dev/null | awk -F': ' '{print $2}' | grep -E '^(end|eth|enp|eno|en)' | head -n1 || echo "eth0")
 fi
 
-DETECTED_IPV4=$(ip -o -4 addr show dev "${DETECTED_IFACE}" 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n1 || echo "10.0.0.100")
+DETECTED_IPV4=$(ip -o -4 addr show dev "${DETECTED_IFACE}" 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n1 || echo "10.0.0.99")
 if [[ -z "${DETECTED_IPV4}" || "${DETECTED_IPV4}" == "127."* ]]; then
-    DETECTED_IPV4="10.0.0.100"
+    DETECTED_IPV4="10.0.0.99"
 fi
+
+DETECTED_HOST_OCTET=$(echo "${DETECTED_IPV4}" | awk -F. '{print $4}')
+DETECTED_HOST_OCTET="${DETECTED_HOST_OCTET:-99}"
 
 DETECTED_HOSTNAME=$(cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo "debian-server")
 
 # --- Detect Storage Layout (Dedicated External Disks vs Single-Drive Local) ---
-if mountpoint -q /mnt/appsrv 2>/dev/null || [[ -d /mnt/appsrv && -d /mnt/nasdata ]]; then
+if mountpoint -q /mnt/appsrv 2>/dev/null || [[ -d /mnt/appsrv && -d /mnt/nasdata && ! -L /mnt/appsrv ]]; then
     DEFAULT_USE_EXTERNAL="true"
     DEFAULT_APPSRV="/mnt/appsrv"
     DEFAULT_NASDATA="/mnt/nasdata"
 else
-    # Standard single-disk layout (x86_64 mini PC, standard PC, VM, etc.)
+    # Standard single-disk layout (SATA SSD / NVMe on rootfs, e.g. 64GB SATA)
     DEFAULT_USE_EXTERNAL="false"
-    DEFAULT_APPSRV="/opt/appsrv"
-    DEFAULT_NASDATA="/srv/nasdata"
+    DEFAULT_APPSRV="/appsrv"
+    DEFAULT_NASDATA="/nasdata"
 fi
 
 # --- Configurable Parameters (Overridable via Env Vars or Interactive Prompt) ---
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/hungngit2/home-network/main}"
 IFACE_NAME="${IFACE_NAME:-${DETECTED_IFACE}}"
 STATIC_IPV4="${STATIC_IPV4:-${DETECTED_IPV4}}"
-STATIC_IPV6_ULA="${STATIC_IPV6_ULA:-fd39:10::100/64}"
-IPV6_TOKEN="${IPV6_TOKEN:-::100}"
+STATIC_IPV6_ULA="${STATIC_IPV6_ULA:-fd39:10::${DETECTED_HOST_OCTET}/64}"
+IPV6_TOKEN="${IPV6_TOKEN:-::${DETECTED_HOST_OCTET}}"
 VLAN10_ID="${VLAN10_ID:-10}"
 DDNS_DOMAIN="${DDNS_DOMAIN:-lotus.ddns.net}"
 USE_EXTERNAL_DISKS="${USE_EXTERNAL_DISKS:-${DEFAULT_USE_EXTERNAL}}"
@@ -167,14 +167,14 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
     read -r ext_ans < /dev/tty || true
     if [[ "${ext_ans}" =~ ^[Yy] ]]; then
         USE_EXTERNAL_DISKS="true"
-        if [[ "${APPSRV_DIR}" == "/opt/appsrv" ]]; then APPSRV_DIR="/mnt/appsrv"; fi
-        if [[ "${NASDATA_DIR}" == "/srv/nasdata" ]]; then NASDATA_DIR="/mnt/nasdata"; fi
+        if [[ "${APPSRV_DIR}" == "/appsrv" || "${APPSRV_DIR}" == "/opt/appsrv" ]]; then APPSRV_DIR="/mnt/appsrv"; fi
+        if [[ "${NASDATA_DIR}" == "/nasdata" || "${NASDATA_DIR}" == "/srv/nasdata" ]]; then NASDATA_DIR="/mnt/nasdata"; fi
         prompt_val "App Data Mount Path" "APPSRV_DIR"
         prompt_val "Bulk NAS Storage Mount Path" "NASDATA_DIR"
     elif [[ "${ext_ans}" =~ ^[Nn] ]] || [[ -z "${ext_ans}" && "${DEFAULT_USE_EXTERNAL}" == "false" ]]; then
         USE_EXTERNAL_DISKS="false"
-        if [[ "${APPSRV_DIR}" == "/mnt/appsrv" ]]; then APPSRV_DIR="/opt/appsrv"; fi
-        if [[ "${NASDATA_DIR}" == "/mnt/nasdata" ]]; then NASDATA_DIR="/srv/nasdata"; fi
+        if [[ "${APPSRV_DIR}" == "/mnt/appsrv" ]]; then APPSRV_DIR="/appsrv"; fi
+        if [[ "${NASDATA_DIR}" == "/mnt/nasdata" ]]; then NASDATA_DIR="/nasdata"; fi
         prompt_val "App Data Storage Path" "APPSRV_DIR"
         prompt_val "Bulk NAS Storage Path" "NASDATA_DIR"
     else
@@ -220,7 +220,7 @@ fi
 # ==============================================================================
 log_head "Step 1/8: Preparing Storage & Directory Hierarchy"
 
-# Verify or create mount directories
+# Verify or create storage directories
 mkdir -p "${APPSRV_DIR}" "${NASDATA_DIR}"
 
 if [[ "${USE_EXTERNAL_DISKS}" == "true" || "${APPSRV_DIR}" == "/mnt/"* ]]; then
@@ -236,6 +236,33 @@ if [[ "${USE_EXTERNAL_DISKS}" == "true" || "${APPSRV_DIR}" == "/mnt/"* ]]; then
     fi
 else
     log_info "Using local single-drive filesystem storage at ${APPSRV_DIR} and ${NASDATA_DIR}."
+fi
+
+# Ensure backward-compatibility symlinks if /mnt/appsrv or /mnt/nasdata are not separate mountpoints
+if [[ "${APPSRV_DIR}" != "/mnt/appsrv" ]]; then
+    if ! mountpoint -q /mnt/appsrv 2>/dev/null; then
+        mkdir -p /mnt
+        if [[ -d /mnt/appsrv && ! -L /mnt/appsrv && -z "$(ls -A /mnt/appsrv 2>/dev/null)" ]]; then
+            rmdir /mnt/appsrv 2>/dev/null || true
+        fi
+        if [[ ! -e /mnt/appsrv ]]; then
+            ln -s "${APPSRV_DIR}" /mnt/appsrv
+            log_info "Created compatibility symlink /mnt/appsrv -> ${APPSRV_DIR}"
+        fi
+    fi
+fi
+
+if [[ "${NASDATA_DIR}" != "/mnt/nasdata" ]]; then
+    if ! mountpoint -q /mnt/nasdata 2>/dev/null; then
+        mkdir -p /mnt
+        if [[ -d /mnt/nasdata && ! -L /mnt/nasdata && -z "$(ls -A /mnt/nasdata 2>/dev/null)" ]]; then
+            rmdir /mnt/nasdata 2>/dev/null || true
+        fi
+        if [[ ! -e /mnt/nasdata ]]; then
+            ln -s "${NASDATA_DIR}" /mnt/nasdata
+            log_info "Created compatibility symlink /mnt/nasdata -> ${NASDATA_DIR}"
+        fi
+    fi
 fi
 
 # Create directory hierarchy on appsrv
@@ -559,6 +586,7 @@ fi
 log_info "Deploying Nginx reverse proxy configuration..."
 fetch_repo_file "configs/chainedbox/nginx/default.conf" "${APPSRV_DIR}/nginx/default"
 sed -i "s|root /mnt/appsrv/www;|root ${APPSRV_DIR}/www;|g" "${APPSRV_DIR}/nginx/default"
+sed -i "s|/mnt/appsrv/www|${APPSRV_DIR}/www|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/nasdata/share/www/certbot/|${NASDATA_DIR}/share/www/certbot/|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|http://localhost:5140/tv/|http://localhost:${RTP2HTTPD_PORT}/tv/|g" "${APPSRV_DIR}/nginx/default"
@@ -773,6 +801,7 @@ sed -i "s|dir=/mnt/nasdata/downloads|dir=${NASDATA_DIR}/downloads|g" "${APPSRV_D
 sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.conf"
 
 fetch_repo_file "configs/chainedbox/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
+sed -i "s|/mnt/nasdata/downloads|${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 fetch_repo_file "configs/chainedbox/aria2/aria2.service" "/etc/systemd/system/aria2.service"
 sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service

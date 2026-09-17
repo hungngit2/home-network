@@ -59,6 +59,16 @@ curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts
 
 All settings are auto-detected with sensible defaults, or customizable via environment variables:
 
+**Single-Drive Layout (e.g. Debian on 64GB SATA SSD / NVMe rootfs):**
+```bash
+export NON_INTERACTIVE=true
+export STATIC_IPV4="10.0.0.99"           # Server IPv4 (auto-detected if unset)
+export APPSRV_DIR="/appsrv"              # App storage directly on rootfs
+export NASDATA_DIR="/nasdata"            # Bulk/Samba storage on rootfs
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
+```
+
+**Dedicated Disk Mountpoints (e.g. Chainedbox with eMMC + separate `/mnt/appsrv` & `/mnt/nasdata`):**
 ```bash
 export NON_INTERACTIVE=true
 export IFACE_NAME="end0"                 # Primary network interface (auto-detected if unset)
