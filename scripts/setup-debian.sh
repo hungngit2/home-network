@@ -839,6 +839,22 @@ else
     docker restart homeassistant 2>/dev/null || true
 fi
 
+# --- Setup Custom Armbian-style MOTD Welcome Screen ---
+log_head "Setting up Custom MOTD (Welcome Screen)"
+log_info "Downloading MOTD scripts and configuration..."
+fetch_repo_file "configs/debian-motd/armbian-release" "/etc/armbian-release"
+fetch_repo_file "configs/debian-motd/armbian-motd" "/etc/default/armbian-motd"
+
+mkdir -p /etc/update-motd.d
+for script in 00-clear 10-armbian-header 30-armbian-sysinfo 35-armbian-tips 41-commands 98-armbian-autoreboot-warn; do
+    fetch_repo_file "configs/debian-motd/update-motd.d/${script}" "/etc/update-motd.d/${script}"
+    chmod +x "/etc/update-motd.d/${script}"
+done
+
+log_info "Hiding standard Debian MOTD copyright messages..."
+truncate -s 0 /etc/motd
+log_succ "Custom MOTD configured successfully."
+
 # Print final status report
 echo -e "\n${BOLD}${GREEN}==============================================================================${NC}"
 echo -e "${BOLD}${GREEN}               Debian Server Bootstrap Completed!                            ${NC}"
