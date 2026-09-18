@@ -365,9 +365,7 @@ log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..
 fetch_repo_file "configs/chainedbox/system/sysctl.conf" "/etc/sysctl.d/99-server.conf"
 sysctl --system >/dev/null 2>&1 || true
 
-# Nightly reboot crontab (idempotent)
-log_info "Setting nightly 03:00 maintenance reboot crontab..."
-(crontab -l 2>/dev/null | grep -v "/sbin/reboot" || true; echo "0 3 * * * /sbin/reboot") | crontab -
+
 
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
