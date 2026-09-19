@@ -302,23 +302,30 @@ fi
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
-# Disable USB autosuspend, disable buggy UAS, and disable USB3 LPM (Link Power Management) for LaCie Rugged drives to prevent USB disconnects
+# Disable USB autosuspend, disable buggy UAS, and disable USB3 LPM (Link Power Management) for Realtek Hubs & LaCie Rugged drives to prevent USB disconnects
 log_info "Configuring USB Quirks & Automount rules for external USB storage..."
 cat << 'EOF' > /etc/modprobe.d/nasdata-lacie.conf
 options usb-storage quirks=059f:10ff:u
-options usbcore autosuspend=-1 quirks=059f:10ff:k
+options usbcore autosuspend=-1 quirks=0bda:0411:k,0bda:0415:k,059f:10ff:k
 blacklist uas
 EOF
-if ! grep -q "usbcore.autosuspend=-1 usbcore.quirks=059f:10ff:k" /etc/default/grub; then
-    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 usbcore.quirks=059f:10ff:k /g' /etc/default/grub
+if ! grep -q "usbcore.autosuspend=-1 usbcore.quirks=0bda:0411:k,0bda:0415:k,059f:10ff:k" /etc/default/grub; then
+    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=".*"/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 usbcore.quirks=0bda:0411:k,0bda:0415:k,059f:10ff:k quiet"/g' /etc/default/grub
     update-grub 2>/dev/null || true
 fi
 
 cat << 'EOF' > /etc/udev/rules.d/99-nasdata.rules
-# Disable power management / autosuspend / LPM for LaCie Rugged USB drive
+# Disable power management & LPM for Realtek Hubs & LaCie USB drive
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="0411", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="0415", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
 ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="059f", ATTR{idProduct}=="10ff", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
-# Trigger systemd mount whenever nasdata partition is detected
-ACTION=="add|change", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mnt-nasdata.mount"
+
+# Limit max I/O transfer size on USB drive to 1024KB to prevent bridge chip buffer stalls
+ACTION=="add|change", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", ATTR{queue/max_sectors_kb}="1024"
+
+# Clean up stale mount immediately on remove and mount partition cleanly on add
+ACTION=="remove", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", RUN+="/usr/bin/umount -l /mnt/nasdata"
+ACTION=="add|change", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", RUN+="/usr/bin/systemctl --no-block restart mnt-nasdata.mount"
 EOF
 udevadm control --reload-rules 2>/dev/null || true
 
