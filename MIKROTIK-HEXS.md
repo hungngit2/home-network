@@ -29,12 +29,12 @@ WAN: **dual-WAN with failover/load-balancing**:
 
 ## Multi-WAN routing & policy routing (the interesting part)
 
-This is the most involved piece of the config — several routing tables plus a mangle chain implement per-connection load balancing across WAN 1/WAN 2, with two carve-outs on top:
+This is the most involved piece of the config — dual-stack routing tables (`to-wan1`, `to-wan2`) plus mangle chains in both IPv4 and IPv6 implement per-connection load balancing across WAN 1/WAN 2, with policy routing on top:
 
-1. **Vietnam-vs-rest split (implicit)**: `to-wan1`/`to-wan2` routing tables both default-route out their respective WAN, selected via connection marks (`wan1`/`wan2`) that mangle assigns per-connection using `per-connection-classifier` (an 7:1-ish hash-based split across both WANs — "Connection 1"–"Connection 7" rules). This is standard PCC load-balancing, not literally IP-based.
-2. **"Unblock Sites" → forced through VPN-out**: a `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list of geo-blocked services) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP. Unused legacy GeoIP static address lists have been purged to keep config lightweight and conserve flash memory.
+1. **Dual-Stack PCC Load Balancing (IPv4 & IPv6)**: `to-wan1`/`to-wan2` routing tables both default-route out their respective WAN (`pppoe-out1` as WAN 1, `lte1` as WAN 2), selected via connection marks (`wan1`/`wan2`) that mangle assigns per-connection using `per-connection-classifier` with a 6:1 weighted split (7 buckets: `7/0`–`7/5` to WAN 1, `7/6` to WAN 2) for both IPv4 and IPv6 traffic. Inbound interface tracking ensures return traffic egresses via the correct ingress WAN.
+2. **"Unblock Sites" → forced through VPN-out**: an IPv4 `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list of geo-blocked services) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP. Unused legacy GeoIP static address lists have been purged to keep config lightweight and conserve flash memory.
 
-Static/recursive routes handle the check-gateway targets for each WAN (so failover actually triggers on ping loss) and recursive primary + fallback routes (`distance=1` primary, `distance=2` fallback with `check-gateway=ping`) for the WireGuard "VPN out" tunnels.
+Static/recursive routes handle the check-gateway targets for each WAN (so failover actually triggers on ping loss) and recursive primary + fallback routes (`distance=1` primary, `distance=2` fallback with `check-gateway=ping`) for the WireGuard "VPN out" tunnels. Both IPv4 and IPv6 `to-wan1`/`to-wan2` tables include fallback routes (`distance=10`) ensuring seamless failover across WANs.
 
 ## VPN
 
