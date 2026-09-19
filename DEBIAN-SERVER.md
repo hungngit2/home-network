@@ -14,9 +14,9 @@ Unlike the Chainedbox which relies heavily on external media for app data, the W
 
 - `/appsrv` — Local directory for app configs, web root, service data. 
 - `/mnt/appsrv` — Symlinked to `/appsrv` to maintain compatibility with legacy scripts and services that expect the Chainedbox layout.
-- `/mnt/nasdata` — Mounted USB external drive (`LABEL=nasdata`) for bulk storage (apps, docs, downloads, media). Configured in `/etc/fstab` with `defaults,nofail,x-systemd.automount,x-systemd.device-timeout=10` for seamless dynamic automounting across USB bus resets.
+- `/mnt/nasdata` — Mounted USB external drive (`LABEL=nasdata`) for bulk storage (apps, docs, downloads, media). Configured in `/etc/fstab` with `defaults,nofail,x-systemd.automount,x-systemd.idle-timeout=0,x-systemd.device-timeout=10` and backed by a dedicated `/etc/systemd/system/mnt-nasdata.automount` unit for persistent automounting across USB bus events.
 - `/nasdata` — Symlinked to `/mnt/nasdata` for backward compatibility.
-- USB Mass Storage Quirk: `/etc/modprobe.d/nasdata-lacie.conf` (`quirks=059f:10ff:u`) and `blacklist-uas.conf` to force standard `usb-storage` for LaCie Rugged drives and prevent UAS disconnects.
+- USB Mass Storage & Power Quirk: `/etc/modprobe.d/nasdata-lacie.conf` (`quirks=059f:10ff:u` to bypass buggy UAS, and `usbcore.quirks=059f:10ff:k` + `usbcore.autosuspend=-1` in GRUB cmdline) with udev rules (`/etc/udev/rules.d/99-nasdata.rules`) to completely disable USB 3.0 Link Power Management (LPM U1/U2) and prevent USB sleep disconnects for LaCie Rugged drives.
 - Swap is used instead of Zram, configured on the local SSD.
 
 ## Custom MOTD / Welcome Screen

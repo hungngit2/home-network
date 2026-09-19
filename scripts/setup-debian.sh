@@ -302,15 +302,39 @@ fi
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
-# Disable USB autosuspend & deploy udev automount rules for external USB storage (e.g. LaCie Rugged)
-echo "options usbcore autosuspend=-1" > /etc/modprobe.d/disable-usb-autosuspend.conf
+# Disable USB autosuspend, disable buggy UAS, and disable USB3 LPM (Link Power Management) for LaCie Rugged drives to prevent USB disconnects
+log_info "Configuring USB Quirks & Automount rules for external USB storage..."
+cat << 'EOF' > /etc/modprobe.d/nasdata-lacie.conf
+options usb-storage quirks=059f:10ff:u
+options usbcore autosuspend=-1 quirks=059f:10ff:k
+blacklist uas
+EOF
+if ! grep -q "usbcore.autosuspend=-1 usbcore.quirks=059f:10ff:k" /etc/default/grub; then
+    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 usbcore.quirks=059f:10ff:k /g' /etc/default/grub
+    update-grub 2>/dev/null || true
+fi
+
 cat << 'EOF' > /etc/udev/rules.d/99-nasdata.rules
-# Disable power management / autosuspend for LaCie Rugged USB drive
-ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="059f", ATTR{idProduct}=="10ff", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
+# Disable power management / autosuspend / LPM for LaCie Rugged USB drive
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="059f", ATTR{idProduct}=="10ff", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
 # Trigger systemd mount whenever nasdata partition is detected
-ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mnt-nasdata.mount"
+ACTION=="add|change", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mnt-nasdata.mount"
 EOF
 udevadm control --reload-rules 2>/dev/null || true
+
+# Deploy explicit systemd automount persistent unit
+cat << 'EOF' > /etc/systemd/system/mnt-nasdata.automount
+[Unit]
+Description=Automount nasdata USB drive
+Before=local-fs.target
+[Automount]
+Where=/mnt/nasdata
+TimeoutIdleSec=0
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable mnt-nasdata.automount 2>/dev/null || true
 
 log_succ "Storage hierarchy, automount rules, and symlinks prepared successfully."
 
