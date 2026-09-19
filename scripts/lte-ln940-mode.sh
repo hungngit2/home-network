@@ -6,225 +6,242 @@
 # Quickly run via curl:
 #   curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/lte-ln940-mode.sh | sudo bash
 # ==============================================================================
+# SETMODE=1 : MBIM + Serial  (PID 1bc7:1901) -> MikroTik RouterOS
+# SETMODE=2 : QMI  + Serial  (PID 1bc7:1900) -> Linux/QMI testing
+#
+# IMPORTANT:
+#   - Do NOT change bConfigurationValue manually.
+#   - SETMODE changes the USB composition and the modem re-enumerates.
+#   - ttyUSB1 is normally the AT command port on this LN940 firmware.
+# ==============================================================================
 
 set -u
 
-VENDOR="1bc7"
+VID="1bc7"
 PID_MBIM="1901"
 PID_QMI="1900"
 
+MODE=""
+
+# ------------------------------------------------------------
+# Ensure serial drivers are loaded and bound
+# ------------------------------------------------------------
+load_serial_drivers() {
+    modprobe option 2>/dev/null || true
+    modprobe qcserial 2>/dev/null || true
+
+    # If Telit LN940 is plugged in but no ttyUSB was registered yet, dynamically register IDs
+    if [ ! -e /dev/ttyUSB0 ] && [ -d /sys/bus/usb-serial/drivers/option1 ]; then
+        echo "${VID} ${PID_MBIM}" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
+        echo "${VID} ${PID_QMI}" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
+    fi
+}
+
+# ------------------------------------------------------------
+# Find LN940 USB device
+# ------------------------------------------------------------
 find_device() {
-    for d in /sys/bus/usb/devices/*; do
-        [ -f "$d/idVendor" ] || continue
+    if lsusb | grep -qi "${VID}:${PID_MBIM}"; then
+        MODE="MBIM + Serial"
+        return 0
+    fi
 
-        if [ "$(cat "$d/idVendor" 2>/dev/null)" = "$VENDOR" ]; then
-            case "$(cat "$d/idProduct" 2>/dev/null)" in
-                "$PID_MBIM"|"$PID_QMI")
-                    echo "$d"
-                    return 0
-                    ;;
-            esac
-        fi
-    done
+    if lsusb | grep -qi "${VID}:${PID_QMI}"; then
+        MODE="QMI + Serial"
+        return 0
+    fi
 
+    MODE="Not detected"
     return 1
 }
 
+# ------------------------------------------------------------
+# Find AT serial port
+# ------------------------------------------------------------
 find_at_port() {
-    for p in /dev/ttyUSB*; do
-        [ -e "$p" ] || continue
+    local port
 
-        # Try the port without changing its mode.
-        exec 3<> "$p" 2>/dev/null || continue
+    load_serial_drivers
 
-        # Flush old data.
-        timeout 0.2 cat <&3 >/dev/null 2>&1 || true
-
-        printf "AT\r" >&3
-        sleep 0.5
-
-        response="$(timeout 1 cat <&3 2>/dev/null | tr -d '\r')"
-
-        exec 3>&-
-
-        if echo "$response" | grep -q "OK"; then
-            echo "$p"
+    # The LN940 normally exposes ttyUSB1 as AT port.
+    for port in /dev/ttyUSB*; do
+        [ -e "$port" ] || continue
+        if [ "$(basename "$port")" = "ttyUSB1" ]; then
+            echo "$port"
             return 0
         fi
     done
 
+    # Fallback: check other available ttyUSB ports
+    for port in /dev/ttyUSB*; do
+        [ -e "$port" ] || continue
+        echo "$port"
+        return 0
+    done
+
     return 1
 }
 
+# ------------------------------------------------------------
+# Send AT command
+# ------------------------------------------------------------
+send_at() {
+    local port="$1"
+    local command="$2"
+
+    stty -F "$port" 115200 cs8 -cstopb -parenb -ixon -ixoff -crtscts raw -echo 2>/dev/null || true
+
+    # Flush any stale buffer
+    timeout 0.2 cat "$port" >/dev/null 2>&1 || true
+
+    printf '%s\r' "$command" > "$port"
+
+    timeout 3 cat "$port" 2>/dev/null | tr -d '\r' || true
+}
+
+# ------------------------------------------------------------
+# Show current status
+# ------------------------------------------------------------
 show_status() {
     echo
-    echo "=== LN940 USB status ==="
+    echo "=== LN940A9 status ==="
 
-    if ! lsusb | grep -qi "1bc7:190"; then
-        echo "LN940 not found."
-        return 1
-    fi
-
-    lsusb | grep -i "1bc7:190"
-
-    echo
-    echo "=== USB tree ==="
-    lsusb -t
-
-    echo
-    echo "=== Serial ports ==="
-    ls -l /dev/ttyUSB* 2>/dev/null || echo "No ttyUSB ports."
-
-    echo
-    echo "=== AT mode ==="
-
-    AT_PORT="$(find_at_port || true)"
-
-    if [ -n "${AT_PORT:-}" ]; then
-        echo "AT port: $AT_PORT"
-
-        exec 3<> "$AT_PORT"
-
-        printf "AT^SETMODE?\r" >&3
-        sleep 0.5
-
-        timeout 2 cat <&3 2>/dev/null | tr -d '\r' | head -20 || true
-
-        exec 3>&-
-    else
-        echo "AT port not found."
-    fi
-}
-
-change_mode() {
-    local MODE="$1"
-
-    case "$MODE" in
-        1)
-            TARGET="MBIM + Serial"
-            ;;
-        2)
-            TARGET="QMI + Serial"
-            ;;
-        *)
-            echo "Invalid mode."
-            return 1
-            ;;
-    esac
-
-    echo
-    echo "=== LN940 mode switch ==="
-    echo "Target mode: SETMODE=$MODE ($TARGET)"
-    echo
-
-    DEV="$(find_device || true)"
-
-    if [ -z "$DEV" ]; then
-        echo "[ERROR] LN940 not found."
-        return 1
-    fi
-
-    echo "[OK] Device: $DEV"
-
-    AT_PORT="$(find_at_port || true)"
-
-    if [ -z "${AT_PORT:-}" ]; then
-        echo "[ERROR] AT port not found."
+    if ! find_device; then
+        echo "Device : NOT DETECTED"
         echo
-        echo "Try reconnecting the LN940 USB device and run this script again."
-        return 1
+        return
     fi
 
-    echo "[OK] AT port: $AT_PORT"
+    echo "Device : Telit LN940A9"
+    echo "USB    : $MODE"
 
-    echo
-    echo "--- Current mode ---"
+    local port
+    port="$(find_at_port 2>/dev/null || true)"
 
-    exec 3<> "$AT_PORT"
-
-    printf "AT^SETMODE?\r" >&3
-    sleep 0.5
-
-    timeout 2 cat <&3 2>/dev/null | tr -d '\r' | head -20 || true
-
-    echo
-    echo "--- Switching to SETMODE=$MODE ---"
-
-    printf "AT^SETMODE=$MODE\r" >&3
-
-    # The modem may disappear immediately after accepting the command.
-    sleep 2
-
-    timeout 2 cat <&3 2>/dev/null | tr -d '\r' | head -20 || true
-
-    exec 3>&-
-
-    echo
-    echo "[OK] Command sent."
-    echo "[*] Waiting for modem to reboot and re-enumerate..."
-
-    sleep 12
-
-    echo
-    echo "=== Result ==="
-
-    if lsusb | grep -qi "1bc7:190"; then
-        lsusb | grep -i "1bc7:190"
+    if [ -n "$port" ]; then
+        echo "AT port: $port"
+        echo
+        echo "--- AT^SETMODE? ---"
+        send_at "$port" "AT^SETMODE?"
     else
-        echo "[WARNING] LN940 has not appeared yet."
-        echo "Wait a few more seconds and run this script again."
-        return 1
+        echo "AT port: NOT FOUND"
     fi
 
     echo
-    echo "=== USB tree ==="
-    lsusb -t
-
-    echo
-    echo "[DONE]"
 }
 
+# ------------------------------------------------------------
+# Change mode
+# ------------------------------------------------------------
+change_mode() {
+    local target="$1"
+    local port
+
+    port="$(find_at_port 2>/dev/null || true)"
+
+    if [ -z "$port" ]; then
+        echo "ERROR: AT port not found."
+        return 1
+    fi
+
+    echo
+    echo "Current USB mode:"
+    find_device >/dev/null 2>&1 || true
+    echo "  $MODE"
+    echo "AT port: $port"
+    echo
+
+    if [ "$target" = "1" ]; then
+        echo "Switching LN940 to MBIM + Serial..."
+        send_at "$port" "AT^SETMODE=1"
+    elif [ "$target" = "2" ]; then
+        echo "Switching LN940 to QMI + Serial..."
+        send_at "$port" "AT^SETMODE=2"
+    else
+        echo "Invalid mode."
+        return 1
+    fi
+
+    echo
+    echo "The modem should now re-enumerate."
+    echo "Wait a few seconds..."
+
+    sleep 5
+
+    echo
+    show_status
+}
+
+# Helper to read keyboard input safely under pipes (curl | bash)
+read_input() {
+    local prompt="$1"
+    local var_name="$2"
+
+    if [ -t 0 ]; then
+        read -rp "$prompt" "$var_name"
+    elif [ -r /dev/tty ]; then
+        read -rp "$prompt" "$var_name" < /dev/tty
+    else
+        echo "$prompt"
+        return 1
+    fi
+}
+
+# ------------------------------------------------------------
+# Main
+# ------------------------------------------------------------
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run this script with sudo:"
+    echo "Please run as root:"
     echo "  sudo $0"
     exit 1
 fi
 
 while true; do
-    echo
+    clear
+
     echo "======================================"
-    echo "       Telit LN940 Mode Switcher"
+    echo "       Telit LN940A9 Mode Switcher"
     echo "======================================"
     echo
-    echo "  1) MBIM + Serial  (SETMODE=1)"
-    echo "  2) QMI  + Serial  (SETMODE=2)"
-    echo "  3) Show current status"
-    echo "  0) Exit"
-    if [ -t 0 ]; then
-        read -rp "Select: " choice
-    elif [ -r /dev/tty ]; then
-        read -rp "Select: " choice < /dev/tty
+
+    if find_device; then
+        echo "Detected : $MODE"
     else
-        echo "Non-interactive shell detected. Defaulting to show status."
+        echo "Detected : NOT FOUND"
+    fi
+
+    echo
+    echo "1) MBIM + Serial  (SETMODE=1)"
+    echo "2) QMI  + Serial  (SETMODE=2)"
+    echo "3) Show status"
+    echo "0) Exit"
+    echo
+
+    read_input "Select: " choice || {
+        echo "Non-interactive shell. Showing status and exiting:"
         show_status
         exit 0
-    fi
+    }
 
     case "$choice" in
         1)
             change_mode 1
+            read_input "Press Enter to continue..." dummy || true
             ;;
         2)
             change_mode 2
+            read_input "Press Enter to continue..." dummy || true
             ;;
         3)
             show_status
+            read_input "Press Enter to continue..." dummy || true
             ;;
         0)
             exit 0
             ;;
         *)
-            echo "Invalid selection."
+            echo "Invalid choice."
+            sleep 1
             ;;
     esac
 done
