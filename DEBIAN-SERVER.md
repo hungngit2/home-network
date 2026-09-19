@@ -14,6 +14,9 @@ Unlike the Chainedbox which relies heavily on external media for app data, the W
 
 - `/appsrv` — Local directory for app configs, web root, service data. 
 - `/mnt/appsrv` — Symlinked to `/appsrv` to maintain compatibility with legacy scripts and services that expect the Chainedbox layout.
+- `/mnt/nasdata` — Mounted USB external drive (`LABEL=nasdata`) for bulk storage (apps, docs, downloads, media).
+- `/nasdata` — Symlinked to `/mnt/nasdata` for backward compatibility.
+- USB Mass Storage Quirk: `/etc/modprobe.d/nasdata-lacie.conf` (`quirks=059f:10ff:u`) and `blacklist-uas.conf` to force standard `usb-storage` for LaCie Rugged drives and prevent UAS disconnects.
 - Swap is used instead of Zram, configured on the local SSD.
 
 ## Custom MOTD / Welcome Screen
@@ -37,7 +40,7 @@ curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts
 
 All settings are auto-detected with sensible defaults, or customizable via environment variables:
 
-**Single-Drive Layout (e.g. Debian on 64GB SATA SSD / NVMe rootfs):**
+**Single-Drive Layout (e.g. Debian on SATA SSD / NVMe rootfs only):**
 ```bash
 export NON_INTERACTIVE=true
 export STATIC_IPV4="10.0.0.100"          # Server IPv4 (auto-detected if unset)
@@ -47,8 +50,18 @@ export NASDATA_DIR="/nasdata"            # Bulk/Samba storage on rootfs
 curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
 ```
 
+**Hybrid Layout (Wyse 5070 with SSD rootfs + External USB Drive for `/mnt/nasdata`):**
+```bash
+export NON_INTERACTIVE=true
+export STATIC_IPV4="10.0.0.100"          # Server IPv4 (auto-detected if unset)
+export STATIC_IPV6_ULA="fd39:10::100/64" # Static IPv6 ULA address/prefix
+export APPSRV_DIR="/appsrv"              # App storage on local SSD
+export NASDATA_DIR="/mnt/nasdata"        # Bulk storage on external USB disk
+curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/setup-debian.sh | sudo bash
+```
+
 The script automatically executes:
-1. **Storage Setup**: Directory structure provisioning on `/appsrv` and `/nasdata`.
+1. **Storage Setup**: Directory structure provisioning on `/appsrv` and `/mnt/nasdata` (with backward compatibility symlinks `/mnt/appsrv -> /appsrv` and `/nasdata -> /mnt/nasdata`).
 2. **Network Setup**: ULA configuration, interface setup, and Wake-on-LAN configuration.
 3. **MOTD Customization**: Fetches and applies the custom Armbian-style welcome screen from `configs/debian-motd/`.
 4. **DNS & Web Stack**: Nginx + PHP-FPM, web tools, Unbound, AdGuard Home.

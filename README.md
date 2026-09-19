@@ -99,7 +99,8 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
 | Device | Role | Address(es) | Detail doc |
 |---|---|---|---|
 | **home** (MikroTik RB760iGS "hEX S") | Router: DHCP, DNS forwarding, firewall, dual-WAN load balancing, NAT66, FastTrack, WireGuard | `10.0.0.254` (LAN), `fd39:10::254`, `10.0.100.254` / `fd39:10:100::254` (WireGuard-in) | [MIKROTIK-HEXS.md](MIKROTIK-HEXS.md) |
-| **chainedbox** (Armbian, RK3328 TV box) | Application server: DNS blocking, media, dashboard, home automation, downloads, file share | `10.0.0.100` / `fd39:10::100` (LAN), `10.0.1.15` (IoT) | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md) |
+| **wyse5070** (Debian 13, Dell Wyse 5070) | Application server: DNS blocking, media, dashboard, home automation, downloads, bulk storage | `10.0.0.100` / `fd39:10::100` (LAN) | [DEBIAN-SERVER.md](DEBIAN-SERVER.md) |
+| **chainedbox** (Armbian, RK3328 TV box) | Application server (legacy/secondary): DNS blocking, media, dashboard, downloads | `10.0.0.101` / `fd39:10::101` (LAN), `10.0.1.15` (IoT) | [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md) |
 | **redmi-rm2100-f0** | Wi-Fi AP (mesh node, AP-0) | `10.0.0.200` | [WIFI-APS.md](WIFI-APS.md) |
 | **jcg-q20-f1** | Wi-Fi AP (mesh node, AP-1) | `10.0.0.201` | [WIFI-APS.md](WIFI-APS.md) |
 | **jcg-q20-f2** | Wi-Fi AP (mesh node, AP-2) | `10.0.0.202` | [WIFI-APS.md](WIFI-APS.md) |
@@ -108,6 +109,7 @@ A 3-tier home network: a MikroTik router (`home`) doing routing/firewall/VPN/DHC
 ## Documentation
 
 - **[MIKROTIK-HEXS.md](MIKROTIK-HEXS.md)** — router config: VLANs, dual-WAN policy routing, dual-stack WireGuard, IPv4/IPv6 FastTrack, NAT66 architecture, DNS, IGMP/multicast, scheduler scripts.
+- **[DEBIAN-SERVER.md](DEBIAN-SERVER.md)** — Wyse 5070 server: Debian 13, hardware specs, storage layout (`/appsrv`, `/mnt/nasdata` USB storage, UAS driver quirk), systemd services, automated bootstrap.
 - **[ARMBIAN-SERVER.md](ARMBIAN-SERVER.md)** — full service inventory for Chainedbox: storage layout, every service, dual-homed network/VLAN wiring, static IPv4/IPv6 netplan.
 - **[WIFI-APS.md](WIFI-APS.md)** — the 4-AP fleet: VLAN/SSID scheme, 802.11s mesh backhaul, optimized `usteer` 802.11v/k/r roaming parameters, and Unbound resolvers.
 - **[configs/chainedbox/](configs/chainedbox/)** — the actual raw config files for Chainedbox (nginx vhost, systemd units, `aria2.conf`, `smb.conf`, `AdGuardHome.yaml`, `avahi-daemon.conf`, Unbound conf.d, `docker/daemon.json`, netplan, crontab, etc.), for a future reinstall/migration.
