@@ -23,7 +23,9 @@ Three physical LAN segments plus a VPN-delivered "LAN" segment, layered over 5 E
 
 WAN: **dual-WAN with failover/load-balancing**:
 - **WAN 1** — PPPoE (`pppoe-out1`, user redacted) over `vlan-sfp1.10`, via VNPT (Vietnamese ISP), through the SFP-connected Hisense LTE3415 (an LTE-to-Ethernet/SFP bridge device, despite the "SFP" naming — it's actually another modem, not a fiber ONT).
-- **WAN 2** — the router's built-in LTE modem (`lte1`), carrier Vinaphone, roaming allowed — a cellular failover path.
+- **WAN 2** — USB M.2 WWAN modem (`lte1`), Telit LN940-A9 (Foxconn T77W676, Cat9 LTE) configured in **MBIM mode (`SETMODE=1`)**, carrier Vinaphone (Band 3) — cellular failover and PCC load-balancing path.
+  - Mode switcher utility script: [`scripts/lte-ln940-mode.sh`](scripts/lte-ln940-mode.sh) (`curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/lte-ln940-mode.sh | sudo bash`).
+  - Native RouterOS AT command: `/interface/lte/at-chat lte1 input="AT^SETMODE=1"`.
 
 ## Multi-WAN routing & policy routing (the interesting part)
 
