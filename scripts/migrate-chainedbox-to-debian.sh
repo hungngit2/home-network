@@ -117,7 +117,22 @@ transfer_dir "/mnt/appsrv/docker/homeassistant/config" "/appsrv/docker/homeassis
 # 3. Jellyfin
 transfer_dir "/mnt/appsrv/jellyfin/config" "/appsrv/jellyfin/" "Jellyfin System & User Configurations"
 transfer_dir "/mnt/appsrv/jellyfin/var-lib" "/appsrv/jellyfin/" "Jellyfin Metadata & Library Databases"
-${SSH_DST} sed -i "s|/mnt/appsrv/|/appsrv/|g" /appsrv/jellyfin/config/network.xml 2>/dev/null || true
+${SSH_DST} bash -c '
+    sed -i "s|/mnt/appsrv/|/appsrv/|g" /appsrv/jellyfin/config/*.xml /appsrv/jellyfin/env 2>/dev/null || true
+    if [[ -f /appsrv/jellyfin/data/jellyfin.db ]]; then
+        python3 -c "
+import sqlite3
+conn = sqlite3.connect(\"/appsrv/jellyfin/data/jellyfin.db\")
+c = conn.cursor()
+c.execute(\"UPDATE BaseItems SET Path = REPLACE(Path, \\\"/mnt/appsrv/\\\", \\\"/appsrv/\\\") WHERE Path LIKE \\\"/mnt/appsrv/%\\\"\")
+c.execute(\"UPDATE BaseItems SET data = REPLACE(data, \\\"/mnt/appsrv/\\\", \\\"/appsrv/\\\") WHERE data LIKE \\\"%/mnt/appsrv/%\\\"\")
+c.execute(\"UPDATE Chapters SET ImagePath = REPLACE(ImagePath, \\\"/mnt/appsrv/\\\", \\\"/appsrv/\\\") WHERE ImagePath LIKE \\\"/mnt/appsrv/%\\\"\")
+c.execute(\"UPDATE BaseItemImageInfos SET Path = REPLACE(Path, \\\"/mnt/appsrv/\\\", \\\"/appsrv/\\\") WHERE Path LIKE \\\"/mnt/appsrv/%\\\"\")
+conn.commit()
+conn.close()
+" 2>/dev/null || true
+    fi
+'
 
 # 4. Aria2
 transfer_dir "/mnt/appsrv/aria2/.aria2" "/appsrv/aria2/" "Aria2 Session & DHT State"
