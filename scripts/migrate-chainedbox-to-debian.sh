@@ -85,7 +85,7 @@ ${SSH_DST} bash -c '
 log_info "Configuring /etc/fstab for USB disk automount (LABEL=nasdata)..."
 ${SSH_DST} bash -c '
     if ! grep -q "LABEL=nasdata" /etc/fstab; then
-        echo "LABEL=nasdata /nasdata auto defaults,nofail 0 0" >> /etc/fstab
+        echo "LABEL=nasdata /nasdata auto defaults,nofail,x-systemd.automount,x-systemd.device-timeout=10 0 0" >> /etc/fstab
     fi
 '
 
