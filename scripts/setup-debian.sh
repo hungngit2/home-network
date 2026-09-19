@@ -302,7 +302,17 @@ fi
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 
-log_succ "Storage hierarchy and symlinks prepared successfully."
+# Disable USB autosuspend & deploy udev automount rules for external USB storage (e.g. LaCie Rugged)
+echo "options usbcore autosuspend=-1" > /etc/modprobe.d/disable-usb-autosuspend.conf
+cat << 'EOF' > /etc/udev/rules.d/99-nasdata.rules
+# Disable power management / autosuspend for LaCie Rugged USB drive
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="059f", ATTR{idProduct}=="10ff", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
+# Trigger systemd mount whenever nasdata partition is detected
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="nasdata", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mnt-nasdata.mount"
+EOF
+udevadm control --reload-rules 2>/dev/null || true
+
+log_succ "Storage hierarchy, automount rules, and symlinks prepared successfully."
 
 # ==============================================================================
 # Step 2: System Packages, Kernel Sysctl & OS Tuning
