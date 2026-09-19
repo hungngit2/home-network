@@ -14,7 +14,7 @@ Unlike the Chainedbox which relies heavily on external media for app data, the W
 
 - `/appsrv` — Local directory for app configs, web root, service data. 
 - `/mnt/appsrv` — Symlinked to `/appsrv` to maintain compatibility with legacy scripts and services that expect the Chainedbox layout.
-- `/mnt/nasdata` — Mounted USB external drive (`LABEL=nasdata`) for bulk storage (apps, docs, downloads, media).
+- `/mnt/nasdata` — Mounted USB external drive (`LABEL=nasdata`) for bulk storage (apps, docs, downloads, media). Configured in `/etc/fstab` with `defaults,nofail,x-systemd.automount,x-systemd.device-timeout=10` for seamless dynamic automounting across USB bus resets.
 - `/nasdata` — Symlinked to `/mnt/nasdata` for backward compatibility.
 - USB Mass Storage Quirk: `/etc/modprobe.d/nasdata-lacie.conf` (`quirks=059f:10ff:u`) and `blacklist-uas.conf` to force standard `usb-storage` for LaCie Rugged drives and prevent UAS disconnects.
 - Swap is used instead of Zram, configured on the local SSD.
@@ -70,27 +70,32 @@ The script automatically executes:
 
 ## Network Configuration Details
 
-The Wyse 5070 uses `/etc/network/interfaces` for its network configuration instead of `netplan` (which the older Chainedbox primarily relies on).
+The Wyse 5070 uses `/etc/network/interfaces` alongside Netplan (`/etc/netplan/`) for network configuration:
 
 ```
 auto lo
 iface lo inet loopback
 
-auto enp1s0
+allow-hotplug enp1s0
 iface enp1s0 inet dhcp
-  post-up /sbin/ethtool -s enp1s0 wol g
+  metric 100
+  post-up ip route replace 224.0.0.0/4 dev enp1s0 || true
+  post-up ethtool -s enp1s0 wol g || true
 
-iface enp1s0 inet6 static
-  address fd39:10::100/64
+iface enp1s0 inet6 auto
+  up ip -6 addr add fd39:10::100/64 dev enp1s0 || true
+  up ip token set ::100 dev enp1s0 || true
 ```
 
-This configuration ensures that Wake-on-LAN is armed automatically when the interface comes up.
+- **Wake-on-LAN**: Armed automatically on interface up (`post-up /sbin/ethtool -s enp1s0 wol g`).
+- **IPTV Multicast Routing**: Explicit static multicast route (`224.0.0.0/4 dev enp1s0`) forces all IGMP join reports from `rtp2httpd` out the primary LAN interface (`enp1s0`) to reach the router's `br-lan` downstream IGMP proxy.
 
 ## Services (Mirror of Chainedbox)
 
-Because the setup uses the shared `setup-debian.sh` bootstrap script, the Wyse 5070 mirrors most of the services found on the Chainedbox, including:
+Because the setup uses the shared `setup-debian.sh` bootstrap script, the Wyse 5070 mirrors the services found on the Chainedbox, with hardware-specific tunings:
 - **DNS / mDNS**: AdGuard Home, Unbound, Avahi
 - **Web**: Nginx + PHP-FPM
-- **Media**: Jellyfin, OwnTone, rtp2httpd
+- **Media (Jellyfin)**: Hardware-accelerated transcoding via Intel QuickSync (QSV) using `intel-media-va-driver-non-free` (iHD Gen9.5 driver) on the Intel UHD Graphics 605 GPU, supporting 10-bit HEVC/VP9 decoding, low-power H.264/HEVC encoding, and VPP tone mapping.
+- **IPTV (rtp2httpd)**: Multicast-to-HTTP IPTV streamer with external M3U playlist integration published via Nginx (`http://10.0.0.100/iptv/`).
 - **Smart Home**: Home Assistant (Docker)
-- **Downloads & File Sharing**: Aria2, Samba
+- **Downloads & Storage (Aria2 & Samba)**: Aria2 download daemon with `aria2-post-download.sh` hook that automatically identifies completed movie/video downloads (single files and torrent directories), relocates them to `/nasdata/media/movies`, preserves subtitles, and sets permissions (`nobody:nogroup`, `777`). Samba shares expose `/nasdata` to the local network.
