@@ -1,14 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <EncodingOptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <!-- Intel VA-API hardware acceleration (Cherry Trail Atom / Braswell / Skylake+) -->
-  <HardwareAccelerationType>vaapi</HardwareAccelerationType>
+  <!-- Intel QuickSync (QSV) / VA-API hardware acceleration (Gemini Lake UHD 600/605 / Skylake+) -->
+  <HardwareAccelerationType>qsv</HardwareAccelerationType>
+  <EncoderAppPathDisplay>/usr/lib/jellyfin-ffmpeg/ffmpeg</EncoderAppPathDisplay>
   <VaapiDevice>/dev/dri/renderD128</VaapiDevice>
-  <EnableDecodingColorDepth10Hevc>false</EnableDecodingColorDepth10Hevc>
-  <EnableDecodingColorDepth10Vp9>false</EnableDecodingColorDepth10Vp9>
+  <QsvDevice>/dev/dri/renderD128</QsvDevice>
   <EnableHardwareEncoding>true</EnableHardwareEncoding>
-  <AllowHevcEncoding>false</AllowHevcEncoding>
-  <AllowAv1Encoding>false</AllowAv1Encoding>
-  <EncoderPreset>auto</EncoderPreset>
-  <EncodingThreadCount>-1</EncodingThreadCount>
-  <TranscodingTempPath>/tmp/jellyfin-transcode</TranscodingTempPath>
+  <EnableIntelLowPowerH264HwEncoder>true</EnableIntelLowPowerH264HwEncoder>
+  <EnableIntelLowPowerHevcHwEncoder>true</EnableIntelLowPowerHevcHwEncoder>
+  <EnableDecodingColorDepth10Hevc>true</EnableDecodingColorDepth10Hevc>
+  <EnableDecodingColorDepth10Vp9>true</EnableDecodingColorDepth10Vp9>
+  <EnableEnhancedNvdecDecoder>true</EnableEnhancedNvdecDecoder>
+  <PreferSystemNativeHwDecoder>true</PreferSystemNativeHwDecoder>
+  <EnableVppTonemapping>true</EnableVppTonemapping>
+  <TonemappingAlgorithm>bt2390</TonemappingAlgorithm>
+  <TonemappingMode>auto</TonemappingMode>
+  <TonemappingRange>auto</TonemappingRange>
+  <H264Crf>23</H264Crf>
+  <H265Crf>28</H265Crf>
+  <EncoderPreset>veryfast</EncoderPreset>
+  <EncodingThreadCount>2</EncodingThreadCount>
+  <EnableThrottling>true</EnableThrottling>
+  <ThrottleDelaySeconds>180</ThrottleDelaySeconds>
+  <EnableSegmentDeletion>true</EnableSegmentDeletion>
+  <SegmentKeepSeconds>600</SegmentKeepSeconds>
+  <HardwareDecodingCodecs>
+    <string>h264</string>
+    <string>vc1</string>
+    <string>hevc</string>
+    <string>vp9</string>
+    <string>mpeg2video</string>
+  </HardwareDecodingCodecs>
 </EncodingOptions>
