@@ -139,6 +139,22 @@ transfer_dir "/mnt/appsrv/ytb-owntone/data" "/appsrv/ytb-owntone/" "YouTube OwnT
 transfer_dir "/mnt/appsrv/samba/smb.conf" "/appsrv/samba/" "Samba Configuration"
 ${SSH_DST} sed -i "s|/mnt/nasdata|/nasdata|g" /appsrv/samba/smb.conf
 
+# 8. rtp2httpd IPTV Configuration & Multicast Routing
+log_info "Verifying rtp2httpd configuration and multicast routing on ${DST_HOST}..."
+${SSH_DST} bash -c '
+    # Update external-m3u URL in rtp2httpd.conf to target host IP
+    if [[ -f /etc/rtp2httpd.conf ]]; then
+        sed -i "s|external-m3u = http://[0-9.]\+/iptv/|external-m3u = http://'${DST_HOST}'/iptv/|g" /etc/rtp2httpd.conf
+    fi
+
+    # Ensure multicast route (224.0.0.0/4) egresses via primary LAN interface (not VLAN10 / IoT)
+    # Mikrotik downstream IGMP proxy runs on br-lan (VLAN 1), so IGMP joins must route via primary LAN interface
+    PRI_IFACE=$(ip -4 route show default | head -n1 | awk "{print \$5}")
+    if [[ -n "$PRI_IFACE" ]]; then
+        ip route replace 224.0.0.0/4 dev "$PRI_IFACE" 2>/dev/null || true
+    fi
+'
+
 log_head "Step 5: Setting File Permissions & Ownerships on ${DST_HOST}"
 ${SSH_DST} bash -c '
     chown -R www-data:www-data /appsrv/www /appsrv/ytb-owntone 2>/dev/null || true

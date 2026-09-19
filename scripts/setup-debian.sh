@@ -685,6 +685,12 @@ sed -i "s|web-auth-password = <REDACTED>|web-auth-password = ${MYTV_AUTH_PASS}|g
 sed -i "s|\* 5140|\* ${RTP2HTTPD_PORT}|g" /etc/rtp2httpd.conf
 fetch_repo_file "configs/chainedbox/rtp2httpd/rtp2httpd.service" "/etc/systemd/system/rtp2httpd.service"
 
+# Ensure multicast route (224.0.0.0/4) routes out primary LAN interface for IGMP proxy compatibility
+ip route replace 224.0.0.0/4 dev "${IFACE_NAME}" 2>/dev/null || true
+if [[ -f /etc/network/interfaces ]] && ! grep -q "224.0.0.0/4" /etc/network/interfaces; then
+    sed -i "/iface ${IFACE_NAME} inet dhcp/a \    post-up ip route replace 224.0.0.0/4 dev ${IFACE_NAME} || true" /etc/network/interfaces 2>/dev/null || true
+fi
+
 systemctl daemon-reload
 systemctl enable rtp2httpd
 systemctl restart rtp2httpd 2>/dev/null || true
@@ -801,6 +807,7 @@ sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.co
 fetch_repo_file "configs/chainedbox/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 sed -i "s|/mnt/nasdata/downloads|${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
+ln -sf "${APPSRV_DIR}/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/post-download.sh"
 fetch_repo_file "configs/chainedbox/aria2/aria2.service" "/etc/systemd/system/aria2.service"
 sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service
 if ! mountpoint -q "${APPSRV_DIR}"; then

@@ -659,6 +659,7 @@ sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.co
 
 fetch_repo_file "configs/chainedbox/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
+ln -sf "${APPSRV_DIR}/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/post-download.sh"
 fetch_repo_file "configs/chainedbox/aria2/aria2.service" "/etc/systemd/system/aria2.service"
 sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service
 if ! mountpoint -q "${APPSRV_DIR}"; then
