@@ -38,12 +38,15 @@ fi
 log_succ "Connected to source: ${SRC_HOST}"
 
 if ! ${SSH_DST} "echo ok" >/dev/null 2>&1; then
-    # Try hungnguyen with sudo
-    if ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no "hungnguyen@${DST_HOST}" "sudo -n true" >/dev/null 2>&1; then
+    # Try admin / hungnguyen with sudo
+    if ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no "admin@${DST_HOST}" "sudo -n true" >/dev/null 2>&1; then
+        SSH_DST="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no admin@${DST_HOST} sudo"
+        log_succ "Connected to target: ${DST_HOST} (as admin via sudo)"
+    elif ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no "hungnguyen@${DST_HOST}" "sudo -n true" >/dev/null 2>&1; then
         SSH_DST="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no hungnguyen@${DST_HOST} sudo"
-        log_succ "Connected to target: ${DST_HOST} (via sudo)"
+        log_succ "Connected to target: ${DST_HOST} (as hungnguyen via sudo)"
     else
-        log_err "Cannot connect to target host ${DST_HOST} as root (or hungnguyen with sudo)."
+        log_err "Cannot connect to target host ${DST_HOST} as root, admin, or hungnguyen with sudo."
         exit 1
     fi
 else
