@@ -14,8 +14,8 @@ Three physical LAN segments plus a VPN-delivered "LAN" segment, layered over 5 E
 
 | Bridge | Purpose | Members | Subnet |
 |---|---|---|---|
-| `br-lan` | Trusted home LAN | `ether1` (Switch), `ether2` (Wifi), `ether3` (**Chainedbox**, `10.0.0.100`), `ether4` | `10.0.0.0/24` (`.1`–`.210` pool, `.254` gateway) |
-| `br-iot` | IoT / cameras / NVR — isolated from LAN | `ether5` ("IoT - NVR"), `vlan-e1.10`, `vlan-e2.10`, `vlan-e3.10` | `10.0.1.0/24` |
+| `br-lan` | Trusted home LAN | `ether1` (Switch), `ether2` (Wifi), `ether3` (**Wyse 5070**, `10.0.0.100`), `ether4` | `10.0.0.0/24` (`.1`–`.210` pool, `.254` gateway) |
+| `br-iot` | IoT / cameras / NVR — isolated from LAN | `ether5` ("IoT - NVR"), `vlan-e1.10`, `vlan-e2.10`, `vlan-e3.10` (Wyse 5070 IoT `10.0.1.6`) | `10.0.1.0/24` |
 | `br-guest` | Guest Wi-Fi — isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
 | `br-iptv` | ISP IPTV bridge | `vlan-sfp1.99` (Multicast / IGMP), `vlan-sfp1.1100` (Portal Web / DHCP) | DHCP client (`IPTV`), no default route |
 
@@ -34,7 +34,11 @@ This is the most involved piece of the config — dual-stack routing tables (`to
 1. **Dual-Stack PCC Load Balancing for Free Services (IPv4 & IPv6)**: `to-wan1`/`to-wan2` routing tables both default-route out their respective WAN (`pppoe-out1` as WAN 1, `lte1` as WAN 2), selected via connection marks (`wan1`/`wan2`) that mangle assigns using `per-connection-classifier` with a 6:1 weighted split (7 buckets: `7/0`–`7/5` to WAN 1, `7/6` to WAN 2) for both IPv4 and IPv6 traffic. To protect the cellular WAN 2 5GB/day data allowance on the Vinaphone Thaga70 plan, the `Load Blancing Mark` master rule targets only unlimited zero-rated destinations (`dst-address-list=free-services`: YouTube/Google, TikTok, Facebook/Meta/Instagram/Messenger), while all other general internet traffic routes exclusively through WAN 1 (`pppoe-out1`). Both IPv4 and IPv6 use the `Load Blancing Mark` rule in `prerouting` as an easy master toggle.
 2. **"Unblock Sites" → forced through VPN-out**: an IPv4 `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list of geo-blocked services) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP. Unused legacy GeoIP static address lists have been purged to keep config lightweight and conserve flash memory.
 
-Static/recursive routes handle the check-gateway targets for each WAN (so failover actually triggers on ping loss) and recursive primary + fallback routes (`distance=1` primary, `distance=2` fallback with `check-gateway=ping`) for the WireGuard "VPN out" tunnels. Both IPv4 and IPv6 `to-wan1`/`to-wan2` tables include fallback routes (`distance=10`) ensuring seamless failover across WANs.
+Both IPv4 and IPv6 utilize identical 1:1 symmetric dual-target recursive routing with `check-gateway=ping` for health checks:
+- **WAN 1 (`to-wan1`)**: Primary via Cloudflare (`1.1.1.1` / `2606:4700:4700::1111`, `d=1`), Secondary via Google (`8.8.8.8` / `2001:4860:4860::8888`, `d=2`), Fallback to LTE (`lte1`, `d=10`).
+- **WAN 2 (`to-wan2`)**: Primary via Cloudflare (`1.0.0.1` / `2606:4700:4700::1001`, `d=1`), Secondary via OpenDNS (`208.67.222.222` / `2620:119:35::35`, `d=2`), Fallback to PPPoE (`pppoe-out1`, `d=10`). (Avoids Google DNS on WAN 2 so zero-rated free-service routing doesn't create false-positive health checks when quota expires).
+- **Main Table**: Primary on WAN 1 (`d=1`), Secondary on WAN 2 (`d=2`), Fallback to LTE (`lte1`, `d=10`).
+- **VPN-Out (`to-vpn-out`)**: Primary via `wg-vpn-out1` (`9.9.9.9`, `d=1`), Fallback via `wg-vpn-out2` (`149.112.112.112`, `d=2`).
 
 ## VPN
 
@@ -49,10 +53,10 @@ Static/recursive routes handle the check-gateway targets for each WAN (so failov
 
 ## DNS
 
-- **Upstream servers**: `10.0.0.100` (Chainedbox/AdGuard Home — see [ARMBIAN-SERVER.md](ARMBIAN-SERVER.md)) listed first, then the 4 OpenWrt APs (`10.0.0.200`–`.203`), then public fallbacks (`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`).
-- **`cache-max-ttl=1m`** — deliberately tiny, so the router's own cache doesn't paper over AdGuard Home being down (pairs with the scheduler script below).
-- **Split DNS for IPTV**: a static DNS rule forwards anything matching `*.vmp.tv` to a dedicated forwarder (`mytv-dns` → `172.16.3.246`/`172.16.3.247`, DoH-cert-check disabled) — routes the ISP's IPTV EPG/portal domain to the ISP's own resolvers instead of the normal upstream chain, matching the `iptv/fetchNewList.php` EPG scraper seen on Chainedbox.
-- **A disabled scheduler script** (`Check-AGHome`, currently off) implements automatic DNS failover: every minute, if the router is using Chainedbox as DNS and a test resolve fails, it fails over to the 4 AP IPs as backup DNS; if already on the backup, it tries switching back. Worth knowing this exists even though it's off — flip `disabled=yes`→`no` if AdGuard Home outages become a recurring LAN-DNS problem.
+- **Upstream servers**: `10.0.0.100` (Wyse 5070 / AdGuard Home — see [DEBIAN-SERVER.md](DEBIAN-SERVER.md)) listed first, then the 4 OpenWrt APs (`10.0.0.200`–`.203`), then public fallbacks (`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`).
+- **`cache-max-ttl=0s`**: Configured on the router so DNS queries resolve directly via AdGuard Home without stale double-caching, while dynamic FQDN entries in firewall address-lists are retained via `address-list-extra-time=12h`.
+- **Split DNS for IPTV**: a static DNS rule forwards anything matching `*.vmp.tv` to a dedicated forwarder (`mytv-dns` → `172.16.3.246`/`172.16.3.247`, DoH-cert-check disabled) — routes the ISP's IPTV EPG/portal domain to the ISP's own resolvers instead of the normal upstream chain, matching the `iptv/fetchNewList.php` EPG scraper on Wyse 5070.
+- **A disabled scheduler script** (`Check-AGHome`, currently off) implements automatic DNS failover: every minute, if the router is using Wyse 5070 as DNS and a test resolve fails, it fails over to the 4 AP IPs as backup DNS; if already on the backup, it tries switching back.
 
 ## Firewall
 
@@ -60,7 +64,8 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
 
 - **IGMP/UDP accepted inbound from `br-iptv`** — lets the ISP's multicast IPTV stream traffic actually reach the router.
 - **Address Lists for Subnets & Hosts**:
-  - **`local-servers`**: Application servers permitted for inter-site & IoT access (`10.0.0.100`, `10.0.0.101` on IPv4; `fd39:10::100/128`, `fd39:10::101/128` on IPv6).
+  - **`local-servers`**: Application servers permitted for inter-site & IoT access (`10.0.0.100` [Wyse 5070], `10.0.0.101` [Chainedbox] on IPv4; `fd39:10::100/128`, `fd39:10::101/128` on IPv6).
+  - **`free-services`**: Domain-based zero-rated service list (`youtube.com`, `google.com`, `tiktok.com`, `facebook.com`, `instagram.com`, `messenger.com`, and related CDNs) dynamically resolved and tracked on both IPv4 and IPv6 for PCC load-balancing across WAN 1 and WAN 2.
   - **`remote-network`**: Remote site network (`10.1.0.0/16` on IPv4, `fd86:10::/48` on IPv6).
   - **`local-network`**: Local site umbrella (`10.0.0.0/16` on IPv4, `fd39:10::/48` on IPv6).
   - **`wan-ip`**: Dynamic Cloud DDNS FQDN (`your-router-id.sn.mynetname.net` on IPv4 & IPv6).
@@ -75,12 +80,12 @@ Standard MikroTik default-configuration baseline (established/related/untracked 
   - **IPv6**: `remote-network` is blocked from accessing `local-network`, with explicit exceptions only for `local-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMPv6.
 - **FastTrack**: Rule #1 in the `forward` chain on both IPv4 (`FastTrack: IPv4`) and IPv6 (`FastTrack: IPv6`), hardware-accelerating established/related flows and keeping router CPU load at ~10-15%.
 - **NAT**: 
-  - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Chainedbox (`10.0.0.100`).
+  - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Wyse 5070 (`10.0.0.100`).
   - **IPv6 (NAT66 / Masquerade & `pd-WAN` Anchor)**:
     - **Why ULA + NAT66 across all segments (LAN, IoT, Guest, VPN)**: VNPT (ISP) only delegates a single `/64` prefix (insufficient for native multi-VLAN segmentation) and their upstream BRAS/BNG and OMC core routing suffer from routing loops and blackholes when handling individual downstream client SLAAC `/128` host routes. NAT66 collapses all outbound traffic from all segments into the router's single public GUA identity, completely bypassing VNPT's OMC routing mess while giving all internal VLANs and remote WireGuard clients rock-solid static ULA addressing (`fd39:...`).
     - **The `pd-WAN` Anchor Mechanism**: VNPT delegates only a prefix (`IA_PD`), without assigning a WAN GUA address (`IA_NA`) to `pppoe-out1` (link-local only). RouterOS's `action=masquerade` engine requires at least one active GUA bound on the router to use as the public source IP. Binding `from-pool=ipv6-wan1-pool` directly to `pppoe-out1` (`pd-WAN`, `advertise=no`) provides this public anchor address cleanly without broadcasting public RAs to any client VLANs.
     - **Outbound Rule**: `action=masquerade chain=srcnat out-interface-list=wan src-address=fc00::/7 comment="ULA -> Internet"`.
-    - **Inbound Destination NAT**: Port-forwards `80,443` to Chainedbox (`fd39:10::100/128`), with explicit forward filter acceptance (`connection-nat-state=dstnat in-interface-list=wan`).
+    - **Inbound Destination NAT**: Port-forwards `80,443` to Wyse 5070 (`fd39:10::100/128`), with explicit forward filter acceptance (`connection-nat-state=dstnat in-interface-list=wan`).
 
 ## Scheduler & scripts
 
