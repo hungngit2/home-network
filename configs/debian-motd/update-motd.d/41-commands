@@ -26,6 +26,7 @@ done
 list=(
     "Configuration","","nmtui","true"
     "Upgrade","","apt upgrade","true"
+    "Upgrade containers","","docker-upgrade","command -v docker &> /dev/null"
     "Monitoring","","htop","true"
 )
 

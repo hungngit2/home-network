@@ -395,6 +395,7 @@ apt-get install -y --no-install-recommends \
     net-tools \
     avahi-daemon \
     avahi-utils \
+    vnstat \
     docker.io \
     docker-cli \
     ca-certificates
@@ -411,6 +412,10 @@ log_info "Configuring Docker daemon data-root and log rotation..."
 fetch_repo_file "configs/chainedbox/system/daemon.json" "/etc/docker/daemon.json"
 sed -i "s|\"data-root\": \"/mnt/appsrv/docker\"|\"data-root\": \"${APPSRV_DIR}/docker\"|g" /etc/docker/daemon.json
 systemctl enable --now docker 2>/dev/null || true
+
+log_info "Installing docker-upgrade helper to /usr/local/bin/docker-upgrade..."
+fetch_repo_file "scripts/docker-upgrade.sh" "/usr/local/bin/docker-upgrade"
+chmod +x /usr/local/bin/docker-upgrade
 systemctl restart docker 2>/dev/null || true
 
 log_succ "Base packages and OS kernel tuning configured."

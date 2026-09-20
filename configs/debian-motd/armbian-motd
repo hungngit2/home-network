@@ -11,6 +11,7 @@ HIDE_LOCAL_IPV6="true"
 PRIMARY_INTERFACE="$(ip route | grep '^default' | sed "s/.*dev //" | cut -d" " -f1)"
 PRIMARY_DIRECTION="rx"
 STORAGE=/
+STORAGE_LABEL=nasdata
 
 # Temperature offset in Celcius degrees
 CPU_TEMP_OFFSET=0

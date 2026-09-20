@@ -17,7 +17,18 @@ Unlike the Chainedbox which relies heavily on external media for app data, the W
 - `/mnt/nasdata` — Mounted USB external drive (`LABEL=nasdata`) for bulk storage (apps, docs, downloads, media). Configured in `/etc/fstab` with `defaults,nofail,x-systemd.automount,x-systemd.idle-timeout=0,x-systemd.device-timeout=10` and backed by a dedicated `/etc/systemd/system/mnt-nasdata.automount` unit for persistent automounting across USB bus events.
 - `/nasdata` — Symlinked to `/mnt/nasdata` for backward compatibility.
 - USB Mass Storage & Power Tuning: Configured with generic `usbcore.autosuspend=-1` in GRUB cmdline and udev rules (`/etc/udev/rules.d/99-nasdata.rules`) to disable USB autosuspend across all USB devices, limit USB block queue transfer sizes (`max_sectors_kb=1024`) to prevent bridge buffer stalls, and auto-recover stale mounts without hardcoded vendor/product quirks.
-- Swap is used instead of Zram, configured on the local SSD.
+- Swap is used instead of Zram, configured on the local SSD as a 2 GiB `/swapfile` (not a dedicated partition — see below).
+
+### Partition Layout (`/dev/sda`, GPT)
+
+| Partition | Contents | Start (sector) | Size |
+|---|---|---|---|
+| `sda1` | EFI System (vfat) | 2048 | 100 MiB |
+| `sda2` | `/` (ext4) | 2000896 | 58.7 GiB |
+
+`sda3` (3.1 GiB swap partition) was removed 2026-09-20 to extend `sda2`; swap is now a 2 GiB `/swapfile` on root instead. No `resume=` / hibernation is configured, so this has no boot-time dependency.
+
+Gotcha: growing a mounted root partition with `partx -u /dev/sda` in one shot fails with "Device or resource busy" if another partition on the same disk was deleted in the same table update (e.g. removing `sda3` while growing `sda2`). Split it: `partx -d --nr <deleted-partition>` first, then `partx -u --nr <resized-partition>`.
 
 ## Custom MOTD / Welcome Screen
 

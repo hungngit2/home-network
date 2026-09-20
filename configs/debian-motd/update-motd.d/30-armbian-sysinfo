@@ -53,16 +53,56 @@ function display() {
 	fi
 } # display
 
+function format_usage() {
+	local used=$1
+	local total=$2
+	awk -v used="$used" -v total="$total" 'BEGIN {
+		if (total >= 1073741824) printf "%.1f/%.0fGB", used/1073741824, total/1073741824
+		else if (total >= 1048576) printf "%.1f/%.0fMB", used/1048576, total/1048576
+		else if (total >= 1024) printf "%.1f/%.0fKB", used/1024, total/1024
+		else printf "%.0f/%.0fB", used, total
+	}'
+} # format_usage
+
+function format_free() {
+	local free=$1
+	awk -v free="$free" 'BEGIN {
+		if (free >= 1073741824) printf "%.0fGB free", free/1073741824
+		else if (free >= 1048576) printf "%.0fMB free", free/1048576
+		else printf "%.0fB free", free
+	}'
+} # format_free
+
 function storage_info() {
 	# storage info
-	RootInfo=$(df -h /)
-	root_usage=$(awk '/\// {print $(NF-1)}' <<<${RootInfo} | sed 's/%//g')
-	root_total=$(awk '/\// {print $(NF-4)}' <<<${RootInfo})
-	StorageInfo=$(df -h $STORAGE 2>/dev/null | grep $STORAGE)
-	if [[ -n "${StorageInfo}" && ${RootInfo} != *$STORAGE* ]]; then
-		storage_usage=$(awk '/\// {print $(NF-1)}' <<<${StorageInfo} | sed 's/%//g')
-		storage_total=$(awk '/\// {print $(NF-4)}' <<<${StorageInfo})
-		if [[ -n "$(command -v smartctl)" ]]; then
+	RootInfo=$(df -B1 / 2>/dev/null)
+	root_usage=$(awk 'NR==2 {gsub(/%/,"",$5); print $5}' <<<"$RootInfo")
+	root_used=$(awk 'NR==2 {print $3}' <<<"$RootInfo")
+	root_total=$(awk 'NR==2 {print $2}' <<<"$RootInfo")
+	root_avail=$(awk 'NR==2 {print $4}' <<<"$RootInfo")
+	root_usage_pair=$(format_usage "$root_used" "$root_total")
+	root_free_h=$(format_free "$root_avail")
+	StorageInfo=""
+	storage_mount=""
+	if [[ -n "$STORAGE_LABEL" ]]; then
+		storage_mount=$(findmnt -f -n -S "LABEL=$STORAGE_LABEL" -o TARGET 2>/dev/null)
+		if [[ -n "$storage_mount" && "$storage_mount" != "/" ]]; then
+			StorageInfo=$(df -B1 "$storage_mount" 2>/dev/null)
+			storage_device=$(findmnt -f -n -S "LABEL=$STORAGE_LABEL" -o SOURCE 2>/dev/null)
+		fi
+	elif [[ "$STORAGE" != "/" ]]; then
+		StorageInfo=$(df -B1 "$STORAGE" 2>/dev/null)
+		storage_mount=$STORAGE
+		storage_device=$(awk 'NR==2 {print $1}' <<<"$StorageInfo")
+	fi
+	if [[ -n "${StorageInfo}" && "$storage_mount" != "/" ]]; then
+		storage_usage=$(awk 'NR==2 {gsub(/%/,"",$5); print $5}' <<<"$StorageInfo")
+		storage_used=$(awk 'NR==2 {print $3}' <<<"$StorageInfo")
+		storage_total=$(awk 'NR==2 {print $2}' <<<"$StorageInfo")
+		storage_avail=$(awk 'NR==2 {print $4}' <<<"$StorageInfo")
+		storage_usage_pair=$(format_usage "$storage_used" "$storage_total")
+		storage_free_h=$(format_free "$storage_avail")
+		if [[ -n "$(command -v smartctl)" && -n "$STORAGE" && "$STORAGE" != "/" ]]; then
 			DISK="${STORAGE::-1}"
 			storage_temp+=$(smartctl -l scttempsts $DISK 2> /dev/null | grep -i 'Current Temperature:' | awk '{print $(NF-1)}')
 		fi
@@ -70,11 +110,14 @@ function storage_info() {
 } # storage_info
 
 # query various systems and send some stuff to the background for overall faster execution.
-# # # Works only with ambienttemp and batteryinfo since A20 is slow enough :)
-# amb_temp=$(ambienttemp &)
-# batteryinfo
 storage_info
-# getboardtemp
+
+# x86 CPU package temperature via lm-sensors (Armbian's getboardtemp() targets SBC
+# hwmon paths that don't exist on this hardware)
+if command -v sensors &>/dev/null; then
+	board_temp=$(sensors -u -A coretemp-isa-0000 2>/dev/null | awk '/^Package id 0:/{getline; print $2; exit}')
+	board_temp=${board_temp%.*}
+fi
 critical_load=80
 
 # get uptime, logged in users and load in one take
@@ -95,13 +138,26 @@ cpucount=$(grep -c processor /proc/cpuinfo)
 load=$(awk '{printf("%.0f",($1/$2) * 100)}' <<< "$load $cpucount")
 
 # memory and swap
-mem_info=$(LC_ALL=C free -w 2>/dev/null | grep "^Mem" || LC_ALL=C free | grep "^Mem")
-memory_usage=$(awk '{printf("%.0f",(($2-($4+$6+$7))/$2) * 100)}' <<<${mem_info})
-mem_info=$(echo $mem_info | awk '{print $2}')
-memory_total=$(( mem_info / 1024 ))
-swap_info=$(LC_ALL=C free -m | grep "^Swap")
-swap_usage=$( (awk '/Swap/ { printf("%3.0f", $3/$2*100) }' <<<${swap_info} 2>/dev/null || echo 0) | tr -c -d '[:digit:]')
-swap_total=$(awk '{print $(2)}' <<<${swap_info})
+mem_info=$(LC_ALL=C free -b 2>/dev/null | awk '/^Mem:/ {print $2, $3; exit}')
+memory_total_bytes=$(awk '{print $1}' <<<"$mem_info")
+memory_used_bytes=$(awk '{print $2}' <<<"$mem_info")
+memory_usage=$(awk -v used="$memory_used_bytes" -v total="$memory_total_bytes" 'BEGIN { if (total > 0) printf "%.0f", used/total * 100 }')
+memory_usage_pair=$(format_usage "$memory_used_bytes" "$memory_total_bytes")
+swap_info=$(LC_ALL=C free -m 2>/dev/null | awk '/^Swap:/ {print $2, $3; exit}')
+swap_total_mb=${swap_info%% *}
+swap_used_mb=${swap_info##* }
+if [[ "$swap_total_mb" =~ ^[0-9]+$ && "$swap_total_mb" -gt 0 ]]; then
+	swap_usage=$(awk -v used="$swap_used_mb" -v total="$swap_total_mb" 'BEGIN { printf "%.0f", used/total * 100 }')
+else
+	swap_total_mb=0
+	swap_used_mb=0
+	swap_usage=0
+fi
+if [[ ${swap_total_mb} -gt 500 ]]; then
+	swap_total=$(awk '{printf("%.2f",$1/1024)}' <<<${swap_total_mb})"G"
+else
+	swap_total=${swap_total_mb}M
+fi
 
 # display info
 
@@ -116,30 +172,25 @@ display " Load" "${load%% *}" "${critical_load}" "0" "%" ""
 printf "Up time:       \x1B[92m%s\x1B[0m\t" "$time"
 display "Local users" "${users##* }" "3" "2" ""
 echo "" # fixed newline
-if [[ ${memory_total} -gt 1000 ]]; then
-	memory_total=$(awk '{printf("%.2f",$1/1024)}' <<<${memory_total})"G"
-else
-	memory_total+="M"
+display " Memory usage" "$memory_usage" "70" "0" "%" " (${memory_usage_pair})"
+if [[ ${swap_total_mb} -gt 0 ]]; then
+	if [[ "$swap_usage" -gt 0 ]]; then
+		display "Swap usage" "$swap_usage" "75" "0" "%" " of ${swap_total}"
+	else
+		# display() only prints non-zero values; show swap exists even when idle
+		printf "%-14s\e[0;92m %s%%\x1B[0m of %s%-11s\t" "Swap usage:" "0" "${swap_total}" ""
+	fi
 fi
-
-if [[ ${swap_total} -gt 500 ]]; then
-	swap_total=$(awk '{printf("%.2f",$1/1024)}' <<<${swap_total})"G"
-else
-	swap_total+="M"
-fi
-
-display " Memory usage" "$memory_usage" "70" "0" "%" " of ${memory_total}"
-display "Swap usage" "$swap_usage" "75" "0" "%" " of ${swap_total}"
 echo "" # fixed newline
 display " CPU temp" "$board_temp" $CPU_TEMP_LIMIT "0" "°C" ""
 display " Ambient temp" "$amb_temp" $AMB_TEMP_LIMIT "0" "°C" ""
-display " Usage of /" "$root_usage" "90" "1" "%" " of $root_total $overlay_root"
+display " Root disk (/)" "$root_usage" "90" "1" "%" " (${root_usage_pair}, ${root_free_h}) $overlay_root"
 if command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1; then
 echo -ne "\x1B[91m(read only rootfs)\x1B[0m"
 fi
 echo "" # fixed newline
 a=0
-display "storage/" "$storage_usage" "90" "1" "%" " of $storage_total" ; a=$((a+$?))
+display " NAS storage" "$storage_usage" "90" "1" "%" " (${storage_usage_pair}, ${storage_free_h})" ; a=$((a+$?))
 display "storage temp" "$storage_temp" $HDD_TEMP_LIMIT "0" "°C" "" ; a=$((a+$?))
 display "Battery" "$battery_percent" "20" "1" "%" "$status_battery_text" ; a=$((a+$?))
 (( $a > 0 )) && echo "" # new line only if some value is displayed
