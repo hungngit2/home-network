@@ -37,7 +37,7 @@ This is the most involved piece of the config — dual-stack routing tables (`to
 Both IPv4 and IPv6 utilize identical 1:1 symmetric dual-target recursive routing with `check-gateway=ping` for health checks:
 - **WAN 1 (`to-wan1`)**: Primary via Cloudflare (`1.1.1.1` / `2606:4700:4700::1111`, `d=1`), Secondary via Google (`8.8.8.8` / `2001:4860:4860::8888`, `d=2`), Fallback to LTE (`lte1`, `d=10`).
 - **WAN 2 (`to-wan2`)**: Primary via Cloudflare (`1.0.0.1` / `2606:4700:4700::1001`, `d=1`), Secondary via OpenDNS (`208.67.222.222` / `2620:119:35::35`, `d=2`), Fallback to PPPoE (`pppoe-out1`, `d=10`). (Avoids Google DNS on WAN 2 so zero-rated free-service routing doesn't create false-positive health checks when quota expires).
-- **Main Table**: Primary on WAN 1 (`d=1`), Secondary on WAN 2 (`d=2`), Fallback to LTE (`lte1`, `d=10`).
+- **Main Table**: Primary on WAN 1 (`d=1`, static via `pppoe-out1`), Secondary on WAN 2 (`d=2`, dynamic via `lte1`'s APN profile — `/interface lte apn` has `add-default-route=yes default-route-distance=2`, not a generic DHCP client). No separate `d=10` static LTE fallback: it duplicated the APN-installed `d=2` route and was removed, along with the redundant ECMP IPv6 default from `pppoe-out1`'s DHCPv6-PD client (`add-default-route` set to `no`; the manually configured static `d=1` default route already covers WAN 1).
 - **VPN-Out (`to-vpn-out`)**: Primary via `wg-vpn-out1` (`9.9.9.9`, `d=1`), Fallback via `wg-vpn-out2` (`149.112.112.112`, `d=2`).
 
 ## VPN
