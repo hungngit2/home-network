@@ -62,7 +62,10 @@ class OpenWrtClient {
             $keyOption = '-i ' . escapeshellarg($this->sshKey) . ' ';
         }
 
-        $sshCmd = "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -p {$port} {$keyOption}{$user}@{$target} " . escapeshellarg($cmd) . " 2>&1";
+        $controlPath = sys_get_temp_dir() . '/ssh_mux_' . md5($this->username . '@' . $this->host . ':' . $this->port);
+        $muxOptions = "-o ControlMaster=auto -o ControlPath=" . escapeshellarg($controlPath) . " -o ControlPersist=60 ";
+
+        $sshCmd = "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 {$muxOptions}-p {$port} {$keyOption}{$user}@{$target} " . escapeshellarg($cmd) . " 2>&1";
 
         $output = [];
         $returnVar = 0;
@@ -87,13 +90,17 @@ class OpenWrtClient {
     }
 
     public function getSystemInfo() {
-        $infoJson = $this->execCommand("ubus call system info 2>/dev/null");
-        $model = $this->execCommand("cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | head -n 1");
-        $release = $this->execCommand("cat /etc/openwrt_release 2>/dev/null | grep 'DISTRIB_DESCRIPTION' | cut -d\"'\" -f2");
+        $combinedCmd = "ubus call system info 2>/dev/null; echo '===SECTION_SPLIT==='; cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | head -n 1; echo '===SECTION_SPLIT==='; cat /etc/openwrt_release 2>/dev/null | grep 'DISTRIB_DESCRIPTION' | cut -d\"'\" -f2";
+        $res = $this->execCommand($combinedCmd);
+
+        $parts = $res ? explode('===SECTION_SPLIT===', $res) : [];
+        $infoJson = trim($parts[0] ?? '');
+        $model = trim($parts[1] ?? '');
+        $release = trim($parts[2] ?? '');
 
         $data = json_decode($infoJson ?: '{}', true) ?: [];
-        $data['model'] = trim($model ?: 'OpenWrt Device');
-        $data['release'] = trim($release ?: 'OpenWrt');
+        $data['model'] = $model ?: 'OpenWrt Device';
+        $data['release'] = $release ?: 'OpenWrt';
         return $data;
     }
 
