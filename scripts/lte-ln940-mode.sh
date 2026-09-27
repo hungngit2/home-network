@@ -9,7 +9,133 @@
 # SETMODE=1 : MBIM + Serial  (PID 1bc7:1901) -> MikroTik RouterOS
 # SETMODE=2 : QMI  + Serial  (PID 1bc7:1900) -> Linux/QMI testing
 #
-# IMPORTANT:
+# ==============================================================================
+# CONFIRMED HARDWARE / FIRMWARE STATE
+# ==============================================================================
+#   - Modem:        Telit LN940A9 / Telit LN940 Mobile Broadband
+#                   (Foxconn T77W676 / HP lt4220)
+#   - Baseband:     Qualcomm Snapdragon X12 LTE-A (MDM9640)
+#   - Firmware:     T77W676.F0.0.0.4.7.DF.026 041
+#   - IMPORTANT:    No firmware was flashed during the current mode conversion.
+#                   Firmware remained DF.026 041 before and after the USB composition
+#                   change. GC firmware is NOT required for the current RouterOS setup!
+#
+# ==============================================================================
+# IMPORTANT TECHNICAL DISTINCTIONS
+# ==============================================================================
+#   QCMB_SDK_Tool            != Firmware flashing
+#   USB composition change   != Firmware update
+#
+# ==============================================================================
+# SUGGESTED COMPOSITION SUMMARY (Experimentally Observed Device Behavior)
+# ==============================================================================
+#   1BC7:1900 -> QMI / legacy composition
+#   1BC7:1901 -> MBIM_EXT composition (required for RouterOS LTE + SMS + AT + USSD)
+#   03F0:0857 -> HP QMI composition
+#   03F0:0A57 -> HP MBIM composition
+#
+#   (Note: Phrased here as observed device behavior, not as an exhaustive
+#    official Telit composition mapping unless backed by vendor documentation).
+#
+# ==============================================================================
+# CUSTOMER CONFIGURATION (Observed Behavior)
+# ==============================================================================
+#   Command successfully executed:
+#     AT^CUSTOMER=2
+#
+#   After this configuration, the modem was observed enumerating as:
+#     1BC7:1900
+#
+#   (Note: What is confirmed experimentally is that this command was followed by
+#    the 1BC7:1900 composition; do not overstate the mapping unless supported
+#    by vendor documentation).
+#
+# ==============================================================================
+# QCMB_SDK_TOOL (USB Composition Switcher)
+# ==============================================================================
+#   Windows tool:
+#     QCMB_SDK_Tool.exe Win8_Mode_MBIM_EXT
+#
+#   Tool location:
+#     D:\LN940A9\Firmware_Tool\Utilities\Firmware Selector Tool\QCMB_SDK_Tool.exe
+#
+#   Successful output included:
+#     Command : GobiConnectA EXT_QMUX:{GUID}
+#               Return Code : 0 : Success.
+#     Command : ChangeDeviceDownLoadMode(4) is success.
+#               Return Code : 0.
+#     ChangedownloadMode : (4)
+#
+#   Conclusion:
+#     1BC7:1900  -->  1BC7:1901
+#
+#   Key Facts:
+#     - QCMB_SDK_Tool.exe Win8_Mode_MBIM_EXT does NOT flash firmware.
+#     - "ChangeDeviceDownLoadMode(4)" is an SDK/API operation for changing the
+#       modem mode/composition; the word "DownLoadMode" must NOT be interpreted
+#       as "firmware download".
+#     - The firmware image itself was not changed.
+#     - The modem remained on T77W676.F0.0.0.4.7.DF.026 041.
+#
+# ==============================================================================
+# MBIM_EXT COMPOSITION (1BC7:1901)
+# ==============================================================================
+#   After running the QCMB tool, Windows enumerated the modem as VID:PID 1BC7:1901
+#   with the following composite interfaces (all confirmed as Status: OK):
+#     MI_00  Diagnostic
+#     MI_01  Modem
+#     MI_02  Application Interface
+#     MI_03  NMEA
+#     MI_04  Mobile Broadband / MBIM
+#
+#   This confirms that 1BC7:1901 provides the MBIM_EXT-style composition required
+#   for MBIM data, modem interface, application/AT interface, NMEA, and diagnostics.
+#
+# ==============================================================================
+# DEBIAN TESTING
+# ==============================================================================
+#   The MBIM_EXT composition was also tested on Debian Linux.
+#   Serial interfaces could be exposed with:
+#     modprobe option
+#     echo "03f0 0a57" > /sys/bus/usb-serial/drivers/option1/new_id
+#     (or dynamically registering 1bc7 1901)
+#   This produced /dev/ttyUSB* interfaces together with /dev/cdc-wdm0.
+#   AT commands worked on the appropriate serial interface.
+#
+#   USSD was confirmed with:
+#     AT+CUSD=1,"*101#",15
+#   and the modem returned the actual VinaPhone balance/status response through +CUSD.
+#
+# ==============================================================================
+# MIKROTIK ROUTEROS hEX S RESULT
+# ==============================================================================
+#   RouterOS version: 7.24.4
+#   LTE interface:    lte1
+#
+#   With the modem in 1BC7:1901 / MBIM_EXT composition, RouterOS successfully provides:
+#     - LTE Internet (Data)  [OK]
+#     - SMS                  [OK]
+#     - AT commands          [OK]
+#     - USSD                 [OK]
+#
+#   AT-over-MBIM works through:
+#     /interface/lte/at-chat lte1 input="AT"
+#     Output: output: OK
+#
+#   USSD works through:
+#     /interface/lte/at-chat lte1 input="AT+CUSD=1,\"*101#\",15"
+#     Immediate result:
+#       output: OK
+#     Actual asynchronous USSD result in RouterOS log:
+#       gsm,info USSD: So TB 0825657578 (VINA690). TK chinh=19900 VND, HSD 16/09/2027.
+#       Ngay KH: 10/08/2022. Khoa1C: 16/09/2027. Khoa2C: 26/09/2027. CSKH 18001091 (0d)
+#
+#   SMS was also confirmed through:
+#     /tool/sms/inbox/print
+#
+# ==============================================================================
+# IMPORTANT USAGE NOTES
+# ==============================================================================
 #   - Do NOT change bConfigurationValue manually.
 #   - SETMODE changes the USB composition and the modem re-enumerates.
 #   - ttyUSB1 is normally the AT command port on this LN940 firmware.
