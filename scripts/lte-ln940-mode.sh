@@ -21,6 +21,10 @@ VID="1bc7"
 PID_MBIM="1901"
 PID_QMI="1900"
 
+ALT_VID="03f0"
+ALT_PID_MBIM="0a57"
+ALT_PID_QMI="0857"
+
 MODE=""
 
 # ------------------------------------------------------------
@@ -30,10 +34,12 @@ load_serial_drivers() {
     modprobe option 2>/dev/null || true
     modprobe qcserial 2>/dev/null || true
 
-    # If Telit LN940 is plugged in but no ttyUSB was registered yet, dynamically register IDs
+    # If LN940 is plugged in but no ttyUSB was registered yet, dynamically register IDs
     if [ ! -e /dev/ttyUSB0 ] && [ -d /sys/bus/usb-serial/drivers/option1 ]; then
         echo "${VID} ${PID_MBIM}" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
         echo "${VID} ${PID_QMI}" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
+        echo "${ALT_VID} ${ALT_PID_MBIM}" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
+        echo "${ALT_VID} ${ALT_PID_QMI}" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
     fi
 }
 
@@ -41,12 +47,12 @@ load_serial_drivers() {
 # Find LN940 USB device
 # ------------------------------------------------------------
 find_device() {
-    if lsusb | grep -qi "${VID}:${PID_MBIM}"; then
+    if lsusb | grep -qiE "(${VID}:${PID_MBIM}|${ALT_VID}:${ALT_PID_MBIM})"; then
         MODE="MBIM + Serial"
         return 0
     fi
 
-    if lsusb | grep -qi "${VID}:${PID_QMI}"; then
+    if lsusb | grep -qiE "(${VID}:${PID_QMI}|${ALT_VID}:${ALT_PID_QMI})"; then
         MODE="QMI + Serial"
         return 0
     fi
