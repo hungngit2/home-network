@@ -1,0 +1,9 @@
+{
+    "host": "192.168.88.1",
+    "username": "admin",
+    "password": "your_password",
+    "port": "lte1",
+    "https": true,
+    "ssl_verify": false,
+    "timeout": 15
+}
