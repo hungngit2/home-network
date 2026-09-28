@@ -382,16 +382,32 @@ if ($action) {
             }
             jsonResponse(true, $grouped);
 
-        case 'send':
+                case 'send':
             $phone = trim($input['phone'] ?? '');
             $message = trim($input['message'] ?? '');
             if ($phone === '' || $message === '') jsonResponse(false, null, 'Phone number and message are required.', 400);
+
             $cfg = loadConfig();
+            
+            $resId = mikrotikRequest('GET', 'interface/lte');
+            $ifaceId = null;
+            if ($resId['ok'] && is_array($resId['data'])) {
+                foreach ($resId['data'] as $if) {
+                    if (($if['name'] ?? '') === ($cfg['port'] ?? 'lte1')) {
+                        $ifaceId = $if['.id'] ?? null;
+                        break;
+                    }
+                }
+            }
+
+            if ($ifaceId) mikrotikRequest('POST', 'interface/lte/at-chat', ['.id' => $ifaceId, 'input' => 'AT+CSCS="UCS2"', 'wait' => 'yes']);
             $res = mikrotikRequest('POST', 'tool/sms/send', [
                 'phone-number' => $phone,
-                'message' => $message,
+                'message' => mb_convert_encoding($message, 'UTF-8', 'UTF-8'),
                 'port' => $cfg['port'] ?? 'lte1',
             ]);
+            if ($ifaceId) mikrotikRequest('POST', 'interface/lte/at-chat', ['.id' => $ifaceId, 'input' => 'AT+CSCS="GSM"', 'wait' => 'yes']);
+
             if (!$res['ok']) jsonResponse(false, null, $res['error']);
             jsonResponse(true, ['sent' => true]);
 
@@ -422,6 +438,31 @@ if ($action) {
                 fclose($fp);
             }
             
+            jsonResponse(true, ['deleted' => true]);
+
+        case 'bulk_delete':
+            $jsonInput = json_decode(file_get_contents('php://input'), true);
+            $ids = $jsonInput['ids'] ?? [];
+            if (empty($ids)) jsonResponse(false, null, 'Message IDs are required.', 400);
+
+            $archiveFile = __DIR__ . '/sms_archive.json';
+            $fp = fopen($archiveFile, 'c+');
+            if (flock($fp, LOCK_EX)) {
+                $content = stream_get_contents($fp);
+                $archive = !empty($content) ? (json_decode($content, true) ?? []) : [];
+                $newArchive = [];
+                foreach ($archive as $m) {
+                    if (in_array($m['id'], $ids)) continue;
+                    $newArchive[] = $m;
+                }
+                ftruncate($fp, 0);
+                rewind($fp);
+                fwrite($fp, json_encode($newArchive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                flock($fp, LOCK_UN);
+                fclose($fp);
+            } else {
+                fclose($fp);
+            }
             jsonResponse(true, ['deleted' => true]);
 
 
@@ -652,47 +693,59 @@ body{font-family:'Inter',sans-serif}
 <main class="max-w-5xl mx-auto px-4 py-6">
 
   <!-- INBOX TAB -->
-    <div x-show="tab==='inbox'" x-cloak>
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-      <div class="relative flex-1 max-w-xs">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-        <input x-model="inboxSearch" type="text" placeholder="Search contacts..."
-               class="w-full pl-9 pr-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
-      </div>
-      <button @click="fetchInbox()" :disabled="inboxLoading"
-              class="flex items-center gap-2 px-4 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition disabled:opacity-50">
-        <i class="fas fa-sync-alt text-xs" :class="{'fa-spin':inboxLoading}"></i> Sync All
-      </button>
-    </div>
-
-    <!-- Grouped Messages -->
-    <div class="grid gap-4">
-      <template x-for="(messages, phone) in groupedMessages()" :key="phone">
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-          <div class="flex items-center gap-3 mb-3 border-b border-slate-700 pb-2">
-            <div class="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center">
-              <i class="fas fa-user text-indigo-400 text-xs"></i>
+    <!-- Unified Inbox Layout -->
+    <div x-show="tab==='inbox'" x-cloak class="flex h-[calc(100vh-120px)] border border-slate-700 rounded-xl overflow-hidden bg-slate-900">
+      
+      <!-- Left Sidebar: Contacts -->
+      <div class="w-full md:w-1/3 border-r border-slate-700 flex flex-col" :class="activePhone ? 'hidden md:flex' : 'flex'">
+        <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800">
+          <h3 class="font-semibold text-white">Threads</h3>
+          <button @click="activePhone='NEW'" class="text-indigo-400 hover:text-white"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+          <template x-for="(messages, phone) in groupedMessages()" :key="phone">
+            <div @click="activePhone=phone" class="p-4 cursor-pointer border-b border-slate-700 hover:bg-slate-800 transition"
+                 :class="activePhone===phone ? 'bg-slate-800' : ''">
+              <p class="font-semibold text-white" x-text="phone"></p>
+              <p class="text-xs text-slate-400 truncate" x-text="messages[messages.length-1].message"></p>
             </div>
-            <h3 class="font-semibold text-slate-100" x-text="phone"></h3>
-          </div>
-          <div class="space-y-2">
-            <template x-for="m in messages" :key="m.id">
-              <div class="group flex flex-col gap-1 p-2 rounded hover:bg-slate-700/50 transition">
-                <div class="flex justify-between text-xs text-slate-500">
-                  <span x-text="m.timestamp"></span>
-                  <span x-text="m.type"></span>
+          </template>
+        </div>
+      </div>
+
+      <!-- Right Main: Thread -->
+      <div class="flex-1 flex flex-col bg-slate-950" :class="activePhone ? 'flex' : 'hidden md:flex'">
+        <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900">
+          <button @click="activePhone=null" class="md:hidden text-slate-400"><i class="fas fa-arrow-left"></i></button>
+          <h3 class="font-semibold text-white" x-text="activePhone === 'NEW' ? 'New Message' : (activePhone || 'Select a thread')"></h3>
+          <button x-show="activePhone && activePhone !== 'NEW'" @click="bulkDeleteThread(activePhone)" class="text-red-400 hover:text-red-300 text-sm"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <template x-if="activePhone && activePhone !== 'NEW'">
+            <template x-for="m in messages[activePhone]" :key="m.id">
+              <div class="flex items-start gap-2" :class="m.type==='received' ? 'flex-row' : 'flex-row-reverse'">
+                <div class="max-w-[70%] p-3 rounded-xl text-sm" :class="m.type==='received' ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white'">
+                  <p x-text="m.message"></p>
+                  <p class="text-[10px] opacity-70 mt-1" x-text="m.timestamp"></p>
                 </div>
-                <p class="text-sm text-slate-300 whitespace-pre-wrap break-words" x-text="m.message"></p>
-                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button @click="replyTo(m)" class="text-xs text-indigo-400 hover:text-indigo-300"><i class="fas fa-reply"></i> Reply</button>
-                </div>
+                <button @click="deleteSingle(m.id)" class="text-slate-600 hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
               </div>
             </template>
-          </div>
+          </template>
         </div>
-      </template>
+        <!-- Compose Area -->
+        <div class="p-4 bg-slate-900 border-t border-slate-700">
+            <div class="flex gap-2">
+                <input x-show="!activePhone || activePhone === 'NEW'" x-model="compose.phone" type="text" placeholder="Phone Number" class="w-1/4 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white">
+                <input x-model="compose.message" type="text" :placeholder="activePhone && activePhone !== 'NEW' ? 'Reply to ' + activePhone + '...' : 'Type a message...'" class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white" @keydown.enter="sendSms()">
+                <button @click="sendSms()" :disabled="compose.sending" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-50">
+                    <span x-text="compose.sending ? 'Sending...' : 'Send'"></span>
+                </button>
+            </div>
+        </div>
+      </div>
     </div>
-  </div>
+
 
 
   <!-- COMPOSE TAB -->
@@ -930,164 +983,104 @@ body{font-family:'Inter',sans-serif}
 <script>
 function smsApp() {
   return {
-    tab: 'inbox',
+    tab: "inbox",
     tabs: [
-      {id:'inbox', label:'Inbox', icon:'fas fa-inbox'},
-      {id:'compose', label:'Compose', icon:'fas fa-pen-to-square'},
-      {id:'ussd', label:'USSD', icon:'fas fa-hashtag'},
-      {id:'settings', label:'Settings', icon:'fas fa-gear'},
+      {id:"inbox", label:"SMS", icon:"fas fa-comments"},
+      {id:"ussd", label:"USSD", icon:"fas fa-hashtag"},
+      {id:"settings", label:"Settings", icon:"fas fa-gear"},
     ],
     connected: false,
-    routerInfo: '',
+    routerInfo: "",
     statusLoading: false,
-    messages: [],
+    messages: {},
     inboxLoading: false,
-    inboxSearch: '',
-    compose: {phone:'', message:'', sending:false},
+    inboxSearch: "",
+    compose: {phone:"", message:"", sending:false},
     ussd: {
-      code: '',
+      code: "",
       loading: false,
       console: [],
       presets: [
-        {code:'*101#', label:'Balance'},
-        {code:'*102#', label:'Number'},
-        {code:'*111#', label:'Menu'},
-        {code:'*098#', label:'Info'},
+        {code:"*101#", label:"Balance"},
+        {code:"*102#", label:"Number"},
+        {code:"*111#", label:"Menu"},
+        {code:"*098#", label:"Info"},
       ],
     },
     dialKeys: [
-      {v:'1',sub:''},{v:'2',sub:'ABC'},{v:'3',sub:'DEF'},
-      {v:'4',sub:'GHI'},{v:'5',sub:'JKL'},{v:'6',sub:'MNO'},
-      {v:'7',sub:'PQRS'},{v:'8',sub:'TUV'},{v:'9',sub:'WXYZ'},
-      {v:'*',sub:''},{v:'0',sub:'+'},{v:'#',sub:''},
+      {v:"1",sub:""},{v:"2",sub:"ABC"},{v:"3",sub:"DEF"},
+      {v:"4",sub:"GHI"},{v:"5",sub:"JKL"},{v:"6",sub:"MNO"},
+      {v:"7",sub:"PQRS"},{v:"8",sub:"TUV"},{v:"9",sub:"WXYZ"},
+      {v:"*",sub:""},{v:"0",sub:"+"},{v:"#",sub:""},
     ],
-    settings: {host:'',username:'',password:'',port:'',https:true,ssl_verify:false,timeout:10,testing:false,saving:false,testResult:null},
+    settings: {host:"",username:"",password:"",port:"",https:true,ssl_verify:false,timeout:10,auto_delete:true,sync_schedule:"0 3 * * *",testing:false,saving:false,testResult:null},
     showPassword: false,
-    deleteModal: {show:false,id:'',phone:'',preview:'',deleting:false},
+    deleteModal: {show:false,id:"",phone:"",preview:"",deleting:false},
     toasts: [],
     _toastId: 0,
-
+    activePhone: null,
+    selectedIds: [],
+    
     init() {
       this.checkStatus();
-      this.fetchInbox();
+      this.fetchInbox().then(() => {
+        const phones = Object.keys(this.messages);
+        if (phones.length > 0) this.activePhone = phones[0];
+      });
       this.loadSettings();
     },
 
-    switchTab(id) {
-      this.tab = id;
-      if (id === 'inbox') this.fetchInbox();
-    },
-
-    showToast(type, message) {
-      const id = ++this._toastId;
-      this.toasts.push({id, type, message});
-      setTimeout(() => this.removeToast(id), 4000);
-    },
-    removeToast(id) {
-      this.toasts = this.toasts.filter(t => t.id !== id);
-    },
-
-    async api(action, data={}) {
-      const body = {action, ...data};
-      const res = await fetch(window.location.pathname, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(body),
-      });
-      return res.json();
-    },
-
-    async checkStatus() {
-      this.statusLoading = true;
-      try {
-        const r = await this.api('status');
-        if (r.success) {
-          this.connected = true;
-          const d = r.data;
-          this.routerInfo = (d.board || 'Router') + ' · v' + (d.version || '?');
-        } else {
-          this.connected = false;
-          this.routerInfo = '';
-        }
-      } catch(e) {
-        this.connected = false;
-        this.routerInfo = '';
-      }
-      this.statusLoading = false;
-    },
-
-    async fetchInbox() {
-      this.inboxLoading = true;
-      try {
-        const r = await this.api('inbox');
-        if (r.success) {
-          this.messages = r.data || [];
-        } else {
-          this.showToast('error', r.error || 'Failed to fetch inbox');
-        }
-      } catch(e) {
-        this.showToast('error', 'Network error fetching inbox');
-      }
-      this.inboxLoading = false;
-    },
-
-    groupedMessages() {
-        if (!this.inboxSearch.trim()) return this.messages;
-        const q = this.inboxSearch.toLowerCase();
-        const filtered = {};
-        for (const phone in this.messages) {
-            if (phone.toLowerCase().includes(q)) {
-                filtered[phone] = this.messages[phone];
+    async deleteSingle(id) {
+        if(!confirm("Delete this message?")) return;
+        try {
+            const r = await this.api("delete", {id: id});
+            if(r.success) {
+                this.fetchInbox();
+                this.showToast("success", "Deleted");
             } else {
-                const sub = this.messages[phone].filter(m => m.message.toLowerCase().includes(q));
-                if (sub.length) filtered[phone] = sub;
+                this.showToast("error", r.error || "Delete failed");
             }
-        }
-        return filtered;
+        } catch(e) { this.showToast("error", "Delete failed"); }
     },
 
-
-    replyTo(m) {
-      this.compose.phone = m.phone || '';
-      this.compose.message = '';
-      this.tab = 'compose';
+    async bulkDeleteThread(phone) {
+        if(!confirm("Delete all messages in this thread?")) return;
+        const ids = this.messages[phone].map(m => m.id);
+        try {
+            const r = await this.api("bulk_delete", {ids: ids});
+            if(r.success) {
+                this.activePhone = null;
+                this.fetchInbox();
+                this.showToast("success", "Thread deleted");
+            }
+        } catch(e) { this.showToast("error", "Delete failed"); }
     },
 
-    promptDelete(m) {
-      this.deleteModal = {
-        show: true,
-        id: m.id,
-        phone: m.phone || 'Unknown',
-        preview: (m.message || '').substring(0, 100),
-        deleting: false,
-      };
-    },
-
-    async confirmDelete() {
-      this.deleteModal.deleting = true;
-      try {
-        const r = await this.api('delete', {id: this.deleteModal.id});
-        if (r.success) {
-          this.messages = this.messages.filter(m => m.id !== this.deleteModal.id);
-          this.showToast('success', 'Message deleted');
-        } else {
-          this.showToast('error', r.error || 'Failed to delete');
-        }
-      } catch(e) {
-        this.showToast('error', 'Network error');
-      }
-      this.deleteModal.show = false;
-      this.deleteModal.deleting = false;
-    },
-
+    switchTab(id) { this.tab = id; if (id === "inbox") this.fetchInbox(); },
+    showToast(type, message) { const id = ++this._toastId; this.toasts.push({id, type, message}); setTimeout(() => this.removeToast(id), 4000); },
+    removeToast(id) { this.toasts = this.toasts.filter(t => t.id !== id); },
+    async api(action, data={}) { const body = {action, ...data}; const res = await fetch(window.location.pathname, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body), }); return res.json(); },
+    async checkStatus() { this.statusLoading = true; try { const r = await this.api("status"); if (r.success) { this.connected = true; const d = r.data; this.routerInfo = (d.board || "Router") + " · v" + (d.version || "?"); } else { this.connected = false; this.routerInfo = ""; } } catch(e) { this.connected = false; this.routerInfo = ""; } this.statusLoading = false; },
+    async fetchInbox() { this.inboxLoading = true; try { const r = await this.api("inbox"); if (r.success) { this.messages = r.data || {}; } else { this.showToast("error", r.error || "Failed to fetch inbox"); } } catch(e) { this.showToast("error", "Network error fetching inbox"); } this.inboxLoading = false; },
+    groupedMessages() { if (!this.inboxSearch.trim()) return this.messages; const q = this.inboxSearch.toLowerCase(); const filtered = {}; for (const phone in this.messages) { if (phone.toLowerCase().includes(q)) { filtered[phone] = this.messages[phone]; } else { const sub = this.messages[phone].filter(m => m.message.toLowerCase().includes(q)); if (sub.length) filtered[phone] = sub; } } return filtered; },
+    replyTo(m) { this.compose.phone = m.phone || ""; this.compose.message = ""; this.showToast("info", "Replying to " + m.phone); },
     async sendSms() {
+      if (this.compose.sending) return;
       this.compose.sending = true;
       try {
-        const r = await this.api('send', {phone: this.compose.phone.trim(), message: this.compose.message.trim()});
+        const phone = (this.activePhone && this.activePhone !== 'NEW') ? this.activePhone : this.compose.phone.trim();
+        const message = this.compose.message.trim();
+        if (!phone || !message) {
+            this.showToast('error', 'Phone number and message are required.');
+            this.compose.sending = false;
+            return;
+        }
+        const r = await this.api('send', {phone, message});
         if (r.success) {
-          this.showToast('success', 'SMS sent successfully');
-          this.compose.phone = '';
+          this.showToast('success', 'SMS sent');
           this.compose.message = '';
+          await this.fetchInbox();
+          this.activePhone = phone;
         } else {
           this.showToast('error', r.error || 'Failed to send SMS');
         }
@@ -1096,142 +1089,14 @@ function smsApp() {
       }
       this.compose.sending = false;
     },
-
-    timeNow() {
-      return new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    },
-
-    async sendUssd() {
-      if (!this.ussd.code.trim() || this.ussd.loading) return;
-      const code = this.ussd.code.trim();
-      this.ussd.console.push({type:'cmd', text:code, time:this.timeNow()});
-      this.ussd.loading = true;
-      this.$nextTick(() => {
-        if (this.$refs.ussdConsole) this.$refs.ussdConsole.scrollTop = this.$refs.ussdConsole.scrollHeight;
-      });
-      try {
-        const r = await this.api('ussd', {code});
-        if (r.success && r.data) {
-          const d = r.data;
-          if (d.decoded) this.ussd.console.push({type:'out', text:d.decoded, time:this.timeNow()});
-          if (d.raw && d.raw !== d.decoded) this.ussd.console.push({type:'raw', text:d.raw, time:this.timeNow()});
-          if (d.status_text) this.ussd.console.push({type:'status', text: 'Status: ' + d.status_text + (d.dcs !== null ? ' (DCS=' + d.dcs + ')' : ''), time:this.timeNow()});
-        } else {
-          this.ussd.console.push({type:'error', text: r.error || 'USSD request failed', time:this.timeNow()});
-        }
-      } catch(e) {
-        this.ussd.console.push({type:'error', text:'Network error', time:this.timeNow()});
-      }
-      this.ussd.loading = false;
-      this.$nextTick(() => {
-        if (this.$refs.ussdConsole) this.$refs.ussdConsole.scrollTop = this.$refs.ussdConsole.scrollHeight;
-      });
-    },
-
-    async cancelUssd() {
-      try {
-        await this.api('ussd_cancel');
-        this.ussd.console.push({type:'info', text:'USSD session cancelled', time:this.timeNow()});
-      } catch(e) {}
-    },
-
-    copyConsole() {
-      const text = this.ussd.console.map(l => (l.time||'')+' '+l.text).join('\n');
-      navigator.clipboard.writeText(text).then(() => this.showToast('info','Copied to clipboard'));
-    },
-
-    async loadSettings() {
-      try {
-        const r = await this.api('get_config');
-        if (r.success && r.data) {
-            Object.assign(this.settings, {
-                host: r.data.host || '',
-                username: r.data.username || '',
-                password: r.data.password || '',
-                port: r.data.port || '',
-                https: !!r.data.https,
-                ssl_verify: !!r.data.ssl_verify,
-                timeout: r.data.timeout || 10,
-                auto_delete: !!r.data.auto_delete,
-                sync_schedule: r.data.sync_schedule || '0 3 * * *',
-            });
-
-        }
-      } catch(e) {}
-    },
-
-    async testConnection() {
-      this.settings.testing = true;
-      this.settings.testResult = null;
-      try {
-        const r = await this.api('test_connection', {
-          host: this.settings.host,
-          username: this.settings.username,
-          password: this.settings.password,
-          port: this.settings.port,
-          https: this.settings.https,
-          ssl_verify: this.settings.ssl_verify,
-          timeout: this.settings.timeout,
-        });
-        this.settings.testResult = r.success ? {ok:true, data:r.data} : {ok:false, error:r.error};
-      } catch(e) {
-        this.settings.testResult = {ok:false, error:'Network error'};
-      }
-      this.settings.testing = false;
-    },
-
-    async saveSettings() {
-      this.settings.saving = true;
-      try {
-        const r = await this.api('save_config', {
-          host: this.settings.host,
-          username: this.settings.username,
-          password: this.settings.password,
-          port: this.settings.port,
-          https: this.settings.https,
-          ssl_verify: this.settings.ssl_verify,
-          timeout: this.settings.timeout,
-          auto_delete: this.settings.auto_delete,
-          sync_schedule: this.settings.sync_schedule,
-        });
-        if (r.success) {
-          this.showToast('success', 'Settings saved');
-          if (r.data) {
-            Object.assign(this.settings, {
-              host: r.data.host||'', username: r.data.username||'',
-              password: r.data.password||'', port: r.data.port||'',
-              https: !!r.data.https, ssl_verify: !!r.data.ssl_verify,
-              timeout: r.data.timeout||10,
-            });
-          }
-          this.checkStatus();
-        } else {
-          if (r.data?.needs_force) {
-            if (confirm('Connection test failed: ' + (r.error||'') + '\n\nSave anyway?')) {
-              const r2 = await this.api('save_config', {
-                host:this.settings.host, username:this.settings.username,
-                password:this.settings.password, port:this.settings.port,
-                https:this.settings.https, ssl_verify:this.settings.ssl_verify,
-                timeout:this.settings.timeout, force:true,
-              });
-              if (r2.success) {
-                this.showToast('warning','Settings saved (connection test failed)');
-                this.checkStatus();
-              } else {
-                this.showToast('error', r2.error||'Failed to save');
-              }
-            }
-          } else {
-            this.showToast('error', r.error||'Failed to save settings');
-          }
-        }
-      } catch(e) {
-        this.showToast('error','Network error saving settings');
-      }
-      this.settings.saving = false;
-    },
+    timeNow() { return new Date().toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit",second:"2-digit"}); },
+    async sendUssd() { if (!this.ussd.code.trim() || this.ussd.loading) return; const code = this.ussd.code.trim(); this.ussd.console.push({type:"cmd", text:code, time:this.timeNow()}); this.ussd.loading = true; try { const r = await this.api("ussd", {code}); if (r.success && r.data) { const d = r.data; if (d.decoded) this.ussd.console.push({type:"out", text:d.decoded, time:this.timeNow()}); if (d.raw && d.raw !== d.decoded) this.ussd.console.push({type:"raw", text:d.raw, time:this.timeNow()}); } else { this.ussd.console.push({type:"error", text: r.error || "Failed", time:this.timeNow()}); } } catch(e) { this.ussd.console.push({type:"error", text:"Network error", time:this.timeNow()}); } this.ussd.loading = false; },
+    async cancelUssd() { try { await this.api("ussd_cancel"); this.ussd.console.push({type:"info", text:"USSD session cancelled", time:this.timeNow()}); } catch(e) {} },
+    copyConsole() { const text = this.ussd.console.map(l => (l.time||"")+" "+l.text).join("\n"); navigator.clipboard.writeText(text).then(() => this.showToast("info","Copied to console output")); },
+    async loadSettings() { try { const r = await this.api("get_config"); if (r.success && r.data) { Object.assign(this.settings, { host: r.data.host || "", username: r.data.username || "", password: r.data.password || "", port: r.data.port || "", https: !!r.data.https, ssl_verify: !!r.data.ssl_verify, timeout: r.data.timeout || 10, auto_delete: !!r.data.auto_delete, sync_schedule: r.data.sync_schedule || "0 3 * * *", }); } } catch(e) {} },
+    async testConnection() { this.settings.testing = true; this.settings.testResult = null; try { const r = await this.api("test_connection", { host: this.settings.host, username: this.settings.username, password: this.settings.password, port: this.settings.port, https: this.settings.https, ssl_verify: this.settings.ssl_verify, timeout: this.settings.timeout, }); this.settings.testResult = r.success ? {ok:true, data:r.data} : {ok:false, error:r.error}; } catch(e) { this.settings.testResult = {ok:false, error:"Network error"}; } this.settings.testing = false; },
+    async saveSettings() { this.settings.saving = true; try { const r = await this.api("save_config", { host: this.settings.host, username: this.settings.username, password: this.settings.password, port: this.settings.port, https: this.settings.https, ssl_verify: this.settings.ssl_verify, timeout: this.settings.timeout, auto_delete: this.settings.auto_delete, sync_schedule: this.settings.sync_schedule, }); if (r.success) { this.showToast("success", "Settings saved"); this.checkStatus(); } else { if (r.data?.needs_force) { if (confirm("Connection test failed: " + (r.error||"") + "\n\nSave anyway?")) { const r2 = await this.api("save_config", { host:this.settings.host, username:this.settings.username, password:this.settings.password, port:this.settings.port, https:this.settings.https, ssl_verify:this.settings.ssl_verify, timeout:this.settings.timeout, auto_delete:this.settings.auto_delete, sync_schedule:this.settings.sync_schedule, force:true, }); if (r2.success) { this.showToast("warning","Settings saved"); this.checkStatus(); } else { this.showToast("error", r2.error||"Failed"); } } } else { this.showToast("error", r.error||"Failed"); } } } catch(e) { this.showToast("error","Network error saving"); } this.settings.saving = false; },
   };
-}
-</script>
+}</script>
 </body>
 </html>
