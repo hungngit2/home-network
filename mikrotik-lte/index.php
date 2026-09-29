@@ -161,8 +161,7 @@ function mikrotikRequest(string $method, string $path, ?array $payload = null, ?
     if ($errno) {
         $msg = match ($errno) {
             CURLE_COULDNT_CONNECT, CURLE_COULDNT_RESOLVE_HOST => "Cannot connect to $host — check IP/hostname and ensure the router is reachable.",
-            CURLE_OPERATION_TIMEDOUT, CURLE_OPERATION_TIMEOUTED ?? 0 => "Connection timed out after {$cfg['timeout']}s — router may be unreachable or REST API not enabled.",
-            CURLE_SSL_CONNECT_ERROR, CURLE_SSL_CERTPROBLEM, CURLE_SSL_CACERT => "SSL error — try disabling HTTPS or SSL verification. ($errstr)",
+            CURLE_OPERATION_TIMEDOUT => "Connection timed out after {$cfg['timeout']}s.",
             default => "cURL error $errno: $errstr",
         };
         return ['ok' => false, 'error' => $msg, 'http' => 0];
@@ -176,20 +175,21 @@ function mikrotikRequest(string $method, string $path, ?array $payload = null, ?
     $detail = '';
     if ($raw) {
         $json = json_decode($raw, true);
-        if (is_array($json) && isset($json['error'])) {
+        if (is_array($json) && !empty($json['detail'])) {
+            $detail = $json['detail'];
+        } elseif (is_array($json) && isset($json['error'])) {
             $detail = is_string($json['error']) ? $json['error'] : ($json['message'] ?? json_encode($json));
         } elseif (is_array($json) && isset($json['message'])) {
             $detail = $json['message'];
         } else {
-            $detail = substr(strip_tags($raw), 0, 200);
+            $detail = substr(strip_tags((string)$raw), 0, 200);
         }
     }
 
-    $msg = match (true) {
-        $httpCode === 401 => 'Authentication failed — check username and password.',
-        $httpCode === 403 => 'Permission denied — user may lack API access.',
-        $httpCode === 404 => "Resource not found (404). $detail",
-        $httpCode >= 500 => "Router error ($httpCode). $detail",
+    $msg = match ($httpCode) {
+        401 => 'Authentication failed — check username and password.',
+        403 => 'Permission denied — user may lack API access.',
+        404 => "Resource not found (404). $detail",
         default => "HTTP $httpCode. $detail",
     };
 
@@ -484,6 +484,7 @@ if ($action) {
             } else {
                 $atCmd = 'AT+CUSD=1,"' . $code . '",15';
             }
+            $cfg = loadConfig();
             // Get interface ID
             $resId = mikrotikRequest('GET', 'interface/lte');
             $ifaceId = null;
@@ -509,6 +510,7 @@ if ($action) {
             elseif (is_array($d)) $output = $d['output'] ?? $d['ret'] ?? ($d[0]['output'] ?? json_encode($d));
             $parsed = parseUssdResponse($output);
             jsonResponse(true, $parsed);
+            break;
 
         case 'ussd_cancel':
             $cfg = loadConfig();
