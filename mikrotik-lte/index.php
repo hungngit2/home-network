@@ -718,16 +718,6 @@ body{font-family:'Inter',sans-serif}
             x-text="lteStatus?.['data-class']"></span>
         <button @click="fetchLteStatus()" class="hover:text-white transition"><i class="fas fa-sync-alt" :class="{'fa-spin':statusLoading}"></i></button>
     </div>
-    <div class="flex items-center gap-3">
-      <button @click="checkStatus()" class="text-slate-400 hover:text-slate-200 transition p-1" title="Refresh status">
-        <i class="fas fa-sync-alt text-xs" :class="{'fa-spin':statusLoading}"></i>
-      </button>
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
-           :class="connected ? 'bg-emerald-900/40 border-emerald-700 text-emerald-300' : 'bg-red-900/40 border-red-700 text-red-300'">
-        <span class="w-2 h-2 rounded-full" :class="connected ? 'bg-emerald-400 animate-pulse-dot' : 'bg-red-400'"></span>
-        <span x-text="connected ? routerInfo : 'Disconnected'"></span>
-      </div>
-    </div>
   </div>
   <!-- Tabs -->
   <div class="max-w-5xl mx-auto px-4">
@@ -937,6 +927,15 @@ body{font-family:'Inter',sans-serif}
   <!-- SETTINGS TAB -->
   <div x-show="tab==='settings'" x-cloak>
     <div class="max-w-lg mx-auto">
+      <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-6 mb-4">
+        <h2 class="text-lg font-semibold text-slate-100 mb-5 flex items-center gap-2"><i class="fas fa-info-circle text-indigo-400"></i> Router Status</h2>
+        <div class="flex items-center gap-3 p-4 rounded-lg border text-sm"
+             :class="connected ? 'bg-emerald-900/30 border-emerald-700 text-emerald-200' : 'bg-red-900/30 border-red-700 text-red-200'">
+          <span class="w-3 h-3 rounded-full" :class="connected ? 'bg-emerald-400' : 'bg-red-400'"></span>
+          <span x-text="connected ? routerInfo : 'Disconnected'"></span>
+          <button @click="checkStatus()" class="ml-auto text-xs px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded">Refresh</button>
+        </div>
+      </div>
       <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-6">
         <h2 class="text-lg font-semibold text-slate-100 mb-5 flex items-center gap-2"><i class="fas fa-gear text-indigo-400"></i> Router Settings</h2>
         <div class="space-y-4">
