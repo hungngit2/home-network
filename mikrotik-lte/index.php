@@ -711,6 +711,7 @@ body{font-family:'Inter',sans-serif}
                  <div class="space-y-1 text-slate-300">
                     <p><b>Model:</b> <span x-text="lteStatus?.model"></span></p>
                     <p><b>IMEI:</b> <span x-text="lteStatus?.imei"></span></p>
+                    <p x-show="lteStatus?.['subscriber-number']"><b>Phone:</b> <span x-text="lteStatus?.['subscriber-number']"></span></p>
                     <p><b>Uptime:</b> <span x-text="lteStatus?.['session-uptime']"></span></p>
                  </div>
             </div>
