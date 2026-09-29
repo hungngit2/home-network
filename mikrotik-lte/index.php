@@ -424,7 +424,8 @@ function syncSms(?bool $deleteFromRouter = null): array {
         // Check if any sub-ID or primary ID already in archive
         $existsIdx = -1;
         foreach ($archive as $idx => $a) {
-            if ($a['id'] === $primaryId || in_array($a['id'], $g['ids'])) {
+            $partIds = $a['part_ids'] ?? [$a['id']];
+            if ($a['id'] === $primaryId || in_array($a['id'], $g['ids']) || !empty(array_intersect($partIds, $g['ids']))) {
                 $existsIdx = $idx;
                 break;
             }
@@ -435,9 +436,11 @@ function syncSms(?bool $deleteFromRouter = null): array {
             if (strlen($combinedMsg) > strlen($archive[$existsIdx]['message'] ?? '')) {
                 $archive[$existsIdx]['message'] = $combinedMsg;
             }
+            $archive[$existsIdx]['part_ids'] = array_values(array_unique(array_merge($archive[$existsIdx]['part_ids'] ?? [], $g['ids'])));
         } else {
             $archive[] = [
                 'id' => $primaryId,
+                'part_ids' => array_values(array_unique($g['ids'])),
                 'phone' => $g['phone'],
                 'timestamp' => $g['timestamp'],
                 'message' => $combinedMsg,
