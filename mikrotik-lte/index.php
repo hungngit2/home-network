@@ -240,6 +240,14 @@ function parseUssdResponse(string $output): array {
     return $result;
 }
 
+function sanitizeMessage(string $message): string {
+    if (class_exists('Transliterator')) {
+        $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
+        return $transliterator->transliterate($message);
+    }
+    return iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $message);
+}
+
 function syncSms(?bool $deleteFromRouter = null): array {
     $cfg = loadConfig();
     $deleteFromRouter = $deleteFromRouter ?? ($cfg['auto_delete'] ?? true);
@@ -569,6 +577,31 @@ if ($action) {
                 'arch' => $d['architecture-name'] ?? '',
             ]);
 
+
+        case 'lte_monitor':
+            $cfg = loadConfig();
+            $resId = mikrotikRequest('GET', 'interface/lte');
+            $ifaceId = null;
+            if ($resId['ok'] && is_array($resId['data'])) {
+                foreach ($resId['data'] as $if) {
+                    if (($if['name'] ?? '') === ($cfg['port'] ?? 'lte1')) {
+                        $ifaceId = $if['.id'] ?? null;
+                        break;
+                    }
+                }
+            }
+            if (!$ifaceId) jsonResponse(false, null, 'Interface not found', 400);
+
+            $res = mikrotikRequest('POST', 'interface/lte/monitor', [
+                '.id' => $ifaceId,
+                'once' => 'yes'
+            ]);
+            if (!$res['ok']) jsonResponse(false, null, $res['error']);
+            
+            $data = is_array($res['data']) ? $res['data'] : [];
+            jsonResponse(true, isset($data[0]) ? $data[0] : $data);
+            break;
+
         default:
             jsonResponse(false, null, "Unknown action: $action", 400);
     }
@@ -659,8 +692,31 @@ body{font-family:'Inter',sans-serif}
       <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center"><i class="fas fa-tower-cell text-white text-sm"></i></div>
       <div>
         <h1 class="text-base font-semibold text-white leading-tight">MikroTik LTE</h1>
-        <p class="text-xs text-slate-400">SMS & USSD Manager</p>
-      </div>
+        <p class="text-xs text-slate-400" x-text="connected ? (lteStatus?.['current-operator'] || 'Loading...') : 'Disconnected'"></p>
+        </div>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
+        <div x-show="lteStatus" class="flex items-center gap-1 cursor-pointer group relative">
+            <div class="flex items-end gap-0.5 h-3">
+                <template x-for="i in 5">
+                   <div class="w-1 rounded-sm" :class="i <= lteStatus.signalStrength.bars ? lteStatus.signalStrength.color : 'bg-slate-700'" :style="'height:' + (i * 20) + '%'"></div>
+                </template>
+            </div>
+            <span x-text="(lteStatus?.rssi || 'N/A')"></span>
+            
+            <!-- Details Popover -->
+            <div class="absolute right-0 top-full mt-2 w-64 bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl hidden group-hover:block z-50">
+                 <div class="space-y-1 text-slate-300">
+                    <p><b>Model:</b> <span x-text="lteStatus?.model"></span></p>
+                    <p><b>IMEI:</b> <span x-text="lteStatus?.imei"></span></p>
+                    <p><b>Uptime:</b> <span x-text="lteStatus?.['session-uptime']"></span></p>
+                 </div>
+            </div>
+        </div>
+        <span x-show="lteStatus" class="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold" 
+            :class="lteStatus?.['data-class'] === 'LTE' ? 'bg-emerald-900 text-emerald-300' : 'bg-blue-900 text-blue-300'"
+            x-text="lteStatus?.['data-class']"></span>
+        <button @click="fetchLteStatus()" class="hover:text-white transition"><i class="fas fa-sync-alt" :class="{'fa-spin':statusLoading}"></i></button>
     </div>
     <div class="flex items-center gap-3">
       <button @click="checkStatus()" class="text-slate-400 hover:text-slate-200 transition p-1" title="Refresh status">
@@ -1022,6 +1078,8 @@ function smsApp() {
     selectedIds: [],
     
     init() {
+      this.fetchLteStatus();
+      setInterval(() => this.fetchLteStatus(), 10000);
       this.checkStatus();
       this.fetchInbox().then(() => {
         const phones = Object.keys(this.messages);
@@ -1094,6 +1152,27 @@ function smsApp() {
     async cancelUssd() { try { await this.api("ussd_cancel"); this.ussd.console.push({type:"info", text:"USSD session cancelled", time:this.timeNow()}); } catch(e) {} },
     copyConsole() { const text = this.ussd.console.map(l => (l.time||"")+" "+l.text).join("\n"); navigator.clipboard.writeText(text).then(() => this.showToast("info","Copied to console output")); },
     async loadSettings() { try { const r = await this.api("get_config"); if (r.success && r.data) { Object.assign(this.settings, { host: r.data.host || "", username: r.data.username || "", password: r.data.password || "", port: r.data.port || "", https: !!r.data.https, ssl_verify: !!r.data.ssl_verify, timeout: r.data.timeout || 10, auto_delete: !!r.data.auto_delete, sync_schedule: r.data.sync_schedule || "0 3 * * *", }); } } catch(e) {} },
+
+    lteStatus: null,
+    async fetchLteStatus() {
+        try {
+            const r = await this.api('lte_monitor');
+            if(r.success) {
+                this.lteStatus = r.data;
+                this.lteStatus.signalStrength = this.calculateSignalBars(this.lteStatus.rssi);
+            }
+        } catch(e) { console.error('LTE monitor failed', e); }
+    },
+    
+    calculateSignalBars(rssi) {
+        if (!rssi) return { bars: 0, label: 'No Signal', color: 'bg-slate-600' };
+        const val = parseInt(rssi);
+        if (val >= -70) return { bars: 5, label: 'Excellent', color: 'bg-emerald-500' };
+        if (val >= -85) return { bars: 4, label: 'Good', color: 'bg-emerald-400' };
+        if (val >= -100) return { bars: 3, label: 'Fair', color: 'bg-amber-500' };
+        return { bars: 1, label: 'Poor', color: 'bg-red-500' };
+    },
+
     async testConnection() { this.settings.testing = true; this.settings.testResult = null; try { const r = await this.api("test_connection", { host: this.settings.host, username: this.settings.username, password: this.settings.password, port: this.settings.port, https: this.settings.https, ssl_verify: this.settings.ssl_verify, timeout: this.settings.timeout, }); this.settings.testResult = r.success ? {ok:true, data:r.data} : {ok:false, error:r.error}; } catch(e) { this.settings.testResult = {ok:false, error:"Network error"}; } this.settings.testing = false; },
     async saveSettings() { this.settings.saving = true; try { const r = await this.api("save_config", { host: this.settings.host, username: this.settings.username, password: this.settings.password, port: this.settings.port, https: this.settings.https, ssl_verify: this.settings.ssl_verify, timeout: this.settings.timeout, auto_delete: this.settings.auto_delete, sync_schedule: this.settings.sync_schedule, }); if (r.success) { this.showToast("success", "Settings saved"); this.checkStatus(); } else { if (r.data?.needs_force) { if (confirm("Connection test failed: " + (r.error||"") + "\n\nSave anyway?")) { const r2 = await this.api("save_config", { host:this.settings.host, username:this.settings.username, password:this.settings.password, port:this.settings.port, https:this.settings.https, ssl_verify:this.settings.ssl_verify, timeout:this.settings.timeout, auto_delete:this.settings.auto_delete, sync_schedule:this.settings.sync_schedule, force:true, }); if (r2.success) { this.showToast("warning","Settings saved"); this.checkStatus(); } else { this.showToast("error", r2.error||"Failed"); } } } else { this.showToast("error", r.error||"Failed"); } } } catch(e) { this.showToast("error","Network error saving"); } this.settings.saving = false; },
   };
