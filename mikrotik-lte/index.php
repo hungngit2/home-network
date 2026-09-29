@@ -248,6 +248,84 @@ function sanitizeMessage(string $message): string {
     return iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $message);
 }
 
+function parseSmsPdu(string $pduHex): array {
+    $bin = @hex2bin($pduHex);
+    if ($bin === false || strlen($bin) < 8) return ['text' => null, 'concat' => null];
+
+    $offset = 0;
+    $len = strlen($bin);
+
+    // 1. SMSC info (length in octets)
+    $smscLen = ord($bin[$offset++]);
+    $offset += $smscLen;
+    if ($offset >= $len) return ['text' => null, 'concat' => null];
+
+    // 2. First octet of SMS-DELIVER
+    $firstOctet = ord($bin[$offset++]);
+    $hasUdhi = ($firstOctet & 0x40) !== 0;
+
+    // 3. Sender address
+    $addrDigits = ord($bin[$offset++]);
+    $addrType = ord($bin[$offset++]);
+    $addrBytes = (int)ceil($addrDigits / 2);
+    $offset += $addrBytes;
+    if ($offset >= $len) return ['text' => null, 'concat' => null];
+
+    // 4. TP-PID (1 octet)
+    $tpPid = ord($bin[$offset++]);
+    // 5. TP-DCS (1 octet)
+    $tpDcs = ord($bin[$offset++]);
+    // 6. TP-SCTS (Service Center Time Stamp, 7 octets)
+    $offset += 7;
+    if ($offset >= $len) return ['text' => null, 'concat' => null];
+
+    // 7. TP-UDL (User Data Length, 1 octet)
+    $udl = ord($bin[$offset++]);
+    $udData = substr($bin, $offset);
+
+    $concat = null;
+    $udOffset = 0;
+
+    // 8. User Data Header (UDH) for multipart / concatenated SMS
+    if ($hasUdhi && strlen($udData) > 0) {
+        $udhLen = ord($udData[0]);
+        $udhOffset = 1;
+        while ($udhOffset < $udhLen + 1 && $udhOffset < strlen($udData)) {
+            $iei = ord($udData[$udhOffset++]);
+            $ieLen = ord($udData[$udhOffset++]);
+            if ($iei === 0x00 && $ieLen === 3) {
+                // 8-bit concat reference
+                $ref = ord($udData[$udhOffset]);
+                $total = ord($udData[$udhOffset + 1]);
+                $seq = ord($udData[$udhOffset + 2]);
+                $concat = ['ref' => 'c8_' . $ref, 'total' => $total, 'seq' => $seq];
+            } elseif ($iei === 0x08 && $ieLen === 4) {
+                // 16-bit concat reference
+                $ref = (ord($udData[$udhOffset]) << 8) | ord($udData[$udhOffset + 1]);
+                $total = ord($udData[$udhOffset + 2]);
+                $seq = ord($udData[$udhOffset + 3]);
+                $concat = ['ref' => 'c16_' . $ref, 'total' => $total, 'seq' => $seq];
+            }
+            $udhOffset += $ieLen;
+        }
+        $udOffset = $udhLen + 1;
+    }
+
+    $payload = substr($udData, $udOffset);
+    $text = null;
+
+    // Determine encoding from TP-DCS
+    $isUcs2 = ($tpDcs === 0x08) || (($tpDcs & 0x0C) === 0x08);
+    if ($isUcs2) {
+        $decoded = @mb_convert_encoding($payload, 'UTF-8', 'UTF-16BE');
+        if ($decoded !== false && mb_check_encoding($decoded, 'UTF-8')) {
+            $text = $decoded;
+        }
+    }
+
+    return ['text' => $text, 'concat' => $concat, 'is_ucs2' => $isUcs2];
+}
+
 function syncSms(?bool $deleteFromRouter = null): array {
     $cfg = loadConfig();
     $deleteFromRouter = $deleteFromRouter ?? ($cfg['auto_delete'] ?? true);
@@ -260,13 +338,13 @@ function syncSms(?bool $deleteFromRouter = null): array {
 
     $content = stream_get_contents($fp);
     $archive = !empty($content) ? (json_decode($content, true) ?? []) : [];
-    
+
     $res = mikrotikRequest('GET', 'tool/sms/inbox');
     if (!$res['ok']) {
         flock($fp, LOCK_UN); fclose($fp);
         return ['ok' => false, 'error' => $res['error']];
     }
-    
+
     $messages = is_array($res['data']) ? $res['data'] : [];
     if (empty($messages)) {
         flock($fp, LOCK_UN); fclose($fp);
@@ -274,70 +352,105 @@ function syncSms(?bool $deleteFromRouter = null): array {
     }
 
     $synced = 0;
+    $multipartGroups = [];
+    $standalone = [];
+
     foreach ($messages as $m) {
         $id = $m['.id'] ?? '';
-        
-        $exists = false;
-        foreach ($archive as $a) {
-            if ($a['id'] === $id) { $exists = true; break; }
+        $phone = $m['phone'] ?? $m['phone-number'] ?? '';
+        $timestamp = $m['timestamp'] ?? '';
+        $rawMsg = $m['message'] ?? '';
+        $pdu = $m['pdu'] ?? null;
+
+        $parsedText = null;
+        $concat = null;
+
+        if (!empty($pdu)) {
+            $pduRes = parseSmsPdu($pdu);
+            $parsedText = $pduRes['text'];
+            $concat = $pduRes['concat'];
         }
-        
-        // Always delete from device if auto_delete is ON, regardless of existence
+
+        $finalMsg = ($parsedText !== null && $parsedText !== '') ? $parsedText : $rawMsg;
+
+        if ($concat !== null) {
+            $groupKey = $phone . '_' . $concat['ref'] . '_' . $concat['total'];
+            if (!isset($multipartGroups[$groupKey])) {
+                $multipartGroups[$groupKey] = [
+                    'phone' => $phone,
+                    'timestamp' => $timestamp,
+                    'total' => $concat['total'],
+                    'parts' => [],
+                    'ids' => [],
+                ];
+            }
+            $multipartGroups[$groupKey]['parts'][$concat['seq']] = $finalMsg;
+            $multipartGroups[$groupKey]['ids'][] = $id;
+            // Update timestamp to the earliest or latest
+            if (!empty($timestamp)) $multipartGroups[$groupKey]['timestamp'] = $timestamp;
+        } else {
+            $standalone[] = [
+                'id' => $id,
+                'phone' => $phone,
+                'timestamp' => $timestamp,
+                'message' => $finalMsg,
+            ];
+        }
+
+        // Delete raw part from router if auto-delete is active
         if ($deleteFromRouter) {
             mikrotikRequest('DELETE', 'tool/sms/inbox/' . rawurlencode($id));
         }
-
-        if ($exists) {
-            $synced++; continue;
-        }
-
-        $msg = $m['message'] ?? '';
-        if (isset($m['pdu'])) {
-            $pdu = $m['pdu'];
-            // Search for potential payload start patterns: common UCS-2 00+ASCII chars
-            $possiblePayloads = [];
-            $patterns = ['0054', '0068', '0041', '0042', '0061']; 
-            foreach ($patterns as $pattern) {
-                $pos = strpos($pdu, $pattern);
-                if ($pos !== false && $pos > 30) {
-                    $possiblePayloads[] = substr($pdu, $pos);
-                }
-            }
-
-            foreach ($possiblePayloads as $payload) {
-                $decoded = @mb_convert_encoding(@hex2bin($payload), 'UTF-8', 'UTF-16BE');
-                if ($decoded && mb_check_encoding($decoded, 'UTF-8') && preg_match('/[ăâđêôơư]/u', $decoded)) {
-                     $msg = $decoded; break;
-                }
-                $decoded = @mb_convert_encoding(@hex2bin($payload), 'UTF-8', 'UTF-16LE');
-                if ($decoded && mb_check_encoding($decoded, 'UTF-8') && preg_match('/[ăâđêôơư]/u', $decoded)) {
-                     $msg = $decoded; break;
-                }
-            }
-        }
-
-        $archive[] = [
-            'id' => $id,
-            'phone' => $m['phone'] ?? $m['phone-number'] ?? '',
-            'timestamp' => $m['timestamp'] ?? '',
-            'message' => $msg,
-        ];
-        if ($deleteFromRouter) {
-            $delRes = mikrotikRequest('DELETE', 'tool/sms/inbox/' . rawurlencode($id));
-            // Log deletion status
-            error_log("Attempted to delete $id from router: " . ($delRes['ok'] ? 'Success' : 'Fail ('.$delRes['error'].')'));
-        }
-
         $synced++;
     }
 
+    // Append standalone messages
+    foreach ($standalone as $s) {
+        $exists = false;
+        foreach ($archive as $a) {
+            if ($a['id'] === $s['id']) { $exists = true; break; }
+        }
+        if (!$exists) {
+            $archive[] = $s;
+        }
+    }
+
+    // Reassemble and append multipart messages
+    foreach ($multipartGroups as $gKey => $g) {
+        ksort($g['parts']);
+        $combinedMsg = implode('', $g['parts']);
+        $primaryId = $g['ids'][0] ?? ('mp_' . md5($gKey));
+
+        // Check if any sub-ID or primary ID already in archive
+        $existsIdx = -1;
+        foreach ($archive as $idx => $a) {
+            if ($a['id'] === $primaryId || in_array($a['id'], $g['ids'])) {
+                $existsIdx = $idx;
+                break;
+            }
+        }
+
+        if ($existsIdx >= 0) {
+            // Update existing with full reassembled text if longer
+            if (strlen($combinedMsg) > strlen($archive[$existsIdx]['message'] ?? '')) {
+                $archive[$existsIdx]['message'] = $combinedMsg;
+            }
+        } else {
+            $archive[] = [
+                'id' => $primaryId,
+                'phone' => $g['phone'],
+                'timestamp' => $g['timestamp'],
+                'message' => $combinedMsg,
+            ];
+        }
+    }
 
     ftruncate($fp, 0);
     rewind($fp);
     fwrite($fp, json_encode($archive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     flock($fp, LOCK_UN);
     fclose($fp);
-    
+
     return ['ok' => true, 'synced' => $synced];
 }
 
