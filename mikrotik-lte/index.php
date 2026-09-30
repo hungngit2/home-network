@@ -499,21 +499,35 @@ if ($action) {
             $archiveFile = __DIR__ . '/sms_archive.json';
             $archive = file_exists($archiveFile) ? (json_decode(file_get_contents($archiveFile), true) ?? []) : [];
 
-            $out = [];
-            foreach (array_reverse($archive) as $m) {
-                $out[] = [
+            $grouped = [];
+            foreach ($archive as $m) {
+                $phone = $m['phone'] ?? '';
+                if ($phone === '') continue;
+                $grouped[$phone][] = [
                     'id' => $m['id'] ?? '',
                     'part_ids' => $m['part_ids'] ?? [$m['id'] ?? ''],
-                    'phone' => $m['phone'] ?? '',
+                    'phone' => $phone,
                     'timestamp' => $m['timestamp'] ?? '',
                     'type' => $m['type'] ?? 'received',
                     'message' => $m['message'] ?? '',
                 ];
             }
-            $grouped = [];
-            foreach ($out as $o) {
-                $grouped[$o['phone']][] = $o;
+
+            // Sort messages inside each conversation chronologically (oldest at top, newest at bottom)
+            foreach ($grouped as $phone => &$msgs) {
+                usort($msgs, function($a, $b) {
+                    return strtotime($a['timestamp'] ?? '') <=> strtotime($b['timestamp'] ?? '');
+                });
             }
+            unset($msgs);
+
+            // Sort conversation threads in sidebar by most recent message descending (newest thread at top)
+            uksort($grouped, function($a, $b) use ($grouped) {
+                $timeA = end($grouped[$a])['timestamp'] ?? '';
+                $timeB = end($grouped[$b])['timestamp'] ?? '';
+                return strtotime($timeB) <=> strtotime($timeA);
+            });
+
             jsonResponse(true, $grouped);
             break;
 
@@ -923,23 +937,38 @@ body{font-family:'Inter',sans-serif}
           <h3 class="font-semibold text-white" x-text="activePhone === 'NEW' ? 'New Message' : (activePhone || 'Select a thread')"></h3>
           <button x-show="activePhone && activePhone !== 'NEW'" @click="bulkDeleteThread(activePhone)" class="text-red-400 hover:text-red-300 text-sm"><i class="fas fa-trash"></i></button>
         </div>
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" x-ref="threadContainer">
           <template x-if="activePhone && activePhone !== 'NEW'">
             <template x-for="m in (messages[activePhone] || [])" :key="m.id">
-              <div class="flex items-start gap-2 justify-start">
-                <div class="max-w-[80%] p-3 rounded-xl text-sm border shadow-sm"
+              <!-- Sent is Left-aligned, Received is Right-aligned -->
+              <div class="flex items-end gap-1.5 group" :class="m.type==='sent' ? 'justify-start' : 'justify-end'">
+                
+                <!-- Action button for Sent message (on its right side) -->
+                <button x-show="m.type==='sent'" @click="deleteSingle(m.id)"
+                        class="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 p-1 mb-1 transition-opacity order-2"
+                        title="Delete message">
+                  <i class="fas fa-trash text-[10px]"></i>
+                </button>
+
+                <!-- Action button for Received message (on its left side) -->
+                <button x-show="m.type!=='sent'" @click="deleteSingle(m.id)"
+                        class="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 p-1 mb-1 transition-opacity order-1"
+                        title="Delete message">
+                  <i class="fas fa-trash text-[10px]"></i>
+                </button>
+
+                <!-- Message bubble -->
+                <div class="max-w-[78%] px-4 py-2.5 rounded-2xl text-sm shadow-md transition border"
                      :class="m.type==='sent'
-                       ? 'bg-indigo-950/80 border-indigo-700/60 text-indigo-100'
-                       : 'bg-slate-850 bg-slate-800/90 border-slate-700/80 text-slate-100'">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider"
-                          :class="m.type==='sent' ? 'bg-indigo-700/50 text-indigo-300' : 'bg-emerald-900/50 text-emerald-300'"
-                          x-text="m.type==='sent' ? 'Sent' : 'Received'"></span>
-                    <span class="text-[10px] text-slate-400" x-text="m.timestamp"></span>
+                       ? 'bg-indigo-700/80 border-indigo-600/70 text-white rounded-bl-sm order-1'
+                       : 'bg-slate-800 border-slate-700 text-slate-100 rounded-br-sm order-2'">
+                  <p class="whitespace-pre-wrap break-words select-text text-sm leading-relaxed" x-text="m.message"></p>
+                  <div class="flex items-center gap-1 mt-1 text-[10px] text-slate-300/70"
+                       :class="m.type==='sent' ? 'justify-start' : 'justify-end'">
+                    <span x-text="m.timestamp"></span>
                   </div>
-                  <p class="whitespace-pre-wrap break-words select-text" x-text="m.message"></p>
                 </div>
-                <button @click="deleteSingle(m.id)" class="text-slate-600 hover:text-red-400 p-1 mt-1 transition" title="Delete message"><i class="fas fa-trash text-xs"></i></button>
+
               </div>
             </template>
           </template>
@@ -1249,6 +1278,13 @@ function smsApp() {
         if (phones.length > 0) this.activePhone = phones[0];
       });
       this.loadSettings();
+      this.$watch('activePhone', () => {
+        this.$nextTick(() => {
+          if (this.$refs.threadContainer) {
+            this.$refs.threadContainer.scrollTop = this.$refs.threadContainer.scrollHeight;
+          }
+        });
+      });
       // Auto-sync SMS every 15 seconds in background
       setInterval(() => {
         if (this.tab === "inbox" && !this.compose.sending) {
