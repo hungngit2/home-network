@@ -496,49 +496,69 @@ if ($action) {
 
         case 'inbox':
             syncSms();
-            // Read archive only
             $archiveFile = __DIR__ . '/sms_archive.json';
             $archive = file_exists($archiveFile) ? (json_decode(file_get_contents($archiveFile), true) ?? []) : [];
-            
+
             $out = [];
-            $grouped = [];
             foreach (array_reverse($archive) as $m) {
-                 $out[] = ['id'=>$m['id'], 'phone'=>$m['phone'], 'timestamp'=>$m['timestamp'], 'type'=>'archived', 'message'=>$m['message']];
+                $out[] = [
+                    'id' => $m['id'] ?? '',
+                    'part_ids' => $m['part_ids'] ?? [$m['id'] ?? ''],
+                    'phone' => $m['phone'] ?? '',
+                    'timestamp' => $m['timestamp'] ?? '',
+                    'type' => $m['type'] ?? 'received',
+                    'message' => $m['message'] ?? '',
+                ];
+            }
             $grouped = [];
             foreach ($out as $o) {
                 $grouped[$o['phone']][] = $o;
             }
-            }
             jsonResponse(true, $grouped);
+            break;
 
-                case 'send':
+        case 'send':
             $phone = trim($input['phone'] ?? '');
             $message = trim($input['message'] ?? '');
             if ($phone === '' || $message === '') jsonResponse(false, null, 'Phone number and message are required.', 400);
 
             $cfg = loadConfig();
-            
-            $resId = mikrotikRequest('GET', 'interface/lte');
-            $ifaceId = null;
-            if ($resId['ok'] && is_array($resId['data'])) {
-                foreach ($resId['data'] as $if) {
-                    if (($if['name'] ?? '') === ($cfg['port'] ?? 'lte1')) {
-                        $ifaceId = $if['.id'] ?? null;
-                        break;
-                    }
-                }
+            $sentText = $message;
+            if (($cfg['sms_transliterate_accents'] ?? true)) {
+                $sentText = sanitizeMessage($message);
             }
 
-            if ($ifaceId) mikrotikRequest('POST', 'interface/lte/at-chat', ['.id' => $ifaceId, 'input' => 'AT+CSCS="UCS2"', 'wait' => 'yes']);
             $res = mikrotikRequest('POST', 'tool/sms/send', [
                 'phone-number' => $phone,
-                'message' => mb_convert_encoding($message, 'UTF-8', 'UTF-8'),
+                'message' => $sentText,
                 'port' => $cfg['port'] ?? 'lte1',
             ]);
-            if ($ifaceId) mikrotikRequest('POST', 'interface/lte/at-chat', ['.id' => $ifaceId, 'input' => 'AT+CSCS="GSM"', 'wait' => 'yes']);
 
             if (!$res['ok']) jsonResponse(false, null, $res['error']);
+
+            // Save sent SMS to archive
+            $archiveFile = __DIR__ . '/sms_archive.json';
+            $fp = fopen($archiveFile, 'c+');
+            if (flock($fp, LOCK_EX)) {
+                $content = stream_get_contents($fp);
+                $archive = !empty($content) ? (json_decode($content, true) ?? []) : [];
+                $archive[] = [
+                    'id' => 'sent_' . time() . '_' . substr(md5($phone . $message . microtime()), 0, 8),
+                    'part_ids' => [],
+                    'phone' => $phone,
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'message' => $message,
+                    'type' => 'sent'
+                ];
+                ftruncate($fp, 0);
+                rewind($fp);
+                fwrite($fp, json_encode($archive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                flock($fp, LOCK_UN);
+                fclose($fp);
+            }
+
             jsonResponse(true, ['sent' => true]);
+            break;
 
         case 'delete':
             $id = trim($input['id'] ?? '');
@@ -906,12 +926,20 @@ body{font-family:'Inter',sans-serif}
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
           <template x-if="activePhone && activePhone !== 'NEW'">
             <template x-for="m in (messages[activePhone] || [])" :key="m.id">
-              <div class="flex items-start gap-2" :class="m.type==='received' ? 'flex-row' : 'flex-row-reverse'">
-                <div class="max-w-[70%] p-3 rounded-xl text-sm" :class="m.type==='received' ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white'">
-                  <p x-text="m.message"></p>
-                  <p class="text-[10px] opacity-70 mt-1" x-text="m.timestamp"></p>
+              <div class="flex items-start gap-2 justify-start">
+                <div class="max-w-[80%] p-3 rounded-xl text-sm border shadow-sm"
+                     :class="m.type==='sent'
+                       ? 'bg-indigo-950/80 border-indigo-700/60 text-indigo-100'
+                       : 'bg-slate-850 bg-slate-800/90 border-slate-700/80 text-slate-100'">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider"
+                          :class="m.type==='sent' ? 'bg-indigo-700/50 text-indigo-300' : 'bg-emerald-900/50 text-emerald-300'"
+                          x-text="m.type==='sent' ? 'Sent' : 'Received'"></span>
+                    <span class="text-[10px] text-slate-400" x-text="m.timestamp"></span>
+                  </div>
+                  <p class="whitespace-pre-wrap break-words select-text" x-text="m.message"></p>
                 </div>
-                <button @click="deleteSingle(m.id)" class="text-slate-600 hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
+                <button @click="deleteSingle(m.id)" class="text-slate-600 hover:text-red-400 p-1 mt-1 transition" title="Delete message"><i class="fas fa-trash text-xs"></i></button>
               </div>
             </template>
           </template>
