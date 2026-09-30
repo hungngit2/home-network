@@ -124,6 +124,10 @@ function normalizeHost(string $h): string {
     return rtrim($h, '/');
 }
 
+function encodeRouterOsId(string $id): string {
+    return str_replace("%2A", "*", rawurlencode($id));
+}
+
 function mikrotikRequest(string $method, string $path, ?array $payload = null, ?array $cfgOverride = null): array {
     $cfg = $cfgOverride ?? loadConfig();
     $host = normalizeHost($cfg['host'] ?? '192.168.88.1');
@@ -391,6 +395,7 @@ function syncSms(?bool $deleteFromRouter = null): array {
         } else {
             $standalone[] = [
                 'id' => $id,
+                'part_ids' => [$id],
                 'phone' => $phone,
                 'timestamp' => $timestamp,
                 'message' => $finalMsg,
@@ -399,7 +404,7 @@ function syncSms(?bool $deleteFromRouter = null): array {
 
         // Delete raw part from router if auto-delete is active
         if ($deleteFromRouter) {
-            mikrotikRequest('DELETE', 'tool/sms/inbox/' . rawurlencode($id));
+            mikrotikRequest('DELETE', 'tool/sms/inbox/' . encodeRouterOsId($id));
         }
         $synced++;
     }
@@ -538,21 +543,32 @@ if ($action) {
         case 'delete':
             $id = trim($input['id'] ?? '');
             if ($id === '') jsonResponse(false, null, 'Message ID is required.', 400);
-            
-            // 1. Attempt delete from router (only if exists, ignore 404)
-            mikrotikRequest('DELETE', 'tool/sms/inbox/' . rawurlencode($id));
-            
-            // 2. Delete from archive
+
             $archiveFile = __DIR__ . '/sms_archive.json';
             $fp = fopen($archiveFile, 'c+');
             if (flock($fp, LOCK_EX)) {
                 $content = stream_get_contents($fp);
                 $archive = !empty($content) ? (json_decode($content, true) ?? []) : [];
                 $newArchive = [];
+                $idsToDeleteFromRouter = [$id];
+
                 foreach ($archive as $m) {
-                    if ($m['id'] === $id) continue;
+                    $partIds = $m['part_ids'] ?? [$m['id']];
+                    $matches = ($m['id'] === $id) || in_array($id, $partIds);
+                    if ($matches) {
+                        $idsToDeleteFromRouter = array_merge($idsToDeleteFromRouter, $partIds);
+                        continue;
+                    }
                     $newArchive[] = $m;
                 }
+
+                // Delete all router IDs
+                foreach (array_unique($idsToDeleteFromRouter) as $delId) {
+                    if (!empty($delId) && strpos($delId, 'sent_') !== 0 && strpos($delId, 'mp_') !== 0) {
+                        mikrotikRequest('DELETE', 'tool/sms/inbox/' . encodeRouterOsId($delId));
+                    }
+                }
+
                 ftruncate($fp, 0);
                 rewind($fp);
                 fwrite($fp, json_encode($newArchive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -560,13 +576,22 @@ if ($action) {
                 fclose($fp);
             } else {
                 fclose($fp);
+                if (strpos($id, 'sent_') !== 0 && strpos($id, 'mp_') !== 0) {
+                    mikrotikRequest('DELETE', 'tool/sms/inbox/' . encodeRouterOsId($id));
+                }
             }
-            
+
             jsonResponse(true, ['deleted' => true]);
+            break;
 
         case 'bulk_delete':
-            $jsonInput = json_decode(file_get_contents('php://input'), true);
-            $ids = $jsonInput['ids'] ?? [];
+            $ids = $input['ids'] ?? [];
+            if (!is_array($ids) || empty($ids)) {
+                $jsonInput = json_decode(file_get_contents('php://input'), true);
+                if (is_array($jsonInput) && !empty($jsonInput['ids'])) {
+                    $ids = $jsonInput['ids'];
+                }
+            }
             if (empty($ids)) jsonResponse(false, null, 'Message IDs are required.', 400);
 
             $archiveFile = __DIR__ . '/sms_archive.json';
@@ -575,10 +600,25 @@ if ($action) {
                 $content = stream_get_contents($fp);
                 $archive = !empty($content) ? (json_decode($content, true) ?? []) : [];
                 $newArchive = [];
+                $idsToDeleteFromRouter = $ids;
+
                 foreach ($archive as $m) {
-                    if (in_array($m['id'], $ids)) continue;
+                    $partIds = $m['part_ids'] ?? [$m['id']];
+                    $matches = in_array($m['id'], $ids) || !empty(array_intersect($partIds, $ids));
+                    if ($matches) {
+                        $idsToDeleteFromRouter = array_merge($idsToDeleteFromRouter, $partIds);
+                        continue;
+                    }
                     $newArchive[] = $m;
                 }
+
+                // Delete all router IDs
+                foreach (array_unique($idsToDeleteFromRouter) as $delId) {
+                    if (!empty($delId) && strpos($delId, 'sent_') !== 0 && strpos($delId, 'mp_') !== 0) {
+                        mikrotikRequest('DELETE', 'tool/sms/inbox/' . encodeRouterOsId($delId));
+                    }
+                }
+
                 ftruncate($fp, 0);
                 rewind($fp);
                 fwrite($fp, json_encode($newArchive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -586,9 +626,15 @@ if ($action) {
                 fclose($fp);
             } else {
                 fclose($fp);
+                foreach (array_unique($ids) as $delId) {
+                    if (!empty($delId) && strpos($delId, 'sent_') !== 0 && strpos($delId, 'mp_') !== 0) {
+                        mikrotikRequest('DELETE', 'tool/sms/inbox/' . encodeRouterOsId($delId));
+                    }
+                }
             }
-            jsonResponse(true, ['deleted' => true]);
 
+            jsonResponse(true, ['deleted' => true]);
+            break;
 
         case 'ussd':
             $code = trim($input['code'] ?? '');
@@ -775,34 +821,6 @@ body{font-family:'Inter',sans-serif}
   </template>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div x-show="deleteModal.show" x-cloak class="fixed inset-0 z-40 flex items-center justify-center p-4"
-     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-     @keydown.escape.window="deleteModal.show=false">
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="deleteModal.show=false"></div>
-  <div class="relative bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-w-md w-full p-6"
-       x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-10 h-10 rounded-full bg-red-900/50 flex items-center justify-center"><i class="fas fa-trash-alt text-red-400"></i></div>
-      <h3 class="text-lg font-semibold text-slate-100">Delete Message</h3>
-    </div>
-    <div class="bg-slate-900/50 rounded-lg p-3 mb-4 border border-slate-700">
-      <div class="text-xs text-slate-400 mb-1">From: <span class="text-slate-300" x-text="deleteModal.phone"></span></div>
-      <p class="text-sm text-slate-300 line-clamp-2" x-text="deleteModal.preview"></p>
-    </div>
-    <p class="text-sm text-slate-400 mb-5">This action cannot be undone. The message will be permanently removed from the router.</p>
-    <div class="flex gap-3 justify-end">
-      <button @click="deleteModal.show=false" class="px-4 py-2 text-sm rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition">Cancel</button>
-      <button @click="confirmDelete()" :disabled="deleteModal.deleting"
-              class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-500 text-white transition flex items-center gap-2 disabled:opacity-50">
-        <i x-show="deleteModal.deleting" class="fas fa-spinner fa-spin"></i>
-        <span x-text="deleteModal.deleting?'Deleting...':'Delete'"></span>
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Header -->
 <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800">
   <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -887,7 +905,7 @@ body{font-family:'Inter',sans-serif}
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
           <template x-if="activePhone && activePhone !== 'NEW'">
-            <template x-for="m in messages[activePhone]" :key="m.id">
+            <template x-for="m in (messages[activePhone] || [])" :key="m.id">
               <div class="flex items-start gap-2" :class="m.type==='received' ? 'flex-row' : 'flex-row-reverse'">
                 <div class="max-w-[70%] p-3 rounded-xl text-sm" :class="m.type==='received' ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white'">
                   <p x-text="m.message"></p>
@@ -1189,8 +1207,7 @@ function smsApp() {
     ],
     settings: {host:"",username:"",password:"",port:"",https:true,ssl_verify:false,timeout:10,auto_delete:true,sync_schedule:"0 3 * * *",testing:false,saving:false,testResult:null},
     showPassword: false,
-    deleteModal: {show:false,id:"",phone:"",preview:"",deleting:false},
-    toasts: [],
+        toasts: [],
     _toastId: 0,
     activePhone: null,
     selectedIds: [],
@@ -1211,7 +1228,11 @@ function smsApp() {
         try {
             const r = await this.api("delete", {id: id});
             if(r.success) {
-                this.fetchInbox();
+                await this.fetchInbox();
+                if (this.activePhone && (!this.messages[this.activePhone] || !this.messages[this.activePhone].length)) {
+                    const phones = Object.keys(this.messages);
+                    this.activePhone = phones.length > 0 ? phones[0] : null;
+                }
                 this.showToast("success", "Deleted");
             } else {
                 this.showToast("error", r.error || "Delete failed");
@@ -1221,13 +1242,17 @@ function smsApp() {
 
     async bulkDeleteThread(phone) {
         if(!confirm("Delete all messages in this thread?")) return;
-        const ids = this.messages[phone].map(m => m.id);
+        const ids = (this.messages[phone] || []).map(m => m.id);
+        if (!ids.length) return;
         try {
             const r = await this.api("bulk_delete", {ids: ids});
             if(r.success) {
-                this.activePhone = null;
-                this.fetchInbox();
+                await this.fetchInbox();
+                const phones = Object.keys(this.messages);
+                this.activePhone = phones.length > 0 ? phones[0] : null;
                 this.showToast("success", "Thread deleted");
+            } else {
+                this.showToast("error", r.error || "Delete failed");
             }
         } catch(e) { this.showToast("error", "Delete failed"); }
     },
