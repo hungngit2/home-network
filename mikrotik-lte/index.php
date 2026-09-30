@@ -1221,6 +1221,12 @@ function smsApp() {
         if (phones.length > 0) this.activePhone = phones[0];
       });
       this.loadSettings();
+      // Auto-sync SMS every 15 seconds in background
+      setInterval(() => {
+        if (this.tab === "inbox" && !this.compose.sending) {
+          this.fetchInbox(true);
+        }
+      }, 15000);
     },
 
     async deleteSingle(id) {
@@ -1262,7 +1268,24 @@ function smsApp() {
     removeToast(id) { this.toasts = this.toasts.filter(t => t.id !== id); },
     async api(action, data={}) { const body = {action, ...data}; const res = await fetch(window.location.pathname, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body), }); return res.json(); },
     async checkStatus() { this.statusLoading = true; try { const r = await this.api("status"); if (r.success) { this.connected = true; const d = r.data; this.routerInfo = (d.board || "Router") + " · v" + (d.version || "?"); } else { this.connected = false; this.routerInfo = ""; } } catch(e) { this.connected = false; this.routerInfo = ""; } this.statusLoading = false; },
-    async fetchInbox() { this.inboxLoading = true; try { const r = await this.api("inbox"); if (r.success) { this.messages = r.data || {}; } else { this.showToast("error", r.error || "Failed to fetch inbox"); } } catch(e) { this.showToast("error", "Network error fetching inbox"); } this.inboxLoading = false; },
+    async fetchInbox(silent = false) {
+      if (!silent) this.inboxLoading = true;
+      try {
+        const r = await this.api("inbox");
+        if (r.success) {
+          this.messages = r.data || {};
+          if (!this.activePhone) {
+            const phones = Object.keys(this.messages);
+            if (phones.length > 0) this.activePhone = phones[0];
+          }
+        } else if (!silent) {
+          this.showToast("error", r.error || "Failed to fetch inbox");
+        }
+      } catch(e) {
+        if (!silent) this.showToast("error", "Network error fetching inbox");
+      }
+      if (!silent) this.inboxLoading = false;
+    },
     groupedMessages() { if (!this.inboxSearch.trim()) return this.messages; const q = this.inboxSearch.toLowerCase(); const filtered = {}; for (const phone in this.messages) { if (phone.toLowerCase().includes(q)) { filtered[phone] = this.messages[phone]; } else { const sub = this.messages[phone].filter(m => m.message.toLowerCase().includes(q)); if (sub.length) filtered[phone] = sub; } } return filtered; },
     replyTo(m) { this.compose.phone = m.phone || ""; this.compose.message = ""; this.showToast("info", "Replying to " + m.phone); },
     async sendSms() {
