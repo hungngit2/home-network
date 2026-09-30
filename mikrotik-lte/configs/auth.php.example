@@ -1,0 +1,11 @@
+<?php
+// Example Authentication configuration for MikroTik LTE Manager
+// Rename or copy to configs/auth.php or auth.php to enable
+
+// Basic Auth credentials
+define('AUTH_USERNAME', 'admin');
+define('AUTH_PASSWORD', 'your_secure_password_here');
+
+// Optional: Set to true if you want to require authentication even from local loopback (127.0.0.1 / ::1)
+// When false (default), local LAN/loopback requests can bypass authentication
+define('FORCE_AUTH_FOR_LOCAL', false);

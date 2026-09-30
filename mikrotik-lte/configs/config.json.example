@@ -1,0 +1,12 @@
+{
+    "host": "192.168.88.1",
+    "username": "admin",
+    "password": "your_password_here",
+    "port": "lte1",
+    "https": true,
+    "ssl_verify": false,
+    "timeout": 15,
+    "auto_delete": true,
+    "sync_schedule": "0 3 * * *",
+    "sms_transliterate_accents": true
+}

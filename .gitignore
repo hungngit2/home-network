@@ -5,5 +5,9 @@ wifi-config-tool/config.json
 wifi-config-tool/auth.php
 wifi-config-tool/tests/test_config.json
 mikrotik-lte/config.json
+mikrotik-lte/configs/config.json
+mikrotik-lte/auth.php
+mikrotik-lte/configs/auth.php
+mikrotik-lte/sms_archive.json
 config.json
 .DS_Store
