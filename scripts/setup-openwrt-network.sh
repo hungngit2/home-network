@@ -40,7 +40,11 @@ fi
 echo ">> Using Mesh ID:   [${MESH_ID}]"
 echo ">> Using 5GHz Ch:   [${CHANNEL_5G}]"
 
-# Clean up existing network interfaces
+# Clean up existing network interfaces, devices, and switch sections
+while uci -q delete network.@switch_vlan[0]; do :; done
+while uci -q delete network.@switch[0]; do :; done
+while uci -q delete network.@bridge-vlan[0]; do :; done
+while uci -q delete network.@device[0]; do :; done
 uci -q delete network.wan || true
 uci -q delete network.wan6 || true
 uci -q delete network.lan || true
