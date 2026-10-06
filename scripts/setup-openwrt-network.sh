@@ -121,7 +121,7 @@ if [ "${HAS_SWCONFIG}" = "true" ]; then
     uci set network.${DEV_LAN}.stp='1'
     uci set network.${DEV_LAN}.igmp_snooping='1'
     uci add_list network.${DEV_LAN}.ports='eth0.1'
-    uci add_list network.${DEV_LAN}.ports="${MESH_ID}"
+    uci add_list network.${DEV_LAN}.ports="${MESH_ID}.1"
 
     DEV_IOT=$(uci add network device)
     uci set network.${DEV_IOT}.name='br-iot'
@@ -328,6 +328,67 @@ uci set wireless.${MESH_IFACE}.multicast_to_unicast_all='1'
 uci set wireless.${MESH_IFACE}.bss_transition='1'
 
 uci commit wireless
+
+# ==============================================================================
+# Hardware Link-State Failover Daemon (for swconfig devices)
+# ==============================================================================
+# swconfig switch chips (MT7620/MT7628) filter BPDU frames before the CPU,
+# preventing software STP from reliably blocking the wireless mesh when wired.
+# This daemon monitors physical switch ports and toggles the mesh backhaul:
+#   - Wired Ethernet plugged in: disables mesh backhaul (eliminates L2 loop)
+#   - Wired Ethernet unplugged: enables mesh backhaul (instant failover)
+# ==============================================================================
+if [ "${HAS_SWCONFIG}" = "true" ]; then
+    echo ">> Installing hardware link-state failover daemon for swconfig..."
+    cat <<EOF > /usr/sbin/mesh-failover-daemon
+#!/bin/sh
+STATE="init"
+
+while true; do
+    # Check if any physical switch port is link up (excluding CPU port 6)
+    if swconfig dev switch0 show 2>/dev/null | grep -E 'Port [0-5]:' -A 15 | grep -q 'link:.*link:up'; then
+        WIRED="up"
+    else
+        WIRED="down"
+    fi
+
+    if [ "\$WIRED" = "up" ] && [ "\$STATE" != "wired" ]; then
+        ip link set dev ${MESH_ID}.1 down 2>/dev/null || true
+        ip link set dev ${MESH_ID}.10 down 2>/dev/null || true
+        ip link set dev ${MESH_ID}.12 down 2>/dev/null || true
+        logger -t mesh-failover "Wired Ethernet UP: Disabled mesh backhaul to prevent L2 loop"
+        STATE="wired"
+    elif [ "\$WIRED" = "down" ] && [ "\$STATE" != "mesh" ]; then
+        ip link set dev ${MESH_ID}.1 up 2>/dev/null || true
+        ip link set dev ${MESH_ID}.10 up 2>/dev/null || true
+        ip link set dev ${MESH_ID}.12 up 2>/dev/null || true
+        logger -t mesh-failover "Wired Ethernet DOWN: Enabled mesh backhaul failover"
+        STATE="mesh"
+    fi
+
+    sleep 1
+done
+EOF
+    chmod +x /usr/sbin/mesh-failover-daemon
+
+    cat <<'EOF' > /etc/init.d/mesh-failover
+#!/bin/sh /etc/rc.common
+START=99
+STOP=10
+
+USE_PROCD=1
+
+start_service() {
+    procd_open_instance
+    procd_set_param command /usr/sbin/mesh-failover-daemon
+    procd_set_param respawn
+    procd_close_instance
+}
+EOF
+    chmod +x /etc/init.d/mesh-failover
+    /etc/init.d/mesh-failover enable
+    /etc/init.d/mesh-failover restart >/dev/null 2>&1 || true
+fi
 
 echo "Applying network & mesh reload..."
 wifi reload >/dev/null 2>&1 || true
