@@ -75,16 +75,16 @@ if [ "${HAS_SWCONFIG}" = "true" ]; then
 
     case "${BOARD_MODEL}" in
         *"Xiaomi"*"R3"*|*"Mi Router 3"*|*"MT7620"*)
-            # Xiaomi Mi Router 3 (Port 0=WAN, 1=LAN1, 4=LAN2, 6=CPU)
+            # Xiaomi Mi Router 3 (Port 0=WAN, 1=LAN1, 4=LAN2, 6=CPU all on VLAN 1)
             V1=$(uci add network switch_vlan)
             uci set network.${V1}.device='switch0'
             uci set network.${V1}.vlan='1'
-            uci set network.${V1}.ports='0 1 6t'
+            uci set network.${V1}.ports='0 1 4 6t'
 
             V10=$(uci add network switch_vlan)
             uci set network.${V10}.device='switch0'
             uci set network.${V10}.vlan='10'
-            uci set network.${V10}.ports='0t 4 6t'
+            uci set network.${V10}.ports='0t 6t'
 
             V12=$(uci add network switch_vlan)
             uci set network.${V12}.device='switch0'
@@ -92,11 +92,11 @@ if [ "${HAS_SWCONFIG}" = "true" ]; then
             uci set network.${V12}.ports='0t 6t'
             ;;
         *)
-            # Standard generic swconfig layout
+            # Standard generic swconfig layout (all ports on VLAN 1)
             V1=$(uci add network switch_vlan)
             uci set network.${V1}.device='switch0'
             uci set network.${V1}.vlan='1'
-            uci set network.${V1}.ports='0 1 2 3 4 5t 6t' 2>/dev/null || uci set network.${V1}.ports='0 1 6t'
+            uci set network.${V1}.ports='0 1 2 3 4 5t 6t' 2>/dev/null || uci set network.${V1}.ports='0 1 2 3 4 6t'
 
             V10=$(uci add network switch_vlan)
             uci set network.${V10}.device='switch0'
@@ -186,18 +186,18 @@ elif [ -n "${DSA_LAN_PORTS}" ] || [ -n "${DSA_WAN_PORT}" ]; then
             uci add_list network.${VLAN12}.ports='wan:t'
             ;;
         *)
-            # JCG Q20 / Standard DSA AP layout
+            # JCG Q20 / Standard DSA AP layout (all physical ports on VLAN 1)
             VLAN1=$(uci add network bridge-vlan)
             uci set network.${VLAN1}.device='br-lan'
             uci set network.${VLAN1}.vlan='1'
             uci add_list network.${VLAN1}.ports='lan1'
+            [ -d /sys/class/net/lan2 ] && uci add_list network.${VLAN1}.ports='lan2'
             uci add_list network.${VLAN1}.ports="${MESH_ID}:t"
             [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN1}.ports="${DSA_WAN_PORT}"
 
             VLAN10=$(uci add network bridge-vlan)
             uci set network.${VLAN10}.device='br-lan'
             uci set network.${VLAN10}.vlan='10'
-            [ -d /sys/class/net/lan2 ] && uci add_list network.${VLAN10}.ports='lan2'
             uci add_list network.${VLAN10}.ports="${MESH_ID}:t"
             [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN10}.ports="${DSA_WAN_PORT}:t"
 
