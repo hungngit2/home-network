@@ -4,42 +4,84 @@
 # https://github.com/hungngit2/home-network
 # ==============================================================================
 # Features:
-#   1. DSA & swconfig Hardware Switch Auto-Detection:
+#   1. Dumb AP Firewall & Single DHCP Authority (MikroTik 10.0.0.254):
+#      - Wipes routing zones to eliminate management lockout (SSH/LuCI input ACCEPT)
+#      - Disables local dnsmasq / odhcpd
+#   2. Multi-VLAN Network Auto-Detection (DSA & swconfig):
 #      - VLAN 1 (LAN): DHCP client on br-lan / br-lan.1
 #      - VLAN 10 (IoT): br-iot / br-lan.10
 #      - VLAN 12 (Guest): br-guest / br-lan.12
-#   2. User-Inputted 802.11s Mesh Wi-Fi Backhaul:
-#      - Interactive prompt for Mesh Name (Mesh ID) & Mesh Password
-#      - 5GHz SAE encrypted mesh failover bridge (${MESH_ID}:t across VLAN 1, 10, 12)
+#   3. 802.11s Mesh Wi-Fi Backhaul Only:
+#      - Configures 5GHz 802.11s SAE encrypted mesh backhaul (${MESH_ID})
+#      - Leaves client Wi-Fi AP SSIDs untouched
+#   4. Hardware Link-State Failover Daemon (for swconfig chips like MT7620/MT7628):
+#      - Prevents L2 broadcast storm by dynamically detaching mesh backhaul when wired
+#      - Instantly engages wireless mesh failover when Ethernet is unplugged
 # ==============================================================================
 
 set -eu
 
 BOARD_MODEL=$(cat /tmp/sysinfo/model 2>/dev/null || cat /proc/cpuinfo | grep 'machine' | cut -d: -f2 | xargs || echo "Generic OpenWrt AP")
-echo "=== Universal Network & Mesh Setup for: ${BOARD_MODEL} ==="
+echo "=== Universal Network & 802.11s Mesh Setup for: ${BOARD_MODEL} ==="
 
 # --- Prompt for Mesh Wi-Fi Name & Password ---
-MESH_ID="${MESH_ID:-lotus-mesh}"
-MESH_KEY="${MESH_KEY:-Lotus@Mesh}"
+MESH_ID="${MESH_ID:-}"
+MESH_KEY="${MESH_KEY:-}"
 CHANNEL_5G="${CHANNEL_5G:-36}"
+COUNTRY="${COUNTRY:-US}"
+ADD_VLANS="${ADD_VLANS:-}"
 
 if [ "${NON_INTERACTIVE:-false}" != "true" ]; then
-    printf "Enter Mesh Wi-Fi Name (Mesh ID) [%s]: " "${MESH_ID}"
-    read user_mesh_id < /dev/tty 2>/dev/null || user_mesh_id=""
-    if [ -n "${user_mesh_id}" ]; then
-        MESH_ID="${user_mesh_id}"
-    fi
+    while [ -z "${MESH_ID}" ]; do
+        printf "Enter Mesh Wi-Fi Name (Mesh ID): "
+        read MESH_ID < /dev/tty 2>/dev/null || read MESH_ID || true
+    done
 
-    printf "Enter Mesh Wi-Fi Password (SAE Key) [%s]: " "${MESH_KEY}"
-    read user_mesh_key < /dev/tty 2>/dev/null || user_mesh_key=""
-    if [ -n "${user_mesh_key}" ]; then
-        MESH_KEY="${user_mesh_key}"
+    while [ -z "${MESH_KEY}" ]; do
+        printf "Enter Mesh Wi-Fi Password (SAE Key): "
+        read MESH_KEY < /dev/tty 2>/dev/null || read MESH_KEY || true
+    done
+
+    if [ -z "${ADD_VLANS}" ]; then
+        printf "Configure additional VLANs (VLAN 10 IoT & VLAN 12 Guest)? [y/N]: "
+        read user_add_vlans < /dev/tty 2>/dev/null || read user_add_vlans || true
+        case "${user_add_vlans}" in
+            [yY]|[yY][eE][sS]) ADD_VLANS="true" ;;
+            *) ADD_VLANS="false" ;;
+        esac
     fi
+fi
+
+ADD_VLANS="${ADD_VLANS:-false}"
+
+if [ -z "${MESH_ID}" ] || [ -z "${MESH_KEY}" ]; then
+    echo "Error: MESH_ID and MESH_KEY must be provided (inputted or set via environment variable)." >&2
+    exit 1
 fi
 
 echo ">> Using Mesh ID:   [${MESH_ID}]"
 echo ">> Using 5GHz Ch:   [${CHANNEL_5G}]"
+echo ">> Additional VLANs:[${ADD_VLANS}]"
 
+# ==============================================================================
+# Step 1: Configure Dumb AP Firewall (Prevents Management Lockout)
+# ==============================================================================
+if [ -f /etc/config/firewall ]; then
+    echo ">> Configuring Dumb AP Firewall (Input/Output ACCEPT)..."
+    while uci -q delete firewall.@rule[0]; do :; done
+    while uci -q delete firewall.@forwarding[0]; do :; done
+    while uci -q delete firewall.@zone[0]; do :; done
+    uci set firewall.@defaults[0].input='ACCEPT'
+    uci set firewall.@defaults[0].output='ACCEPT'
+    uci set firewall.@defaults[0].forward='REJECT'
+    uci set firewall.@defaults[0].synflood_protect='1'
+    uci set firewall.@defaults[0].flow_offloading='1'
+    uci commit firewall
+fi
+
+# ==============================================================================
+# Step 2: Configure Network, Switch & VLAN Bridges
+# ==============================================================================
 # Clean up existing network interfaces, devices, and switch sections
 while uci -q delete network.@switch_vlan[0]; do :; done
 while uci -q delete network.@switch[0]; do :; done
@@ -50,6 +92,7 @@ uci -q delete network.wan6 || true
 uci -q delete network.lan || true
 uci -q delete network.iot || true
 uci -q delete network.guest || true
+
 # Loopback & Globals
 uci set network.loopback=interface
 uci set network.loopback.device='lo'
@@ -79,21 +122,23 @@ if [ "${HAS_SWCONFIG}" = "true" ]; then
 
     case "${BOARD_MODEL}" in
         *"Xiaomi"*"R3"*|*"Mi Router 3"*|*"MT7620"*)
-            # Xiaomi Mi Router 3 (Port 0=WAN, 1=LAN1, 4=LAN2, 6=CPU all on VLAN 1)
+            # Xiaomi Mi Router 3 (Port 0=WAN, 1=LAN1, 4=LAN2, 6=CPU GMAC)
             V1=$(uci add network switch_vlan)
             uci set network.${V1}.device='switch0'
             uci set network.${V1}.vlan='1'
             uci set network.${V1}.ports='0 1 4 6t'
 
-            V10=$(uci add network switch_vlan)
-            uci set network.${V10}.device='switch0'
-            uci set network.${V10}.vlan='10'
-            uci set network.${V10}.ports='0t 6t'
+            if [ "${ADD_VLANS}" = "true" ]; then
+                V10=$(uci add network switch_vlan)
+                uci set network.${V10}.device='switch0'
+                uci set network.${V10}.vlan='10'
+                uci set network.${V10}.ports='0t 1t 4t 6t'
 
-            V12=$(uci add network switch_vlan)
-            uci set network.${V12}.device='switch0'
-            uci set network.${V12}.vlan='12'
-            uci set network.${V12}.ports='0t 6t'
+                V12=$(uci add network switch_vlan)
+                uci set network.${V12}.device='switch0'
+                uci set network.${V12}.vlan='12'
+                uci set network.${V12}.ports='0t 1t 4t 6t'
+            fi
             ;;
         *)
             # Standard generic swconfig layout (all ports on VLAN 1)
@@ -102,54 +147,59 @@ if [ "${HAS_SWCONFIG}" = "true" ]; then
             uci set network.${V1}.vlan='1'
             uci set network.${V1}.ports='0 1 2 3 4 5t 6t' 2>/dev/null || uci set network.${V1}.ports='0 1 2 3 4 6t'
 
-            V10=$(uci add network switch_vlan)
-            uci set network.${V10}.device='switch0'
-            uci set network.${V10}.vlan='10'
-            uci set network.${V10}.ports='0t 5t 6t' 2>/dev/null || uci set network.${V10}.ports='0t 6t'
+            if [ "${ADD_VLANS}" = "true" ]; then
+                V10=$(uci add network switch_vlan)
+                uci set network.${V10}.device='switch0'
+                uci set network.${V10}.vlan='10'
+                uci set network.${V10}.ports='0t 1t 2t 3t 4t 5t 6t' 2>/dev/null || uci set network.${V10}.ports='0t 1t 2t 3t 4t 6t'
 
-            V12=$(uci add network switch_vlan)
-            uci set network.${V12}.device='switch0'
-            uci set network.${V12}.vlan='12'
-            uci set network.${V12}.ports='0t 5t 6t' 2>/dev/null || uci set network.${V12}.ports='0t 6t'
+                V12=$(uci add network switch_vlan)
+                uci set network.${V12}.device='switch0'
+                uci set network.${V12}.vlan='12'
+                uci set network.${V12}.ports='0t 1t 2t 3t 4t 5t 6t' 2>/dev/null || uci set network.${V12}.ports='0t 1t 2t 3t 4t 6t'
+            fi
             ;;
     esac
 
-    # Bridges for swconfig (eth0.1, eth0.10, eth0.12 + Mesh VLANs)
+    # Bridges for swconfig (eth0.1, and conditionally eth0.10, eth0.12)
+    # STP is set to 0 on swconfig bridges because mesh-failover-daemon manages
+    # uplink mutual-exclusion, avoiding 16s STP learning delay during failover.
     DEV_LAN=$(uci add network device)
     uci set network.${DEV_LAN}.name='br-lan'
     uci set network.${DEV_LAN}.type='bridge'
-    uci set network.${DEV_LAN}.stp='1'
+    uci set network.${DEV_LAN}.stp='0'
     uci set network.${DEV_LAN}.igmp_snooping='1'
     uci add_list network.${DEV_LAN}.ports='eth0.1'
-    uci add_list network.${DEV_LAN}.ports="${MESH_ID}.1"
-
-    DEV_IOT=$(uci add network device)
-    uci set network.${DEV_IOT}.name='br-iot'
-    uci set network.${DEV_IOT}.type='bridge'
-    uci set network.${DEV_IOT}.stp='1'
-    uci set network.${DEV_IOT}.igmp_snooping='1'
-    uci add_list network.${DEV_IOT}.ports='eth0.10'
-    uci add_list network.${DEV_IOT}.ports="${MESH_ID}.10"
-
-    DEV_GUEST=$(uci add network device)
-    uci set network.${DEV_GUEST}.name='br-guest'
-    uci set network.${DEV_GUEST}.type='bridge'
-    uci set network.${DEV_GUEST}.stp='1'
-    uci set network.${DEV_GUEST}.igmp_snooping='1'
-    uci add_list network.${DEV_GUEST}.ports='eth0.12'
-    uci add_list network.${DEV_GUEST}.ports="${MESH_ID}.12"
 
     uci set network.lan=interface
     uci set network.lan.device='br-lan'
     uci set network.lan.proto='dhcp'
+    uci set network.lan.peerdns='0'
+    uci add_list network.lan.dns='127.0.0.1'
 
-    uci set network.iot=interface
-    uci set network.iot.device='br-iot'
-    uci set network.iot.proto='none'
+    if [ "${ADD_VLANS}" = "true" ]; then
+        DEV_IOT=$(uci add network device)
+        uci set network.${DEV_IOT}.name='br-iot'
+        uci set network.${DEV_IOT}.type='bridge'
+        uci set network.${DEV_IOT}.stp='0'
+        uci set network.${DEV_IOT}.igmp_snooping='1'
+        uci add_list network.${DEV_IOT}.ports='eth0.10'
 
-    uci set network.guest=interface
-    uci set network.guest.device='br-guest'
-    uci set network.guest.proto='none'
+        DEV_GUEST=$(uci add network device)
+        uci set network.${DEV_GUEST}.name='br-guest'
+        uci set network.${DEV_GUEST}.type='bridge'
+        uci set network.${DEV_GUEST}.stp='0'
+        uci set network.${DEV_GUEST}.igmp_snooping='1'
+        uci add_list network.${DEV_GUEST}.ports='eth0.12'
+
+        uci set network.iot=interface
+        uci set network.iot.device='br-iot'
+        uci set network.iot.proto='none'
+
+        uci set network.guest=interface
+        uci set network.guest.device='br-guest'
+        uci set network.guest.proto='none'
+    fi
 
 elif [ -n "${DSA_LAN_PORTS}" ] || [ -n "${DSA_WAN_PORT}" ]; then
     echo ">> Detected Architecture: [DSA (Distributed Switch Architecture)]"
@@ -175,55 +225,64 @@ elif [ -n "${DSA_LAN_PORTS}" ] || [ -n "${DSA_WAN_PORT}" ]; then
             uci add_list network.${VLAN1}.ports="${MESH_ID}:t"
             uci add_list network.${VLAN1}.ports='wan'
 
-            VLAN10=$(uci add network bridge-vlan)
-            uci set network.${VLAN10}.device='br-lan'
-            uci set network.${VLAN10}.vlan='10'
-            uci add_list network.${VLAN10}.ports='lan1'
-            uci add_list network.${VLAN10}.ports='lan3'
-            uci add_list network.${VLAN10}.ports="${MESH_ID}:t"
-            uci add_list network.${VLAN10}.ports='wan:t'
+            if [ "${ADD_VLANS}" = "true" ]; then
+                VLAN10=$(uci add network bridge-vlan)
+                uci set network.${VLAN10}.device='br-lan'
+                uci set network.${VLAN10}.vlan='10'
+                uci add_list network.${VLAN10}.ports='lan1'
+                uci add_list network.${VLAN10}.ports='lan3'
+                uci add_list network.${VLAN10}.ports="${MESH_ID}:t"
+                uci add_list network.${VLAN10}.ports='wan:t'
 
-            VLAN12=$(uci add network bridge-vlan)
-            uci set network.${VLAN12}.device='br-lan'
-            uci set network.${VLAN12}.vlan='12'
-            uci add_list network.${VLAN12}.ports="${MESH_ID}:t"
-            uci add_list network.${VLAN12}.ports='wan:t'
+                VLAN12=$(uci add network bridge-vlan)
+                uci set network.${VLAN12}.device='br-lan'
+                uci set network.${VLAN12}.vlan='12'
+                uci add_list network.${VLAN12}.ports="${MESH_ID}:t"
+                uci add_list network.${VLAN12}.ports='wan:t'
+            fi
             ;;
         *)
-            # JCG Q20 / Standard DSA AP layout (all physical ports on VLAN 1)
+            # Standard DSA AP layout (all physical ports on VLAN 1)
             VLAN1=$(uci add network bridge-vlan)
             uci set network.${VLAN1}.device='br-lan'
             uci set network.${VLAN1}.vlan='1'
-            uci add_list network.${VLAN1}.ports='lan1'
-            [ -d /sys/class/net/lan2 ] && uci add_list network.${VLAN1}.ports='lan2'
+            for p in ${DSA_LAN_PORTS}; do
+                uci add_list network.${VLAN1}.ports="${p}"
+            done
             uci add_list network.${VLAN1}.ports="${MESH_ID}:t"
             [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN1}.ports="${DSA_WAN_PORT}"
 
-            VLAN10=$(uci add network bridge-vlan)
-            uci set network.${VLAN10}.device='br-lan'
-            uci set network.${VLAN10}.vlan='10'
-            uci add_list network.${VLAN10}.ports="${MESH_ID}:t"
-            [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN10}.ports="${DSA_WAN_PORT}:t"
+            if [ "${ADD_VLANS}" = "true" ]; then
+                VLAN10=$(uci add network bridge-vlan)
+                uci set network.${VLAN10}.device='br-lan'
+                uci set network.${VLAN10}.vlan='10'
+                uci add_list network.${VLAN10}.ports="${MESH_ID}:t"
+                [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN10}.ports="${DSA_WAN_PORT}:t"
 
-            VLAN12=$(uci add network bridge-vlan)
-            uci set network.${VLAN12}.device='br-lan'
-            uci set network.${VLAN12}.vlan='12'
-            uci add_list network.${VLAN12}.ports="${MESH_ID}:t"
-            [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN12}.ports="${DSA_WAN_PORT}:t"
+                VLAN12=$(uci add network bridge-vlan)
+                uci set network.${VLAN12}.device='br-lan'
+                uci set network.${VLAN12}.vlan='12'
+                uci add_list network.${VLAN12}.ports="${MESH_ID}:t"
+                [ -n "${DSA_WAN_PORT}" ] && uci add_list network.${VLAN12}.ports="${DSA_WAN_PORT}:t"
+            fi
             ;;
     esac
 
     uci set network.lan=interface
     uci set network.lan.device='br-lan.1'
     uci set network.lan.proto='dhcp'
+    uci set network.lan.peerdns='0'
+    uci add_list network.lan.dns='127.0.0.1'
 
-    uci set network.iot=interface
-    uci set network.iot.proto='none'
-    uci set network.iot.device='br-lan.10'
+    if [ "${ADD_VLANS}" = "true" ]; then
+        uci set network.iot=interface
+        uci set network.iot.proto='none'
+        uci set network.iot.device='br-lan.10'
 
-    uci set network.guest=interface
-    uci set network.guest.proto='none'
-    uci set network.guest.device='br-lan.12'
+        uci set network.guest=interface
+        uci set network.guest.proto='none'
+        uci set network.guest.device='br-lan.12'
+    fi
 
 else
     echo ">> Detected Architecture: [Generic Linux Bridge / Single NIC]"
@@ -235,29 +294,33 @@ else
     uci set network.${DEV_LAN}.stp='1'
     uci add_list network.${DEV_LAN}.ports="${PRIMARY_ETH}.1" 2>/dev/null || uci add_list network.${DEV_LAN}.ports="${PRIMARY_ETH}"
 
-    DEV_IOT=$(uci add network device)
-    uci set network.${DEV_IOT}.name='br-iot'
-    uci set network.${DEV_IOT}.type='bridge'
-    uci set network.${DEV_IOT}.stp='1'
-    uci add_list network.${DEV_IOT}.ports="${PRIMARY_ETH}.10" 2>/dev/null || true
-
-    DEV_GUEST=$(uci add network device)
-    uci set network.${DEV_GUEST}.name='br-guest'
-    uci set network.${DEV_GUEST}.type='bridge'
-    uci set network.${DEV_GUEST}.stp='1'
-    uci add_list network.${DEV_GUEST}.ports="${PRIMARY_ETH}.12" 2>/dev/null || true
-
     uci set network.lan=interface
     uci set network.lan.device='br-lan'
     uci set network.lan.proto='dhcp'
+    uci set network.lan.peerdns='0'
+    uci add_list network.lan.dns='127.0.0.1'
 
-    uci set network.iot=interface
-    uci set network.iot.device='br-iot'
-    uci set network.iot.proto='none'
+    if [ "${ADD_VLANS}" = "true" ]; then
+        DEV_IOT=$(uci add network device)
+        uci set network.${DEV_IOT}.name='br-iot'
+        uci set network.${DEV_IOT}.type='bridge'
+        uci set network.${DEV_IOT}.stp='1'
+        uci add_list network.${DEV_IOT}.ports="${PRIMARY_ETH}.10" 2>/dev/null || true
 
-    uci set network.guest=interface
-    uci set network.guest.device='br-guest'
-    uci set network.guest.proto='none'
+        DEV_GUEST=$(uci add network device)
+        uci set network.${DEV_GUEST}.name='br-guest'
+        uci set network.${DEV_GUEST}.type='bridge'
+        uci set network.${DEV_GUEST}.stp='1'
+        uci add_list network.${DEV_GUEST}.ports="${PRIMARY_ETH}.12" 2>/dev/null || true
+
+        uci set network.iot=interface
+        uci set network.iot.device='br-iot'
+        uci set network.iot.proto='none'
+
+        uci set network.guest=interface
+        uci set network.guest.device='br-guest'
+        uci set network.guest.proto='none'
+    fi
 fi
 
 uci commit network
@@ -269,12 +332,14 @@ if [ -f /etc/config/dhcp ]; then
     uci -q set dhcp.lan.dhcpv6='disabled' || true
     uci -q set dhcp.odhcpd.maindhcp='0' || true
     uci commit dhcp 2>/dev/null || true
+    /etc/init.d/dnsmasq disable 2>/dev/null || true
+    /etc/init.d/odhcpd disable 2>/dev/null || true
 fi
 
 # ==============================================================================
-# Configure 802.11s Wireless Mesh Interface
+# Step 3: Configure 802.11s Wireless Mesh Backhaul Only
 # ==============================================================================
-echo "=== Configuring 802.11s Wireless Mesh (${MESH_ID}) ==="
+echo "=== Configuring 802.11s Wireless Mesh Backhaul (${MESH_ID}) ==="
 
 # Dynamically identify 5GHz radio device
 RADIO_5G=""
@@ -288,7 +353,7 @@ for r in $(uci show wireless 2>/dev/null | grep '=wifi-device' | cut -d. -f2 | c
     fi
 done
 
-# Fallback: if radio1 is 5G, or radio0 is 5G
+# Fallback
 if [ -z "${RADIO_5G}" ]; then
     if uci -q get wireless.radio0.band | grep -q '5g'; then
         RADIO_5G="radio0"
@@ -297,8 +362,8 @@ if [ -z "${RADIO_5G}" ]; then
     fi
 fi
 
-# Ensure 5GHz radio is enabled on channel 36 with VHT80 default (or HE80 if Wi-Fi 6)
-uci set wireless.${RADIO_5G}.country='US'
+# Ensure 5GHz radio is enabled on channel 36
+uci set wireless.${RADIO_5G}.country="${COUNTRY}"
 uci set wireless.${RADIO_5G}.channel="${CHANNEL_5G}"
 uci set wireless.${RADIO_5G}.cell_density='0'
 uci set wireless.${RADIO_5G}.disabled='0'
@@ -308,12 +373,12 @@ else
     uci set wireless.${RADIO_5G}.htmode='VHT80'
 fi
 
-# Remove existing mesh ifaces
+# Remove existing mesh ifaces only (leaves all client Wi-Fi APs untouched)
 for iface in $(uci show wireless 2>/dev/null | grep "\.mode='mesh'" | cut -d. -f2 | cut -d= -f1); do
     uci -q delete wireless.${iface} || true
 done
 
-# Add 802.11s Mesh Interface
+# Provision 802.11s Mesh Interface on 5GHz
 MESH_IFACE=$(uci add wireless wifi-iface)
 uci set wireless.${MESH_IFACE}.device="${RADIO_5G}"
 uci set wireless.${MESH_IFACE}.mode='mesh'
@@ -330,40 +395,105 @@ uci set wireless.${MESH_IFACE}.bss_transition='1'
 uci commit wireless
 
 # ==============================================================================
-# Hardware Link-State Failover Daemon (for swconfig devices)
+# Step 4: Hardware Link-State Failover Daemon (for swconfig devices)
 # ==============================================================================
 # swconfig switch chips (MT7620/MT7628) filter BPDU frames before the CPU,
 # preventing software STP from reliably blocking the wireless mesh when wired.
 # This daemon monitors physical switch ports and toggles the mesh backhaul:
-#   - Wired Ethernet plugged in: disables mesh backhaul (eliminates L2 loop)
-#   - Wired Ethernet unplugged: enables mesh backhaul (instant failover)
+#   - Wired Ethernet plugged in: detaches mesh backhaul (eliminates L2 loop)
+#   - Wired Ethernet unplugged: attaches mesh backhaul (instant failover)
 # ==============================================================================
 if [ "${HAS_SWCONFIG}" = "true" ]; then
     echo ">> Installing hardware link-state failover daemon for swconfig..."
+    # Kill any stale or duplicate instances before starting fresh
+    killall -9 mesh-failover-daemon 2>/dev/null || true
+
+    # Determine physical uplink WAN port for swconfig
+    case "${BOARD_MODEL}" in
+        *"Xiaomi"*"R3"*|*"Mi Router 3"*|*"MT7620"*)
+            SW_WAN_PORT="0"
+            ;;
+        *)
+            SW_WAN_PORT="0"
+            ;;
+    esac
+
     cat <<EOF > /usr/sbin/mesh-failover-daemon
 #!/bin/sh
 STATE="init"
+SW_WAN_PORT="${SW_WAN_PORT}"
 
 while true; do
-    # Check if any physical switch port is link up (excluding CPU port 6)
-    if swconfig dev switch0 show 2>/dev/null | grep -E 'Port [0-5]:' -A 15 | grep -q 'link:.*link:up'; then
+    # Check physical uplink port (Port 0 on Xiaomi R3)
+    WIRED="down"
+    if swconfig dev switch0 port \${SW_WAN_PORT} get link 2>/dev/null | grep -q 'link:up'; then
         WIRED="up"
-    else
-        WIRED="down"
     fi
 
     if [ "\$WIRED" = "up" ] && [ "\$STATE" != "wired" ]; then
+        # Restore wired switch interfaces to bridges
+        ip link set dev eth0.1 up 2>/dev/null || true
+        brctl addif br-lan eth0.1 2>/dev/null || true
+        brctl delif br-lan ${MESH_ID}.1 2>/dev/null || true
         ip link set dev ${MESH_ID}.1 down 2>/dev/null || true
-        ip link set dev ${MESH_ID}.10 down 2>/dev/null || true
-        ip link set dev ${MESH_ID}.12 down 2>/dev/null || true
-        logger -t mesh-failover "Wired Ethernet UP: Disabled mesh backhaul to prevent L2 loop"
+
+        if [ -d /sys/class/net/br-iot ]; then
+            ip link set dev eth0.10 up 2>/dev/null || true
+            brctl addif br-iot eth0.10 2>/dev/null || true
+            brctl delif br-iot ${MESH_ID}.10 2>/dev/null || true
+            ip link set dev ${MESH_ID}.10 down 2>/dev/null || true
+        fi
+
+        if [ -d /sys/class/net/br-guest ]; then
+            ip link set dev eth0.12 up 2>/dev/null || true
+            brctl addif br-guest eth0.12 2>/dev/null || true
+            brctl delif br-guest ${MESH_ID}.12 2>/dev/null || true
+            ip link set dev ${MESH_ID}.12 down 2>/dev/null || true
+        fi
+
+        ip neigh flush dev br-lan 2>/dev/null || true
+        killall -SIGUSR1 udhcpc 2>/dev/null || true
+        logger -t mesh-failover "Wired Ethernet UP: Activated wired switch, detached mesh backhaul"
         STATE="wired"
     elif [ "\$WIRED" = "down" ] && [ "\$STATE" != "mesh" ]; then
-        ip link set dev ${MESH_ID}.1 up 2>/dev/null || true
-        ip link set dev ${MESH_ID}.10 up 2>/dev/null || true
-        ip link set dev ${MESH_ID}.12 up 2>/dev/null || true
-        logger -t mesh-failover "Wired Ethernet DOWN: Enabled mesh backhaul failover"
-        STATE="mesh"
+        if ip link show ${MESH_ID} >/dev/null 2>&1; then
+            # Ensure VLAN 1 sub-interface exists
+            [ ! -d /sys/class/net/${MESH_ID}.1 ] && ip link add link ${MESH_ID} name ${MESH_ID}.1 type vlan id 1 2>/dev/null || true
+
+            # Detach dead wired ports so bridge doesn't blackhole traffic to stale FDB ports
+            brctl delif br-lan eth0.1 2>/dev/null || true
+            ip link set dev eth0.1 down 2>/dev/null || true
+
+            # Enable and attach mesh VLAN 1 interface
+            ip link set dev ${MESH_ID}.1 up 2>/dev/null || true
+            brctl addif br-lan ${MESH_ID}.1 2>/dev/null || true
+
+            if [ -d /sys/class/net/br-iot ]; then
+                [ ! -d /sys/class/net/${MESH_ID}.10 ] && ip link add link ${MESH_ID} name ${MESH_ID}.10 type vlan id 10 2>/dev/null || true
+                brctl delif br-iot eth0.10 2>/dev/null || true
+                ip link set dev eth0.10 down 2>/dev/null || true
+                ip link set dev ${MESH_ID}.10 up 2>/dev/null || true
+                brctl addif br-iot ${MESH_ID}.10 2>/dev/null || true
+            fi
+
+            if [ -d /sys/class/net/br-guest ]; then
+                [ ! -d /sys/class/net/${MESH_ID}.12 ] && ip link add link ${MESH_ID} name ${MESH_ID}.12 type vlan id 12 2>/dev/null || true
+                brctl delif br-guest eth0.12 2>/dev/null || true
+                ip link set dev eth0.12 down 2>/dev/null || true
+                ip link set dev ${MESH_ID}.12 up 2>/dev/null || true
+                brctl addif br-guest ${MESH_ID}.12 2>/dev/null || true
+            fi
+
+            ip neigh flush dev br-lan 2>/dev/null || true
+            killall -SIGUSR1 udhcpc 2>/dev/null || true
+            logger -t mesh-failover "Wired Ethernet DOWN: Activated wireless mesh backhaul failover"
+            STATE="mesh"
+        fi
+    fi
+
+    # If AP does not yet have an IP address (e.g. booted with no cable plugged), wake udhcpc
+    if [ "\$STATE" != "init" ] && ! ip -o -4 addr show dev br-lan 2>/dev/null | grep -q 'inet '; then
+        killall -SIGUSR1 udhcpc 2>/dev/null || true
     fi
 
     sleep 1
@@ -391,6 +521,8 @@ EOF
 fi
 
 echo "Applying network & mesh reload..."
+/etc/init.d/mesh-failover restart 2>/dev/null || true
+/etc/init.d/firewall restart 2>/dev/null || true
 wifi reload >/dev/null 2>&1 || true
 (/etc/init.d/network restart >/dev/null 2>&1) &
-echo "Done! Mesh '${MESH_ID}' and Network configured."
+echo "Done! Network & 802.11s Mesh configured successfully."
