@@ -642,6 +642,8 @@ sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/
 sed -i "s|/mnt/nasdata/share/www/certbot/|${NASDATA_DIR}/share/www/certbot/|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|http://localhost:5140/tv/|http://localhost:${RTP2HTTPD_PORT}/tv/|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|REDACTED-domain|${DDNS_DOMAIN}|g" "${APPSRV_DIR}/nginx/default"
+fetch_repo_file "configs/chainedbox/nginx/logrotate-appsrv" "/etc/logrotate.d/nginx-appsrv"
+sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" /etc/logrotate.d/nginx-appsrv
 
 rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 ln -sf "${APPSRV_DIR}/nginx/default" /etc/nginx/sites-available/default
@@ -841,13 +843,12 @@ log_head "Step 7/8: Configuring Samba Shares & Aria2 Daemon"
 
 # Samba
 log_info "Configuring Samba file shares for ${NASDATA_DIR}..."
-fetch_repo_file "configs/chainedbox/samba/smb.conf" "${APPSRV_DIR}/samba/smb.conf"
-sed -i "s|netbios name = chainedbox|netbios name = ${SMB_NETBIOS_NAME}|g" "${APPSRV_DIR}/samba/smb.conf"
-sed -i "s|workgroup = WORKGROUP|workgroup = ${SMB_WORKGROUP}|g" "${APPSRV_DIR}/samba/smb.conf"
-sed -i "s|/mnt/nasdata|${NASDATA_DIR}|g" "${APPSRV_DIR}/samba/smb.conf"
-
-rm -f /etc/samba/smb.conf
-ln -sf "${APPSRV_DIR}/samba/smb.conf" /etc/samba/smb.conf
+# Package upgrades replace a symlinked /etc/samba/smb.conf with a plain file, so /etc holds the real one
+fetch_repo_file "configs/chainedbox/samba/smb.conf" "/etc/samba/smb.conf"
+sed -i "s|netbios name = chainedbox|netbios name = ${SMB_NETBIOS_NAME}\n   interfaces = lo ${IFACE_NAME}|g" /etc/samba/smb.conf
+sed -i "s|workgroup = WORKGROUP|workgroup = ${SMB_WORKGROUP}|g" /etc/samba/smb.conf
+sed -i "s|/mnt/nasdata|${NASDATA_DIR}|g" /etc/samba/smb.conf
+ln -sfn /etc/samba/smb.conf "${APPSRV_DIR}/samba/smb.conf"
 systemctl restart smbd nmbd
 systemctl enable smbd nmbd
 

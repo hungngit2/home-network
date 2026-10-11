@@ -103,7 +103,7 @@ How the pieces fit together:
   - The same change stopped NetworkManager's `do-change-link ... Router advertisement is disabled on device` warning, which fired twice a minute. The kernel had been rejecting the `ipv6.token` passthrough because NetworkManager runs SLAAC in userspace.
 - **The Wi-Fi link is LAN DNS #2.** The router's LAN DHCP hands out DNS `10.0.0.100, 10.0.0.101, 10.0.0.254`. `.101` is this same box over Wi-Fi, so it only covers a wired-link or switch-port failure, not the server being down.
   - The profile is pinned to 5 GHz with power save off. Before that, the radio ping-ponged between the 2.4 and 5 GHz radios of the nearest AP (AP-1, at about −15 dBm) every few minutes, and the router logged 56 lease renewals in 16 h. It still roams between APs on 5 GHz.
-- **The box's own resolver** is NetworkManager-managed `/etc/resolv.conf`, which lists `10.0.1.100` (its own AdGuard Home via VLAN 10) first.
+- **The box's own resolver**: `/etc/resolv.conf` is static (`127.0.0.1`, `::1`, then the router `10.0.0.254`), and `/etc/NetworkManager/conf.d/90-dns-none.conf` (`dns=none`) stops NetworkManager rewriting it. Until 2026-10-11 NetworkManager wrote it from DHCP, with the box's IoT address first, so local lookups depended on VLAN 10 being up.
 
 ### `/etc/network/interfaces`
 
@@ -147,7 +147,7 @@ Rules 97 and 100 come from the ifupdown hooks above. Rules 98 and 101 come from 
 - **ARP flux**: two NICs share `10.0.0.0/24`, so `arp_ignore=1` / `arp_announce=2` stop each NIC from answering for the other's address.
 - **`/etc/sysctl.d/99-server.conf`** (repo: `configs/chainedbox/system/sysctl-swapfile.conf`) sets:
   - `fq` + BBR;
-  - `ip_forward` and IPv6 forwarding on, for Docker;
+  - IPv4 `ip_forward` on (Docker needs it); IPv6 forwarding **off** since 2026-10-11, because Docker has no IPv6 and the box must not route between its segments;
   - `igmp_max_memberships=100`;
   - `swappiness=10`;
   - `max_map_count=262144`;
@@ -156,13 +156,14 @@ Rules 97 and 100 come from the ifupdown hooks above. Rules 98 and 101 come from 
 
 The unused NetworkManager profiles `cellular` (GSM, no modem present) and `Wired connection 1` were deleted on 2026-10-11.
 
-### Host firewall and SSH
+### Host firewall, forwarding and SSH
 
-The box has an interface directly on the IoT VLAN, so the router's IoT→LAN block never sees camera→Wyse traffic. Two layers, added on 2026-10-11, cover that path:
+The box has an interface directly on the IoT VLAN, so the router's IoT→LAN block never sees camera→Wyse traffic. Until 2026-10-11 the box also forwarded IPv4 and IPv6 between `enp1s0`, `enp1s0.10` and `wlp0s12f0` with an ACCEPT policy. An IoT device that used `10.0.1.100` as its gateway could therefore reach the whole LAN. These layers now cover that path:
 
 - **`nft-hostguard.service`** loads `/etc/nftables-hostguard.nft`, a standalone `inet hostguard` table. Traffic from `10.0.1.0/24` or `fd39:10:0:1::/64` gets a TCP reset on 22 (SSH), 139/445 (Samba), 3000 (AdGuard UI), 6800 (Aria2 RPC) and 8088 (code-server), and NetBIOS 137/138 is dropped.
   - Everything else stays open to IoT: DNS, mDNS, HTTP/S, Jellyfin, HA, go2rtc, OwnTone and SSDP replies.
   - The table lives outside `nftables.service` on purpose: that unit's `ExecStop` flushes the whole ruleset, Docker's tables included.
+  - Its `forward` chain drops anything routed between `enp1s0`, `enp1s0.10` and `wlp0s12f0`, in any direction. Docker bridges are not in that list, so container traffic is unaffected.
   - Check hits with `nft list table inet hostguard`.
 - **SSH**: `/etc/ssh/sshd_config.d/10-password-lan-vpn-only.conf` turns off password auth except from `10.0.0.0/24`, `10.0.100.0/24`, `fd39:10::/64` and `fd39:10:100::/64`. Password logins from LAN and VPN clients keep working, and keys work from anywhere. `PermitRootLogin` is still `yes`.
 
@@ -171,7 +172,7 @@ The box has an interface directly on the IoT VLAN, so the router's IoT→LAN blo
 | Service | Port(s) | Config / data | Notes |
 |---|---|---|---|
 | AdGuard Home v0.107.79 | 53 tcp/udp, UI 3000 | `/appsrv/adguard-home/` (`/opt/AdGuardHome/AdGuardHome.yaml` symlinks here) | Upstreams in parallel mode: local Unbound `127.0.0.1:5335` + the 4 APs' Unbound (`10.0.0.200`–`203`); the ISP IPTV domain goes to the ISP resolver. Bootstrap Quad9, fallback Cloudflare/Google. DNSSEC on. Query log and stats kept 30 days. |
-| Unbound 1.26 | `127.0.0.1:5335`, `[::1]:5335` | `/etc/unbound/unbound.conf.d/` | Recursive resolver behind AdGuard |
+| Unbound 1.26 | `127.0.0.1:5335`, `[::1]:5335` | `/etc/unbound/unbound.conf.d/custom-port.conf` | Recursive resolver behind AdGuard: 2 threads, 50 MB message + 100 MB RRset cache, prefetch, serve-expired. The Chainedbox-era duplicate `custom.conf` and its 1-hour minimum TTL were removed on 2026-10-11; the minimum TTL kept CDN and DDNS answers stale. |
 | avahi-daemon 0.8 | 5353/udp | `/etc/avahi/avahi-daemon.conf` | mDNS reflector `enp1s0` ⇄ `enp1s0.10` (LAN ⇄ IoT); Guest excluded on purpose |
 | nginx 1.26 + PHP-FPM 8.4 | 80, 443 | vhost `/appsrv/nginx/default`, root `/appsrv/www` | `/ytb` dashboard, `/iptv` playlist, `/tv/` → rtp2httpd, `/jellyfin/`, `/owntone-ws/`, `/wifi-config-tool`, `/mikrotik-lte`, `/jk`, `/kodbox`. Let's Encrypt cert via `certbot.timer`. `configs`, `src` and `*.json` under the two PHP tools return 404. |
 | MariaDB 11.8 | `127.0.0.1:3306` | `/var/lib/mysql` | Single `kodbox` database for the KodBox file manager |
@@ -179,8 +180,8 @@ The box has an interface directly on the IoT VLAN, so the router's IoT→LAN blo
 | Jellyfin 12.2 | 8096, 7359/udp | `/appsrv/jellyfin` (paths set in `/etc/default/jellyfin`) | Intel QSV, see below. `/etc/jellyfin/*.xml` are stale install defaults and are not read. |
 | OwnTone 29.2 | 3689 (DAAP), 6600 (MPD), 3688 (stream) | `/appsrv/ytb-owntone` | `MemoryMax=256M` |
 | rtp2httpd | 5140 | `/etc/rtp2httpd.conf` | IPTV multicast → HTTP; `maxclients=5`, `workers=1`, served under `/tv`, external M3U `http://10.0.0.100/iptv/` refreshed every 2 h |
-| Aria2 1.37 | 6800 (RPC) | `/appsrv/aria2/aria2.conf` | `aria2-post-download.sh` moves finished movie files and torrent folders (with subtitles) to `/nasdata/media/movies` and sets `nobody:nogroup` / `777` |
-| Samba 4.22 | 139, 445 | `/appsrv/samba/smb.conf` (symlinked to `/etc/samba/smb.conf`) | Shares `apps`, `docs`, `downloads`, `media` from `/nasdata` |
+| Aria2 1.37 | 6800 (RPC) | `/appsrv/aria2/aria2.conf` | `aria2-post-download.sh` moves finished movie files and torrent folders (with subtitles) to `/nasdata/media/movies` and sets `nobody:nogroup` / `777`. The dead rarbg tracker was dropped from `bt-tracker`. |
+| Samba 4.22 | 139, 445 | `/etc/samba/smb.conf` (the real file; `/appsrv/samba/smb.conf` links to it) | Shares `apps`, `docs`, `downloads`, `media` from `/mnt/nasdata`. NetBIOS name `WYSE-5070` with alias `chainedbox`, so old `\\chainedbox\…` paths still work. NetBIOS is answered on `lo` + `enp1s0` only (`interfaces`). |
 | Home Assistant 2026.9.4 | 8123, go2rtc 18555 | `/opt/docker/homeassistant/config` | Docker container `homeassistant`: `--net=host`, `--privileged`, `--restart unless-stopped`, image `homeassistant/home-assistant:latest`. Integrations include the Lumentree inverter and meter/grid protectors. |
 | code-server 4.140 | 8088 | `/home/admin/.config/code-server/config.yaml` | Runs as `admin` |
 | Also running | — | — | `chrony`, `smartd`, `vnstat`, `cron`, `docker`/`containerd`, `nft-hostguard` (oneshot) |
@@ -212,6 +213,35 @@ The live config is `/appsrv/jellyfin/config/encoding.xml`. It uses `jellyfin-ffm
 
 The two China-based registry mirrors (dead) and the unused `omni-network` bridge were removed on 2026-10-11. `scripts/docker-upgrade.sh` (installed as `/usr/local/bin/docker-upgrade`) does one-shot Watchtower upgrades.
 
+### Notes on inherited service config (reviewed 2026-10-11)
+
+These settings were cloned from the Chainedbox (1 GB ARM).
+- **Samba config**: `/etc/samba/smb.conf` had been a standalone file since 2026-09-19 (a package upgrade replaced the symlink). The `/appsrv` copy was stale, with old share paths.
+  - The live file still announced itself as `chainedbox`, and nmbd registered that name on the Docker bridges, so lookups returned `172.31.0.1`.
+  - The stale copy is kept at `/root/smb.conf.appsrv-stale-20261011`.
+- **nginx logs**: the logs on `/appsrv` were never rotated. `/etc/logrotate.d/nginx-appsrv` now rotates them weekly, keeping 8.
+- **Checked and left alone**:
+  - PHP-FPM `pm.max_children=5`: never hit.
+  - OwnTone `MemoryMax=256M`: peak 138 MB, no OOM kills.
+  - nginx's default 1 MB body limit: its only rejections were internet scanners POSTing 10 MB to the WAN IP.
+  - MariaDB defaults: one small `kodbox` database.
+  - rtp2httpd: `workers=1`, `maxclients=5`.
+
+### Packages removed (2026-10-11)
+
+- **Installer leftovers and tasks**: `os-prober`, `tasksel`, `tasksel-data`, `task-english`, `task-ssh-server` (`openssh-server` was marked manual first), `laptop-detect`, `installation-report`, `reportbug` and its Python libraries.
+- **Unused modem tools**: `libqmi-utils`, `libmbim-utils` and their libraries; the modem lives in the router now.
+- **Mesa OpenCL**: `mesa-opencl-icd` with libclc, libclang and 32-bit libraries. Jellyfin uses QSV with VPP tone mapping, not OpenCL.
+- **Old kernel and leftovers**: kernel `6.12.94`, the leftover `systemd-timesyncd` config, `/var/log/installer`.
+
+About 3 GB was freed. Kernels `6.12.107` and `6.12.111` remain.
+
+Kept on purpose:
+- `firmware-sof-signed`: the audio uses SOF.
+- `python3-pip`: it provides `yt-dlp` for the YTB dashboard.
+- Compilers, `git` and code-server: development on the box.
+- `popularity-contest`: opted in at install.
+
 ## Tuning script and what's left
 
 [`scripts/tune-wyse5070.sh`](scripts/tune-wyse5070.sh) applies everything marked 2026-10-11 above. It is idempotent, backs up each edited file as `*.bak-YYYYMMDD`, and leaves `enp1s0` (the SSH path) alone. Re-run it after a rebuild:
@@ -231,6 +261,7 @@ Kept as-is on purpose:
 Although the box runs standard Debian 13, it shows an Armbian-style dynamic MOTD on SSH login. Custom scripts in `/etc/update-motd.d/` (for example `10-armbian-header`, `30-armbian-sysinfo`, `41-commands`) print dynamic stats such as load, memory usage, IP addresses and uptime.
 
 - **IPv6 support**: the MOTD parses and displays both IPv4 and IPv6 addresses.
+- **WAN addresses**: the public IPv4 and IPv6 are looked up live and shown in full. The IPv4 used to be masked as `x.x.***.***`.
 - **Commands section**: shows a curated list of commands (for example `nmtui` for network configuration, `apt upgrade` for system upgrades, `htop` for monitoring).
 - **Default Debian MOTD disabled**: the standard Debian copyright and warranty text is removed for a cleaner look.
 
@@ -280,6 +311,7 @@ Not covered by `setup-debian.sh`, so redo these by hand on a rebuild:
 - the Wi-Fi profile;
 - `i915 enable_guc=2`;
 - the `/swapfile`;
-- code-server, MariaDB/KodBox and `queue-daemon`.
+- code-server, MariaDB/KodBox and `queue-daemon`;
+- `/etc/NetworkManager/conf.d/90-dns-none.conf` and the static `/etc/resolv.conf`.
 
 After that, run `tune-wyse5070.sh`.
