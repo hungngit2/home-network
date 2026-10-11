@@ -2,7 +2,8 @@
 # Apply the flash-wear, network, security and cleanup tuning documented in
 # DEBIAN-SERVER.md to the live Wyse 5070. Idempotent; backs up edited files under /root/tune-backups-<date>/.
 # Usage: ssh -i ~/.ssh/id_hungnguyen root@10.0.0.100 'bash -s' < scripts/tune-wyse5070.sh
-# Services restart only when their config changes; enp1s0 is re-applied only when converting it to static.
+# Services restart only when their config changes. If enp1s0 is still on ifupdown, the script hands it to
+# NetworkManager in the background and exits; run it again once the box answers.
 set -euo pipefail
 
 BOLD="\033[1m"
@@ -23,7 +24,7 @@ STAMP="$(date +%Y%m%d)"
 WIRED_IF="enp1s0"
 VLAN_IF="enp1s0.10"
 VLAN_CON="vlan10"
-WIRED_IP="10.0.0.100/24"
+WIRED_IP="10.0.0.100"
 GATEWAY="10.0.0.254"
 WIFI_IF="wlp0s12f0"
 VLAN_V6="fd39:10:0:1::100/64"
@@ -105,22 +106,72 @@ EOF
     fi
 fi
 
-log_head "4/11 Wired static IPv4; IPv6 routing: static VLAN 10 address, wired default route preferred"
-# udhcpc (ifupdown's DHCP client here) sent 3 discovers while the 1G link was still negotiating and gave up,
-# leaving the LAN's DNS server without its address after a reboot; it also rewrites resolv.conf on renew
-if grep -qE "^iface ${WIRED_IF} inet dhcp" /etc/network/interfaces; then
+log_head "4/11 NetworkManager DHCP on every interface; IPv6 routing"
+WIRED_YAML="/etc/netplan/10-${WIRED_IF}.yaml"
+WIRED_NEW="$(mktemp)"
+cat > "${WIRED_NEW}" <<EOF
+network:
+  version: 2
+  ethernets:
+    ${WIRED_IF}:
+      renderer: NetworkManager
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 100
+      dhcp6: false
+      addresses:
+        - "fd39:10::100/64"
+      wakeonlan: true
+      routes:
+        - to: 224.0.0.0/4
+          scope: link
+        - to: 10.0.0.0/24
+          scope: link
+          table: 100
+        - to: default
+          via: ${GATEWAY}
+          table: 100
+      routing-policy:
+        - from: ${WIRED_IP}
+          to: 172.16.0.0/12
+          table: 254
+          priority: 97
+        - from: ${WIRED_IP}
+          table: 100
+          priority: 100
+      networkmanager:
+        name: "wired"
+        passthrough:
+          ethernet.wake-on-lan: "64"
+          ipv6.method: "auto"
+          ipv6.addr-gen-mode: "eui64"
+          ipv6.route-metric: "100"
+          ipv4.dhcp-timeout: "2147483647"
+          connection.autoconnect-retries: "0"
+EOF
+wired_changed=false
+if ! cmp -s "${WIRED_NEW}" "${WIRED_YAML}"; then
+    backup "${WIRED_YAML}"
+    install -m 600 "${WIRED_NEW}" "${WIRED_YAML}"
+    wired_changed=true
+fi
+rm -f "${WIRED_NEW}"
+rm -f /etc/sysctl.d/60-ipv6-ra-metric.conf
+# ifupdown ran BusyBox udhcpc -n: 3 discovers in ~9 s, then it exits for good (and rewrites resolv.conf).
+# NetworkManager's DHCP retries forever. NM's ifupdown plugin only re-reads the file on restart.
+if grep -qE "^iface ${WIRED_IF} inet" /etc/network/interfaces; then
     backup /etc/network/interfaces
-    python3 - "${WIRED_IF}" "${WIRED_IP}" "${GATEWAY}" <<'PY'
-import re, sys
-iface, addr, gw = sys.argv[1:]
-p = "/etc/network/interfaces"
-s = open(p).read()
-s = re.sub(rf"^iface {iface} inet dhcp\n(\s+metric \d+\n)?",
-           f"iface {iface} inet static\n    address {addr}\n    gateway {gw}\n", s, count=1, flags=re.M)
-open(p, "w").write(s)
-PY
-    nohup sh -c "sleep 2; [ -f /run/udhcpc.${WIRED_IF}.pid ] && kill \$(cat /run/udhcpc.${WIRED_IF}.pid); rm -f /run/udhcpc.${WIRED_IF}.pid; ifdown ${WIRED_IF}; ifup ${WIRED_IF}" >/root/ifup-static.log 2>&1 &
-    log_info "${WIRED_IF} switched to static ${WIRED_IP} (re-applied in the background; the SSH session may pause for a second)"
+    printf 'source /etc/network/interfaces.d/*\n\nauto lo\niface lo inet loopback\n' > /root/interfaces.lo-only
+    nohup sh -c "ifdown ${WIRED_IF}; cp /root/interfaces.lo-only /etc/network/interfaces; netplan generate; systemctl restart NetworkManager; sleep 6; nmcli connection up wired" >/root/to-nm.log 2>&1 &
+    log_warn "${WIRED_IF} is being handed from ifupdown to NetworkManager; SSH over it drops for ~20 s. Re-run this script afterwards."
+    exit 0
+elif [[ "${wired_changed}" == "true" ]]; then
+    netplan generate
+    nmcli connection reload
+    nmcli connection up wired >/dev/null
+    log_succ "Wired profile updated and re-activated"
+else
+    log_info "Wired profile already current"
 fi
 NETPLAN_VLAN=/etc/netplan/90-vlan10.yaml
 VLAN_MAC="$(awk '/macaddress:/ {gsub(/"/, "", $2); print $2}' "${NETPLAN_VLAN}")"
@@ -175,11 +226,6 @@ if ! cmp -s "${NETPLAN_NEW}" "${NETPLAN_VLAN}"; then
     netplan_changed=true
 fi
 rm -f "${NETPLAN_NEW}"
-if [[ -e /etc/netplan/10-${WIRED_IF}.yaml ]]; then
-    mv "/etc/netplan/10-${WIRED_IF}.yaml" "/root/10-${WIRED_IF}.yaml.removed-${STAMP}"
-    log_info "Removed dead netplan profile for ${WIRED_IF} (ifupdown owns it); copy kept in /root"
-    netplan_changed=true
-fi
 if [[ "${netplan_changed}" == "true" ]]; then
     netplan generate
     nmcli connection reload
@@ -187,9 +233,6 @@ if [[ "${netplan_changed}" == "true" ]]; then
 else
     log_info "VLAN 10 profile already current"
 fi
-echo "net.ipv6.conf.${WIRED_IF}.ra_defrtr_metric = 100" > /etc/sysctl.d/60-ipv6-ra-metric.conf
-sysctl -q -p /etc/sysctl.d/60-ipv6-ra-metric.conf
-log_info "Wired IPv6 default switches to metric 100 on the next router advertisement (≤10 min)"
 ip -br addr show "${VLAN_IF}"
 ip -6 route show default
 

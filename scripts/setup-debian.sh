@@ -42,17 +42,6 @@ log_head() {
     echo -e "\n${BOLD}${CYAN}=== $* ===${NC}"
 }
 
-# --- Helper: Generate RFC4122 UUID Dynamically ---
-generate_uuid() {
-    if [[ -r /proc/sys/kernel/random/uuid ]]; then
-        cat /proc/sys/kernel/random/uuid
-    elif command -v uuidgen >/dev/null 2>&1; then
-        uuidgen
-    else
-        od -x -N 16 /dev/urandom | head -1 | awk '{printf "%s%s-%s-%s-%s-%s%s%s", $2, $3, $4, $5, $6, $7, $8, $9}'
-    fi
-}
-
 # --- Root Check ---
 if [[ "${EUID}" -ne 0 ]]; then
     log_err "This installation script must be run as root (or with sudo)."
@@ -92,7 +81,6 @@ REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/hungngit2/home
 IFACE_NAME="${IFACE_NAME:-${DETECTED_IFACE}}"
 STATIC_IPV4="${STATIC_IPV4:-${DETECTED_IPV4}}"
 STATIC_IPV6_ULA="${STATIC_IPV6_ULA:-fd39:10::${DETECTED_HOST_OCTET}/64}"
-IPV6_TOKEN="${IPV6_TOKEN:-::${DETECTED_HOST_OCTET}}"
 VLAN10_ID="${VLAN10_ID:-10}"
 DDNS_DOMAIN="${DDNS_DOMAIN:-example.ddns.net}"
 USE_EXTERNAL_DISKS="${USE_EXTERNAL_DISKS:-${DEFAULT_USE_EXTERNAL}}"
@@ -153,7 +141,6 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
     prompt_val "Primary Network Interface" "IFACE_NAME"
     prompt_val "Primary Server IPv4 Address" "STATIC_IPV4"
     prompt_val "Static IPv6 ULA Address/Prefix" "STATIC_IPV6_ULA"
-    prompt_val "IPv6 Host Token" "IPV6_TOKEN"
     prompt_val "IoT VLAN ID" "VLAN10_ID"
     prompt_val "DDNS / Host Domain" "DDNS_DOMAIN"
 
@@ -195,7 +182,6 @@ echo -e "\n${BOLD}Configuration Summary:${NC}"
 echo -e "  • Network Interface:   ${GREEN}${IFACE_NAME}${NC}"
 echo -e "  • IPv4 Address:        ${GREEN}${STATIC_IPV4}${NC}"
 echo -e "  • IPv6 ULA Address:    ${GREEN}${STATIC_IPV6_ULA}${NC}"
-echo -e "  • IPv6 Token:          ${GREEN}${IPV6_TOKEN}${NC}"
 echo -e "  • IoT VLAN ID:         ${GREEN}${VLAN10_ID}${NC}"
 echo -e "  • DDNS Domain:         ${GREEN}${DDNS_DOMAIN}${NC}"
 echo -e "  • Storage Layout:      ${GREEN}$([[ "${USE_EXTERNAL_DISKS}" == "true" ]] && echo "Dedicated External Disks" || echo "Local Single-Drive Filesystem")${NC}"
@@ -454,21 +440,33 @@ network:
   renderer: NetworkManager
 EOF
 
+    # dhcp-timeout infinity + unlimited retries: a slow link or switch port only delays the lease.
+    # No ipv6.token: NM runs SLAAC in userspace, so the kernel rejects it and logs a warning on every RA.
     cat << EOF > /etc/netplan/10-${IFACE_NAME}.yaml
 network:
   version: 2
-  renderer: NetworkManager
   ethernets:
     ${IFACE_NAME}:
+      renderer: NetworkManager
       dhcp4: true
-      dhcp6: true
-      ipv6-address-generation: eui64
+      dhcp4-overrides:
+        route-metric: 100
+      dhcp6: false
       addresses:
-        - ${STATIC_IPV6_ULA}
+        - "${STATIC_IPV6_ULA}"
+      wakeonlan: true
+      routes:
+        - to: 224.0.0.0/4
+          scope: link
       networkmanager:
+        name: "wired"
         passthrough:
-          ipv6.token: "${IPV6_TOKEN}"
+          ethernet.wake-on-lan: "64"
+          ipv6.method: "auto"
           ipv6.addr-gen-mode: "eui64"
+          ipv6.route-metric: "100"
+          ipv4.dhcp-timeout: "2147483647"
+          connection.autoconnect-retries: "0"
 EOF
 
     cat << EOF > /etc/netplan/90-vlan${VLAN10_ID}.yaml
@@ -491,30 +489,15 @@ network:
           proxy._: ""
 EOF
 
-    WIRED_UUID=$(generate_uuid)
-    cat << EOF > "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
-[connection]
-id=Wired connection 1
-uuid=${WIRED_UUID}
-type=ethernet
-autoconnect-priority=-999
-interface-name=${IFACE_NAME}
-
-[ethernet]
-
-[ipv4]
-method=auto
-
-[ipv6]
-addr-gen-mode=eui64
-method=auto
-token=${IPV6_TOKEN}
-
-[proxy]
-EOF
-
-    chmod 600 "/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
     chmod 600 /etc/netplan/*.yaml
+
+    # The Debian installer's ifupdown stanza wins over netplan and runs udhcpc -n, which gives up after ~9 s.
+    # NetworkManager's ifupdown plugin only re-reads this file at start, so the handover lands on the next boot.
+    if grep -qE "^iface ${IFACE_NAME} inet" /etc/network/interfaces 2>/dev/null; then
+        cp -a /etc/network/interfaces /etc/network/interfaces.installer
+        printf 'source /etc/network/interfaces.d/*\n\nauto lo\niface lo inet loopback\n' > /etc/network/interfaces
+        log_warn "${IFACE_NAME} moves from ifupdown to NetworkManager DHCP after the next reboot (installer file kept as /etc/network/interfaces.installer)."
+    fi
 
     log_info "Applying Netplan network configuration..."
     netplan apply 2>/dev/null || true
@@ -743,9 +726,6 @@ fetch_repo_file "configs/chainedbox/rtp2httpd/rtp2httpd.service" "/etc/systemd/s
 
 # Ensure multicast route (224.0.0.0/4) routes out primary LAN interface for IGMP proxy compatibility
 ip route replace 224.0.0.0/4 dev "${IFACE_NAME}" 2>/dev/null || true
-if [[ -f /etc/network/interfaces ]] && ! grep -q "224.0.0.0/4" /etc/network/interfaces; then
-    sed -i "/iface ${IFACE_NAME} inet dhcp/a \    post-up ip route replace 224.0.0.0/4 dev ${IFACE_NAME} || true" /etc/network/interfaces 2>/dev/null || true
-fi
 
 systemctl daemon-reload
 systemctl enable rtp2httpd

@@ -18,7 +18,7 @@ Primary application server. It replaced the Chainedbox (see [ARMBIAN-SERVER.md](
 - **Kernel cmdline** (`/etc/default/grub`): `usbcore.autosuspend=-1 quiet`.
 - **Module options** (`/etc/modprobe.d/`): `i915.conf` sets `enable_guc=2` so the HuC firmware (`glk_huc_4.0.0.bin`) loads, which Jellyfin's low-power encoders need. `usb-power.conf` repeats `usbcore autosuspend=-1`.
 - **Time**: `chrony` (`systemd-timesyncd` is inactive).
-- **Power management**: Wake-on-LAN (`g`) is armed by the `ethtool` `post-up` hook on `enp1s0`. A duplicate `wol.service` was removed on 2026-10-11.
+- **Power management**: Wake-on-LAN (magic packet, `g`) is armed by NetworkManager from the `wired` profile. A duplicate `wol.service` was removed on 2026-10-11.
 
 ## Storage
 
@@ -85,51 +85,77 @@ The NetworkManager warning flood was also fixed (see [Network](#network)). The p
 
 ## Network
 
-One cable runs from `enp1s0` to the MikroTik's `ether5`, carrying VLAN 1 untagged and VLAN 10 tagged. The box has three interfaces, all reserved by IP on the MikroTik's DHCP server:
+One cable runs from `enp1s0` to the MikroTik's `ether5`, carrying VLAN 1 untagged and VLAN 10 tagged. All three interfaces get IPv4 by **DHCP**, from reservations on the MikroTik. All three are managed by NetworkManager, with profiles generated from netplan (Wi-Fi uses a keyfile).
 
-| Interface | Segment | IPv4 | IPv6 | Managed by | Default-route metric (v4 / v6) |
+| Interface | Segment | IPv4 | IPv6 | Profile | Default-route metric (v4 / v6) |
 |---|---|---|---|---|---|
-| `enp1s0` | LAN (VLAN 1) | `10.0.0.100` (static; the router reservation is kept) | `fd39:10::100/64` (static + token `::100`) | ifupdown (`/etc/network/interfaces`) | 0 / 100 (kernel RA, `ra_defrtr_metric`) |
-| `enp1s0.10` | IoT (VLAN 10) | `10.0.1.100` (DHCP reservation) | `fd39:10:0:1::100/64` (static, `ipv6.method=manual`, no RA) | NetworkManager, generated from `/etc/netplan/90-vlan10.yaml` | 400 / none |
+| `enp1s0` | LAN (VLAN 1) | `10.0.0.100` (DHCP reservation) | `fd39:10::100/64` static, plus an EUI-64 SLAAC address; RA default route | `wired`, from `/etc/netplan/10-enp1s0.yaml` | 100 / 100 |
+| `enp1s0.10` | IoT (VLAN 10) | `10.0.1.100` (DHCP reservation) | `fd39:10:0:1::100/64` (static, `ipv6.method=manual`, no RA) | `vlan10`, from `/etc/netplan/90-vlan10.yaml` | 400 / none |
 | `wlp0s12f0` | LAN over Wi-Fi, 5 GHz only | `10.0.0.101` (DHCP reservation) | `fd39:10::101/64` (static, gateway `fd39:10::254`) | NetworkManager keyfile (home Wi-Fi SSID, WPA-PSK, `802-11-wireless.band a`, `powersave 2` = off) | 600 / 600 |
 
 How the pieces fit together:
 
-- **Split management.** `/etc/NetworkManager/NetworkManager.conf` has `plugins=ifupdown,keyfile` and `[ifupdown] managed=false`, so NetworkManager leaves `enp1s0` to ifupdown and handles the VLAN and Wi-Fi.
-  - The VLAN 10 profile is the netplan-generated `/run/NetworkManager/system-connections/netplan-enp1s0.10.nmconnection`. Edit the netplan YAML, not an `/etc` keyfile, and don't run `netplan apply` remotely: it regenerates every profile. Use `netplan generate && nmcli con reload && nmcli con up vlan10` instead.
-  - The dead `/etc/netplan/10-enp1s0.yaml`, which never activated while ifupdown owned the NIC, was moved to `/root/` on 2026-10-11.
-- **IPv6 egress uses the wired NIC.** VLAN 10 used to learn an RA default route at metric 400. That route beat the wired one (1024), so IPv6 egress left through the IoT VLAN.
-  - VLAN 10 is now static IPv6 with no RA, and `/etc/sysctl.d/60-ipv6-ra-metric.conf` sets `net.ipv6.conf.enp1s0.ra_defrtr_metric = 100`.
-  - The same change stopped NetworkManager's `do-change-link ... Router advertisement is disabled on device` warning, which fired twice a minute. The kernel had been rejecting the `ipv6.token` passthrough because NetworkManager runs SLAAC in userspace.
+- **NetworkManager owns every interface.** `/etc/network/interfaces` holds only `lo`.
+  - NetworkManager's `ifupdown` plugin (`managed=false`) leaves alone any NIC listed in that file, and only re-reads the file when NetworkManager starts.
+  - Edit the netplan YAML, not the generated `/run/NetworkManager/system-connections/netplan-*.nmconnection` files.
+  - Don't run `netplan apply` remotely: it regenerates every profile. Use `netplan generate && nmcli con reload && nmcli con up <wired|vlan10>` instead.
+- **DHCP never gives up.** The `wired` profile sets `ipv4.dhcp-timeout=2147483647` (infinite) and `connection.autoconnect-retries=0` (unlimited), so a slow link or router port only delays the lease.
+  - Measured on 2026-10-11, in seconds after kernel start: link up at 9.6 s; leases at 11.8 s (wired), 14.1 s (VLAN 10) and 22.5 s (Wi-Fi).
+  - Because `/etc/NetworkManager/conf.d/90-dns-none.conf` sets `dns=none`, DHCP-supplied DNS never touches `/etc/resolv.conf`.
+- **Why the wired NIC moved off ifupdown (2026-10-11).** The Debian installer's `iface enp1s0 inet dhcp` stanza overrode the netplan profile, so `ifupdown` ran BusyBox `udhcpc -n`. That client sends 3 discovers, 3 s apart, and then **exits for good**.
+  - After a reboot, the first discover went out while the 1G link was still negotiating. The rest reached the router port before it was forwarding, so the LAN's primary DNS server came up without `10.0.0.100`. VLAN 10 and Wi-Fi, on NetworkManager, just kept retrying.
+  - `udhcpc` also rewrote `/etc/resolv.conf` on every renewal.
+  - The hEX S port (`ether5`) is now also `edge=yes-discover`, so it forwards as soon as the link is up.
+- **Wake-on-LAN** is `ethernet.wake-on-lan: "64"` (magic packet) in the netplan passthrough. netplan's own `wakeonlan: true` only maps to NetworkManager's "default", which leaves the NIC alone. Check with `ethtool enp1s0 | grep Wake-on`; it should show `g`.
+- **IPv6 egress uses the wired NIC.** VLAN 10 used to learn an RA default route at metric 400, which beat the wired one (1024), so IPv6 egress left through the IoT VLAN.
+  - VLAN 10 is now static IPv6 with no RA, and the wired RA route is pinned to metric 100 (`ipv6.route-metric`).
+  - Neither profile uses an `ipv6.token`. NetworkManager runs SLAAC in userspace, so the kernel rejected the token and logged `do-change-link ... Router advertisement is disabled on device` twice a minute. Without the token, `enp1s0` also carries an EUI-64 SLAAC address next to `fd39:10::100`.
 - **The Wi-Fi link is LAN DNS #2.** The router's LAN DHCP hands out DNS `10.0.0.100, 10.0.0.101, 10.0.0.254`. `.101` is this same box over Wi-Fi, so it only covers a wired-link or switch-port failure, not the server being down.
   - The profile is pinned to 5 GHz with power save off. Before that, the radio ping-ponged between the 2.4 and 5 GHz radios of the nearest AP (AP-1, at about −15 dBm) every few minutes, and the router logged 56 lease renewals in 16 h. It still roams between APs on 5 GHz.
-- **The box's own resolver**: `/etc/resolv.conf` is static (`127.0.0.1`, `::1`, then the router `10.0.0.254`), and `/etc/NetworkManager/conf.d/90-dns-none.conf` (`dns=none`) stops NetworkManager rewriting it. Until 2026-10-11 NetworkManager wrote it from DHCP, with the box's IoT address first, so local lookups depended on VLAN 10 being up.
+- **The box's own resolver**: `/etc/resolv.conf` is static: `127.0.0.1`, `::1`, then the router `10.0.0.254`.
 
-### `/etc/network/interfaces`
+### `/etc/netplan/10-enp1s0.yaml`
 
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp1s0:
+      renderer: NetworkManager
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 100
+      dhcp6: false
+      addresses:
+        - "fd39:10::100/64"
+      wakeonlan: true
+      routes:
+        - to: 224.0.0.0/4          # IPTV: IGMP joins leave via the wired NIC
+          scope: link
+        - to: 10.0.0.0/24
+          scope: link
+          table: 100
+        - to: default
+          via: 10.0.0.254
+          table: 100
+      routing-policy:
+        - from: 10.0.0.100
+          to: 172.16.0.0/12
+          table: 254
+          priority: 97
+        - from: 10.0.0.100
+          table: 100
+          priority: 100
+      networkmanager:
+        name: "wired"
+        passthrough:
+          ethernet.wake-on-lan: "64"
+          ipv6.method: "auto"
+          ipv6.addr-gen-mode: "eui64"
+          ipv6.route-metric: "100"
+          ipv4.dhcp-timeout: "2147483647"
+          connection.autoconnect-retries: "0"
 ```
-auto enp1s0
-iface enp1s0 inet static
-    address 10.0.0.100/24
-    gateway 10.0.0.254
-    post-up ip route replace 224.0.0.0/4 dev enp1s0 || true
-    post-up ethtool -s enp1s0 wol g || true
-    # Reply from 10.0.0.100 via the router, not straight out VLAN 10 (asymmetric routing)
-    post-up ip route replace 10.0.0.0/24 dev enp1s0 src 10.0.0.100 table 100 || true
-    post-up ip route replace default via 10.0.0.254 dev enp1s0 table 100 || true
-    post-up ip rule add from 10.0.0.100 to 172.16.0.0/12 lookup main priority 97 || true
-    post-up ip rule add from 10.0.0.100 lookup 100 priority 100 || true
-    pre-down ip rule del priority 100 || true
-    pre-down ip rule del priority 97 || true
-
-iface enp1s0 inet6 auto
-    up ip -6 addr add fd39:10::100/64 dev enp1s0 || true
-    up ip token set ::100 dev enp1s0 || true
-```
-
-The wired default route sits at metric 0, ahead of VLAN 10 (400) and Wi-Fi (600).
-
-**Why static (since 2026-10-11)**: ifupdown used BusyBox `udhcpc`, which sends only 3 discovers, 3 s apart, and gives up. On the 2026-10-11 reboot the first discover went out while the 1G link was still negotiating. The next ones hit the router port before it started forwarding, so the LAN's primary DNS server came up without `10.0.0.100`; only the Wi-Fi and VLAN 10 addresses worked. `udhcpc` also rewrote `/etc/resolv.conf` on every renewal. The hEX S port (`ether5`) is now `edge=yes-discover` as well, so it forwards as soon as the link is up.
 
 ### Policy routing (IPv4)
 
@@ -142,11 +168,11 @@ The box sits on both LAN and IoT. Without policy routing, a reply to an IoT clie
 | 100 | `from 10.0.0.100 lookup 100` | Table 100: `10.0.0.0/24` on-link + default via `10.0.0.254` on `enp1s0` |
 | 101 | `from 10.0.1.100 lookup 101` | Table 101: `10.0.1.0/24` on-link + default via `10.0.1.254` on `enp1s0.10` |
 
-Rules 97 and 100 come from the ifupdown hooks above. Rules 98 and 101 come from the `routes`/`routing-policy` blocks in `90-vlan10.yaml`. The Wi-Fi address (`10.0.0.101`) has no policy rule and uses the main table.
+Rules 97 and 100 come from `10-enp1s0.yaml`, and 98 and 101 from `90-vlan10.yaml`. Both rely on the DHCP reservations keeping those addresses fixed. The Wi-Fi address (`10.0.0.101`) has no policy rule and uses the main table.
 
 ### Multicast, ARP and sysctl
 
-- **IPTV multicast**: a static `224.0.0.0/4 dev enp1s0` route forces `rtp2httpd`'s IGMP joins out the wired LAN NIC toward the router's IGMP proxy.
+- **IPTV multicast**: the `224.0.0.0/4 dev enp1s0` route (in `10-enp1s0.yaml`) forces `rtp2httpd`'s IGMP joins out the wired LAN NIC toward the router's IGMP proxy.
 - **ARP flux**: two NICs share `10.0.0.0/24`, so `arp_ignore=1` / `arp_announce=2` stop each NIC from answering for the other's address.
 - **`/etc/sysctl.d/99-server.conf`** (repo: `configs/chainedbox/system/sysctl-swapfile.conf`) sets:
   - `fq` + BBR;
@@ -259,7 +285,7 @@ Kept on purpose:
 
 ## Tuning script and what's left
 
-[`scripts/tune-wyse5070.sh`](scripts/tune-wyse5070.sh) applies everything marked 2026-10-11 above. It is idempotent and backs up each edited file under `/root/tune-backups-YYYYMMDD/<original path>`. Backups never go next to the file: a `resume.bak` left in `/etc/initramfs-tools/conf.d/` was sourced by the initramfs and kept a 30 s boot wait alive. It touches `enp1s0` (the SSH path) only to convert it from DHCP to static, in the background. Re-run it after a rebuild:
+[`scripts/tune-wyse5070.sh`](scripts/tune-wyse5070.sh) applies everything marked 2026-10-11 above. It is idempotent and backs up each edited file under `/root/tune-backups-YYYYMMDD/<original path>`. Backups never go next to the file: a `resume.bak` left in `/etc/initramfs-tools/conf.d/` was sourced by the initramfs and kept a 30 s boot wait alive. If `enp1s0` is still under `ifupdown`, it hands it to NetworkManager in the background and exits, because SSH over that NIC drops for about 20 s; run it again afterwards. Re-run it after a rebuild:
 
 ```bash
 ssh -i ~/.ssh/id_hungnguyen root@10.0.0.100 'bash -s' < scripts/tune-wyse5070.sh
@@ -322,7 +348,7 @@ The script automatically runs these steps:
 7. **Smart home**: Home Assistant in Docker.
 
 Not covered by `setup-debian.sh`, so redo these by hand on a rebuild:
-- the ifupdown policy-routing hooks;
+- the policy-routing `routes`/`routing-policy` blocks and passthrough options in `10-enp1s0.yaml` (`tune-wyse5070.sh` writes them);
 - the Wi-Fi profile;
 - `i915 enable_guc=2`;
 - the `/swapfile`;
