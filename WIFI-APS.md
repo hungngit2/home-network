@@ -1,6 +1,10 @@
 # Home — Wi-Fi Access Points (OpenWrt fleet)
 
 > **Security notice (2026-10-11).** Until this date, `scripts/setup-openwrt-ap.sh` shipped the live SSIDs, all three Wi-Fi passwords and the mesh key as built-in defaults. This repo is public, so those values remain in its git history from commit `32062a1` onward. Rotate the LAN, IoT and Guest passwords and the mesh key; the mesh key must match on all four APs. The script now has no secret defaults and refuses to run without them.
+>
+> The same history also exposes:
+> - the DDNS hostname, which is the LAN SSID name and resolves to the home's public IP;
+> - the live rtp2httpd IPTV web password, which was the `MYTV_AUTH_PASS` default in the first versions of `setup-chainedbox.sh` / `setup-debian.sh`.
 
 State below was verified live on 2026-10-11.
 

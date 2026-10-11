@@ -18,7 +18,7 @@ State below was verified with a read-only audit on 2026-10-11. Several live obje
 
 | Bridge | Purpose | Members | Subnet |
 |---|---|---|---|
-| `br-lan` | Trusted LAN | `ether1` (Switch), `ether2` (Wifi), `ether5` (**Wyse 5070**, `10.0.0.100`); `ether3`/`ether4` are members with no link | `10.0.0.0/24`, gateway `.254`, pool `.1`–`.254`; also `192.168.1.254/24` (undocumented secondary address) |
+| `br-lan` | Trusted LAN | `ether1` (Switch), `ether2` (Wifi), `ether5` (**Wyse 5070**, `10.0.0.100`); `ether3`/`ether4` are members with no link | `10.0.0.0/24`, gateway `.254`, pool `.1`–`.254` (an unused secondary `192.168.1.254/24` was removed on 2026-10-11) |
 | `br-iot` | IoT / cameras / NVR, isolated from LAN | `vlan-e1.10`, `vlan-e2.10`, `vlan-e5.10` (Wyse IoT `10.0.1.100`) | `10.0.1.0/24` |
 | `br-guest` | Guest Wi-Fi, isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
 | `br-iptv` | ISP IPTV | `vlan-sfp1.99` (multicast), `vlan-sfp1.1100` (portal / DHCP) | DHCP client (`IPTV`), no default route |
@@ -201,7 +201,6 @@ Verified afterwards:
 - **PCC scope**: keep balancing all traffic 4:1 onto LTE, or go back to `free-services` only (see [Multi-WAN](#multi-wan-routing--policy-routing)).
 - **RouterOS 7.24.5**: upgrade, and `/system package uninstall wireless` to free flash. This needs two reboots (RouterOS, then RouterBOOT) and a WAN/VPN outage.
 - **Remote-site access**: restore remote-site access to the Wyse (DNS/HTTP/IPTV), or delete the now-unused `local-servers` / `dns-internal` lists.
-- **`192.168.1.254/24` on `br-lan`**: remove it if nothing on `192.168.1.x` needs it.
 
 ## Troubleshooting
 
