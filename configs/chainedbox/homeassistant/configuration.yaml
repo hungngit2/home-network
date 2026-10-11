@@ -8,3 +8,10 @@ frontend:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+# Batch DB writes (default 5s) to cut flash wear; drop raw MQTT hex debug sensors from history
+recorder:
+  commit_interval: 30
+  exclude:
+    entity_globs:
+      - sensor.*_last_raw_mqtt_hex

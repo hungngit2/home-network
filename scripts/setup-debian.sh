@@ -94,7 +94,7 @@ STATIC_IPV4="${STATIC_IPV4:-${DETECTED_IPV4}}"
 STATIC_IPV6_ULA="${STATIC_IPV6_ULA:-fd39:10::${DETECTED_HOST_OCTET}/64}"
 IPV6_TOKEN="${IPV6_TOKEN:-::${DETECTED_HOST_OCTET}}"
 VLAN10_ID="${VLAN10_ID:-10}"
-DDNS_DOMAIN="${DDNS_DOMAIN:-lotus.ddns.net}"
+DDNS_DOMAIN="${DDNS_DOMAIN:-example.ddns.net}"
 USE_EXTERNAL_DISKS="${USE_EXTERNAL_DISKS:-${DEFAULT_USE_EXTERNAL}}"
 APPSRV_DIR="${APPSRV_DIR:-${DEFAULT_APPSRV}}"
 NASDATA_DIR="${NASDATA_DIR:-${DEFAULT_NASDATA}}"
@@ -401,9 +401,18 @@ apt-get install -y --no-install-recommends \
     ca-certificates
 
 # Apply custom sysctl tuning
-log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..."
-fetch_repo_file "configs/chainedbox/system/sysctl.conf" "/etc/sysctl.d/99-server.conf"
+if grep -q '^/dev/zram' /proc/swaps 2>/dev/null; then
+    log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..."
+    fetch_repo_file "configs/chainedbox/system/sysctl.conf" "/etc/sysctl.d/99-server.conf"
+else
+    log_info "Deploying custom kernel sysctl (BBR, disk swap swappiness=10)..."
+    fetch_repo_file "configs/chainedbox/system/sysctl-swapfile.conf" "/etc/sysctl.d/99-server.conf"
+fi
 sysctl --system >/dev/null 2>&1 || true
+
+log_info "Capping persistent journal size..."
+fetch_repo_file "configs/chainedbox/system/journald-size.conf" "/etc/systemd/journald.conf.d/10-size.conf"
+systemctl restart systemd-journald 2>/dev/null || true
 
 
 

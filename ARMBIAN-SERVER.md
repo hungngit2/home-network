@@ -1,5 +1,7 @@
 # Chainedbox — Armbian Server
 
+> **Status (2026-10-11): retired.** The Wyse 5070 ([DEBIAN-SERVER.md](DEBIAN-SERVER.md)) replaced this box and took over `10.0.0.100`. The Chainedbox is offline, and its router DHCP reservation (`10.0.0.110`) is disabled. This page is kept as a reference for `setup-chainedbox.sh` and the shared `configs/chainedbox/` templates.
+
 ## Hardware & OS
 
 - **Board**: "Chainedbox L1 Pro" — an RK3328 (Rockchip) Android-TV-box-style device (`BOARD_NAME=RK.Chainedbox`, `BOARDFAMILY=rk3328`, `LINUXFAMILY=rockchip`), repurposed to run Armbian. This is the origin of the box's name.
@@ -315,17 +317,17 @@ All service configurations on Chainedbox are structured by application under `co
 
 | Directory | Service / Component | Included Files |
 |---|---|---|
-| [`network/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/network) | Netplan & NetworkManager | `00-default-use-network-manager.yaml`, `10-end0.yaml` (IPv6 ULA `fd39:10::100/64`), `90-vlan10.yaml` (VLAN 10), `Wired-connection-1.nmconnection` |
-| [`adguard-home/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/adguard-home) | AdGuard Home DNS Blocker | `AdGuardHome.yaml` (schema v34, custom upstream rules & filter lists) |
-| [`unbound/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/unbound) | Unbound DNS Resolver | `custom-port.conf` (port 5335), `remote-control.conf` |
-| [`avahi/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/avahi) | mDNS Reflector | `avahi-daemon.conf` (`allow-interfaces=end0,end0.10`, `enable-reflector=yes`) |
-| [`nginx/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/nginx) | Reverse Proxy & Web Server | `default.conf` (reverse proxy routes, directory security blocks, SSL) |
-| [`php/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/php) | PHP-FPM FastCGI Pool | `php8.3-fpm-www.conf` (`pm.max_children=5`, `listen.mode=0660`) |
-| [`rtp2httpd/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/rtp2httpd) | IPTV Multicast Streamer | `rtp2httpd.conf` (`mcast-rejoin-interval=30`, `external-m3u`), `rtp2httpd.service` |
-| [`jellyfin/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/jellyfin) | Media Server | `jellyfin.env`, `jellyfin.service` |
-| [`owntone/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/owntone) | DAAP / AirPlay Music Server | `owntone.service`, `owntone-memorymax-override.conf` |
-| [`homeassistant/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/homeassistant) | Smart Home Automation | `configuration.yaml`, `automations.yaml` |
-| [`aria2/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/aria2) | Download Daemon | `aria2.conf`, `aria2.service`, `aria2-post-download.sh` |
-| [`samba/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/samba) | File Sharing | `smb.conf` (`apps`, `docs`, `downloads`, `media` shares) |
-| [`system/`](file:///Users/hung.nguyen/Data/workspace/home-network/configs/chainedbox/system) | Kernel & OS Base | `sysctl.conf` (BBR, swappiness 100), `fstab`, `crontab-root`, `daemon.json` |
+| [`network/`](configs/chainedbox/network) | Netplan & NetworkManager | `00-default-use-network-manager.yaml`, `10-end0.yaml` (IPv6 ULA `fd39:10::100/64`), `90-vlan10.yaml` (VLAN 10), `Wired-connection-1.nmconnection` |
+| [`adguard-home/`](configs/chainedbox/adguard-home) | AdGuard Home DNS Blocker | `AdGuardHome.yaml` (schema v34, custom upstream rules & filter lists) |
+| [`unbound/`](configs/chainedbox/unbound) | Unbound DNS Resolver | `custom-port.conf` (port 5335), `remote-control.conf` |
+| [`avahi/`](configs/chainedbox/avahi) | mDNS Reflector | `avahi-daemon.conf` (`allow-interfaces=end0,end0.10`, `enable-reflector=yes`) |
+| [`nginx/`](configs/chainedbox/nginx) | Reverse Proxy & Web Server | `default.conf` (reverse proxy routes, directory security blocks, SSL) |
+| [`php/`](configs/chainedbox/php) | PHP-FPM FastCGI Pool | `php8.3-fpm-www.conf` (`pm.max_children=5`, `listen.mode=0660`) |
+| [`rtp2httpd/`](configs/chainedbox/rtp2httpd) | IPTV Multicast Streamer | `rtp2httpd.conf` (`mcast-rejoin-interval=30`, `external-m3u`), `rtp2httpd.service` |
+| [`jellyfin/`](configs/chainedbox/jellyfin) | Media Server | `jellyfin.env`, `jellyfin.service` |
+| [`owntone/`](configs/chainedbox/owntone) | DAAP / AirPlay Music Server | `owntone.service`, `owntone-memorymax-override.conf` |
+| [`homeassistant/`](configs/chainedbox/homeassistant) | Smart Home Automation | `configuration.yaml`, `automations.yaml` |
+| [`aria2/`](configs/chainedbox/aria2) | Download Daemon | `aria2.conf`, `aria2.service`, `aria2-post-download.sh` |
+| [`samba/`](configs/chainedbox/samba) | File Sharing | `smb.conf` (`apps`, `docs`, `downloads`, `media` shares) |
+| [`system/`](configs/chainedbox/system) | Kernel & OS Base | `sysctl.conf` (BBR, swappiness 100), `fstab`, `crontab-root`, `daemon.json` |
 
