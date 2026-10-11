@@ -19,7 +19,7 @@ config device
 	list ports 'lan1'
 	list ports 'lan2'
 	list ports 'wan'
-	list ports 'lotus-mesh'
+	list ports 'mesh0'
 
 config interface 'lan'
 	option proto 'static'
@@ -44,18 +44,18 @@ config bridge-vlan
 	option device 'br-lan'
 	option vlan '1'
 	list ports 'lan1'
-	list ports 'lotus-mesh:t'
+	list ports 'mesh0:t'
 	list ports 'wan'
 
 config bridge-vlan
 	option device 'br-lan'
 	option vlan '10'
 	list ports 'lan2'
-	list ports 'lotus-mesh:t'
+	list ports 'mesh0:t'
 	list ports 'wan:t'
 
 config bridge-vlan
 	option device 'br-lan'
 	option vlan '12'
-	list ports 'lotus-mesh:t'
+	list ports 'mesh0:t'
 	list ports 'wan:t'

@@ -41,14 +41,15 @@ log_head() {
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/hungngit2/home-network/main}"
 ROUTER_IP="${ROUTER_IP:-10.0.0.254}"
 DNS_SERVER="${DNS_SERVER:-10.0.0.100}"
-SSID_LAN="${SSID_LAN:-lotus}"
-PASS_LAN="${PASS_LAN:-MaiThaoTonyToby39}"
-SSID_IOT="${SSID_IOT:-lotus IoT}"
-PASS_IOT="${PASS_IOT:-IoT@1076}"
-SSID_GUEST="${SSID_GUEST:-lotus⁺}"
-PASS_GUEST="${PASS_GUEST:-Lotus@Heart}"
-MESH_ID="${MESH_ID:-lotus-mesh}"
-MESH_KEY="${MESH_KEY:-Lotus@Mesh}"
+SSID_LAN="${SSID_LAN:-home}"
+PASS_LAN="${PASS_LAN:-}"
+SSID_IOT="${SSID_IOT:-home IoT}"
+PASS_IOT="${PASS_IOT:-}"
+SSID_GUEST="${SSID_GUEST:-home⁺}"
+PASS_GUEST="${PASS_GUEST:-}"
+MESH_ID="${MESH_ID:-home-mesh}"
+MESH_IFNAME="${MESH_IFNAME:-mesh0}"
+MESH_KEY="${MESH_KEY:-}"
 MOBILITY_DOMAIN="${MOBILITY_DOMAIN:-1076}"
 CHANNEL_5G="${CHANNEL_5G:-36}"
 COUNTRY="${COUNTRY:-US}"
@@ -178,6 +179,14 @@ echo "  • Guest SSID:          ${GREEN}${SSID_GUEST}${NC} (PMF enabled)"
 echo "  • Mesh ID / Key:       ${GREEN}${MESH_ID}${NC}"
 echo "  • Fast Roaming Domain: ${GREEN}${MOBILITY_DOMAIN}${NC}"
 
+for secret_var in PASS_LAN PASS_IOT PASS_GUEST MESH_KEY; do
+    eval "secret_val=\${${secret_var}}"
+    if [ ${#secret_val} -lt 8 ]; then
+        log_err "${secret_var} must be set (8+ characters). Export it or enter it at the prompt; there is no default."
+        exit 1
+    fi
+done
+
 if [ "${NON_INTERACTIVE}" != "true" ]; then
     printf "\n%bApply this configuration to the AP now? [Y/n]: %b" "${BOLD}" "${NC}"
     read confirm < /dev/tty || confirm="y"
@@ -258,14 +267,14 @@ uci set network.br_lan_dev.igmp_snooping='1'
 uci -q delete network.br_lan_dev.ports || true
 case "${BOARD_MODEL}" in
     *"Redmi"*"AC2100"*)
-        log_info "Applying Redmi AC2100 port layout (lan1, lan2, lan3, wan, lotus-mesh)..."
+        log_info "Applying Redmi AC2100 port layout (lan1, lan2, lan3, wan, ${MESH_IFNAME})..."
         uci add_list network.br_lan_dev.ports='lan1'
         uci add_list network.br_lan_dev.ports='lan2'
         uci add_list network.br_lan_dev.ports='lan3'
         uci add_list network.br_lan_dev.ports='wan'
-        uci add_list network.br_lan_dev.ports='lotus-mesh'
+        uci add_list network.br_lan_dev.ports="${MESH_IFNAME}"
 
-        # VLAN 1 (LAN): lan2, wan, lotus-mesh:t
+        # VLAN 1 (LAN): lan2, wan, ${MESH_IFNAME}:t
         uci -q delete network.@bridge-vlan[0] || true
         uci -q delete network.@bridge-vlan[1] || true
         uci -q delete network.@bridge-vlan[2] || true
@@ -274,32 +283,32 @@ case "${BOARD_MODEL}" in
         uci set network.${VLAN1}.device='br-lan'
         uci set network.${VLAN1}.vlan='1'
         uci add_list network.${VLAN1}.ports='lan2'
-        uci add_list network.${VLAN1}.ports='lotus-mesh:t'
+        uci add_list network.${VLAN1}.ports="${MESH_IFNAME}:t"
         uci add_list network.${VLAN1}.ports='wan'
 
-        # VLAN 10 (IoT): lan1, lan3, lotus-mesh:t, wan:t
+        # VLAN 10 (IoT): lan1, lan3, ${MESH_IFNAME}:t, wan:t
         VLAN10=$(uci add network bridge-vlan)
         uci set network.${VLAN10}.device='br-lan'
         uci set network.${VLAN10}.vlan='10'
         uci add_list network.${VLAN10}.ports='lan1'
         uci add_list network.${VLAN10}.ports='lan3'
-        uci add_list network.${VLAN10}.ports='lotus-mesh:t'
+        uci add_list network.${VLAN10}.ports="${MESH_IFNAME}:t"
         uci add_list network.${VLAN10}.ports='wan:t'
 
-        # VLAN 12 (Guest): lotus-mesh:t, wan:t
+        # VLAN 12 (Guest): ${MESH_IFNAME}:t, wan:t
         VLAN12=$(uci add network bridge-vlan)
         uci set network.${VLAN12}.device='br-lan'
         uci set network.${VLAN12}.vlan='12'
-        uci add_list network.${VLAN12}.ports='lotus-mesh:t'
+        uci add_list network.${VLAN12}.ports="${MESH_IFNAME}:t"
         uci add_list network.${VLAN12}.ports='wan:t'
         ;;
     *)
         # Default JCG Q20 / Generic 3-port switch layout
-        log_info "Applying standard DSA port layout (lan1, lan2, wan, lotus-mesh)..."
+        log_info "Applying standard DSA port layout (lan1, lan2, wan, ${MESH_IFNAME})..."
         uci add_list network.br_lan_dev.ports='lan1'
         uci add_list network.br_lan_dev.ports='lan2'
         uci add_list network.br_lan_dev.ports='wan'
-        uci add_list network.br_lan_dev.ports='lotus-mesh'
+        uci add_list network.br_lan_dev.ports="${MESH_IFNAME}"
 
         uci -q delete network.@bridge-vlan[0] || true
         uci -q delete network.@bridge-vlan[1] || true
@@ -309,20 +318,20 @@ case "${BOARD_MODEL}" in
         uci set network.${VLAN1}.device='br-lan'
         uci set network.${VLAN1}.vlan='1'
         uci add_list network.${VLAN1}.ports='lan1'
-        uci add_list network.${VLAN1}.ports='lotus-mesh:t'
+        uci add_list network.${VLAN1}.ports="${MESH_IFNAME}:t"
         uci add_list network.${VLAN1}.ports='wan'
 
         VLAN10=$(uci add network bridge-vlan)
         uci set network.${VLAN10}.device='br-lan'
         uci set network.${VLAN10}.vlan='10'
         uci add_list network.${VLAN10}.ports='lan2'
-        uci add_list network.${VLAN10}.ports='lotus-mesh:t'
+        uci add_list network.${VLAN10}.ports="${MESH_IFNAME}:t"
         uci add_list network.${VLAN10}.ports='wan:t'
 
         VLAN12=$(uci add network bridge-vlan)
         uci set network.${VLAN12}.device='br-lan'
         uci set network.${VLAN12}.vlan='12'
-        uci add_list network.${VLAN12}.ports='lotus-mesh:t'
+        uci add_list network.${VLAN12}.ports="${MESH_IFNAME}:t"
         uci add_list network.${VLAN12}.ports='wan:t'
         ;;
 esac
@@ -383,6 +392,7 @@ setup_ap_iface() {
     ssid="$3"
     key="$4"
     pmf="$5"
+    ft="${6:-1}"
 
     IFACE=$(uci add wireless wifi-iface)
     uci set wireless.${IFACE}.device="${dev}"
@@ -392,9 +402,9 @@ setup_ap_iface() {
     uci set wireless.${IFACE}.encryption='psk2+ccmp'
     uci set wireless.${IFACE}.key="${key}"
     uci set wireless.${IFACE}.mobility_domain="${MOBILITY_DOMAIN}"
-    uci set wireless.${IFACE}.ft_over_ds='1'
+    uci set wireless.${IFACE}.ft_over_ds='0'
     uci set wireless.${IFACE}.ft_psk_generate_local='1'
-    uci set wireless.${IFACE}.ieee80211r='1'
+    uci set wireless.${IFACE}.ieee80211r="${ft}"
     uci set wireless.${IFACE}.ieee80211k='1'
     uci set wireless.${IFACE}.ieee80211v='1'
     uci set wireless.${IFACE}.ieee80211w="${pmf}"
@@ -413,15 +423,17 @@ log_info "Creating Main LAN SSID '${SSID_LAN}'..."
 setup_ap_iface "${RADIO_2G}" "lan" "${SSID_LAN}" "${PASS_LAN}" "1"
 setup_ap_iface "${RADIO_5G}" "lan" "${SSID_LAN}" "${PASS_LAN}" "1"
 
-# 2. IoT SSID (2.4G + 5G, PMF=0 for compatibility)
+# 2. IoT SSID (2.4G only: the 5G IoT BSS never came up next to the mesh, and IoT gear is 2.4G)
+# PMF and 802.11r off: Android TV 9 (Mi Box 3) and older IoT chips fail to join when FT-PSK is advertised
 log_info "Creating IoT SSID '${SSID_IOT}'..."
-setup_ap_iface "${RADIO_2G}" "iot" "${SSID_IOT}" "${PASS_IOT}" "0"
-setup_ap_iface "${RADIO_5G}" "iot" "${SSID_IOT}" "${PASS_IOT}" "0"
+setup_ap_iface "${RADIO_2G}" "iot" "${SSID_IOT}" "${PASS_IOT}" "0" "0"
 
-# 3. Guest SSID (2.4G + 5G, PMF=1)
+# 3. Guest SSID (2.4G + 5G, PMF=1, guests can't see each other)
 log_info "Creating Guest SSID '${SSID_GUEST}'..."
 setup_ap_iface "${RADIO_2G}" "guest" "${SSID_GUEST}" "${PASS_GUEST}" "1"
+uci set wireless.${IFACE}.isolate='1'
 setup_ap_iface "${RADIO_5G}" "guest" "${SSID_GUEST}" "${PASS_GUEST}" "1"
+uci set wireless.${IFACE}.isolate='1'
 
 # 4. 802.11s Backup Mesh Backhaul on 5GHz Radio
 log_info "Creating 802.11s Mesh Backhaul '${MESH_ID}' on 5GHz..."
@@ -433,7 +445,7 @@ uci set wireless.${MESH_IFACE}.mesh_id="${MESH_ID}"
 uci set wireless.${MESH_IFACE}.key="${MESH_KEY}"
 uci set wireless.${MESH_IFACE}.mesh_fwding='1'
 uci set wireless.${MESH_IFACE}.mesh_rssi_threshold='0'
-uci set wireless.${MESH_IFACE}.ifname="${MESH_ID}"
+uci set wireless.${MESH_IFACE}.ifname="${MESH_IFNAME}"
 uci set wireless.${MESH_IFACE}.time_advertisement='2'
 uci set wireless.${MESH_IFACE}.multicast_to_unicast_all='1'
 uci set wireless.${MESH_IFACE}.bss_transition='1'
