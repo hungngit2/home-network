@@ -26,7 +26,7 @@
     /ip firewall filter add chain=input action=drop in-interface=br-iptv protocol=tcp comment="Drop TCP from IPTV" \
         place-before=[find comment="defconf: drop all not coming from LAN"]
     /ip firewall filter add chain=input action=drop in-interface=br-iptv protocol=udp dst-port=53,123,161,5678 \
-        comment="Drop router services from IPTV" place-before=[find comment="IPTV Stream" protocol=udp]
+        comment="Drop router services from IPTV" place-before=[find where comment="IPTV Stream" and protocol="udp"]
     /ip firewall filter add chain=forward action=drop connection-state=new connection-nat-state=!dstnat \
         in-interface-list=vpn-out comment="Drop new from VPN-out not DSTNATed" \
         place-before=[find comment="Block Remote Site to Local Network"]

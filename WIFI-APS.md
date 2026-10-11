@@ -42,7 +42,7 @@ The mesh and STP work together like this:
 - **Mesh**: SAE-encrypted 802.11s on 5 GHz channel 36, with `mesh_fwding=1`. Every AP peers with the other three. Peer links run at only about 6–13 Mbit/s, so the mesh is an outage fallback, not a second uplink.
 - **STP**: every AP's `br-lan` runs STP (`stp=1`). While the wired trunk is up, STP blocks the mesh ports to prevent a loop, and it unblocks them when an AP loses its cable. This was verified when AP-1's `wan` flapped.
 - **No failover daemon**: the link-state failover daemon in `setup-openwrt-network.sh` is only for swconfig hardware, so it isn't installed on these DSA units.
-- **STP root**: AP-3 is currently the root for the whole LAN, because netifd's default bridge priority (0x7fff) beats RouterOS's (0x8000). `scripts/tune-mikrotik-hexs.rsc` sets the router's `br-lan` to 0x1000 so the always-on router becomes root.
+- **STP root**: the router has been root since 2026-10-11 (`br-lan` priority 0x1000). Before that, AP-3 was root for the whole LAN, because netifd's default bridge priority (0x7fff) beats RouterOS's (0x8000), and its weekly reboot re-elected the root every Monday.
 
 ## Wireless
 

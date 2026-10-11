@@ -46,9 +46,8 @@ Mangle `prerouting` in both IPv4 and IPv6 marks connections, and routing tables 
    - **This is not the original design.** That design sent only zero-rated destinations (`dst-address-list=free-services`: YouTube/Google, TikTok, Meta) to LTE, to protect the Vinaphone 5 GB/day allowance. `free-services` is still resolved (47 IPv4 / 37 IPv6 entries), but no rule uses it.
    - To restore the original design, run `set [find comment="Load Blancing Mark"] dst-address-list=free-services` under both `/ip firewall mangle` and `/ipv6 firewall mangle`.
 2. **Inbound WAN marks**: `WAN 1/2 - In` tag connections arriving on `pppoe-out1` / `lte1` so that replies leave the same way.
-   - They only match `established,related`, so a new inbound connection (the 80/443 port-forwards, WireGuard-in) stays unmarked on its first packet.
-   - The server's reply is then picked up by the load-balancing rule, and 1 in 5 replies leave via LTE, which breaks the connection.
-   - `tune-mikrotik-hexs.rsc` adds `new` to the match.
+   - They match `new,established,related`.
+   - Until 2026-10-11 they matched only `established,related`, so a new inbound connection (the 80/443 port-forwards) stayed unmarked on its first packet. The server's reply then got the load-balancing mark, and 1 in 5 replies left via LTE.
 3. **"Unblock Sites"**: an IPv4 `mark-routing` sends `dst-address-list=unblock-sites` (FQDN entries) to `to-vpn-out`.
 
 Routes:
@@ -70,7 +69,7 @@ Routes:
 - **`allow-remote-requests=yes`**: the WAN is dropped by the input chain.
 - **`cache-max-ttl=0s`**: avoids double-caching behind AdGuard. `address-list-extra-time=12h` keeps the FQDN address lists stable.
 - **Split DNS for IPTV**: `*.vmp.tv` is forwarded to the ISP resolvers (`172.16.3.246`/`.247`) for the EPG/portal domain used by `iptv/fetchNewList.php` on the Wyse.
-- **`mdns-repeat-ifaces=br-iot`**: a no-op with only one interface. Avahi on the Wyse does the LAN ⇄ IoT reflection.
+- **`mdns-repeat-ifaces`**: empty. It used to list only `br-iot`, which did nothing. Avahi on the Wyse does the LAN ⇄ IoT reflection.
 
 ## DHCP
 
@@ -86,7 +85,7 @@ Notable reservations:
 | `10.0.0.200`–`.203` | the four APs |
 | `10.0.1.3` | Mi Box 3 (Android TV 9, on the IoT SSID) |
 
-The disabled Chainedbox (`10.0.0.110`) and STK1AW32SC (`10.0.1.6`) reservations are stale.
+The disabled Chainedbox (`10.0.0.110`) and STK1AW32SC (`10.0.1.6`) reservations were removed on 2026-10-11.
 
 ## Firewall
 
@@ -97,16 +96,17 @@ The disabled Chainedbox (`10.0.0.110`) and STK1AW32SC (`10.0.1.6`) reservations 
 4. accept WireGuard-in UDP 13231 to `wan-ip`;
 5. accept IGMP and all UDP from `br-iptv`;
 6. accept loopback;
-7. **drop `in-interface-list=wan`** (`pppoe-out1`, `lte1`).
+7. drop `in-interface-list=vpn-out`, drop `sfp1`, drop TCP from `br-iptv` (UDP 53/123/161/5678 from `br-iptv` is dropped just before the IPTV UDP accept);
+8. **drop `in-interface-list=wan`** (`pppoe-out1`, `lte1`).
 
-Interfaces that are neither LAN nor in `wan` can therefore reach the router's own services: `wg-out1/2`, `sfp1` and `br-iptv`, which reach DNS, NTP and MNDP (and the API until it is disabled). IPv6 input is fine.
+The step 7 drops were added on 2026-10-11. Before that, `wg-out1/2`, `sfp1` and `br-iptv` could reach the router's DNS, NTP, MNDP and API. IPv6 input was already fine.
 
 **Forward**, in order:
 1. FastTrack;
 2. accept established/related;
 3. drop invalid;
 4. IPsec accepts;
-5. drop new from WAN unless DSTNATed;
+5. drop new from WAN unless DSTNATed, and (since 2026-10-11) new from `vpn-out` unless DSTNATed;
 6. **Block Remote Site to Local Network** (blanket);
 7. **Block IoT to LAN** (`br-iot` → `private` list);
 8. **Block Guest to LAN**.
@@ -117,7 +117,6 @@ Notes on the forward chain:
 - The exception rules that let IoT and the remote site reach `local-servers` (DNS, 80/443/5140, ICMP) were deleted via WebFig on 2026-10-10. Six IPv4 and five IPv6 rules were removed.
 - IoT still reaches the Wyse directly on its VLAN 10 address, where the Wyse's own firewall closes its admin ports. The remote site can no longer reach the Wyse.
 - `local-servers` (IPv4 `10.0.0.100`; IPv6 `fd39:10::100`, `fd39:10::101`) and `dns-internal` remain, but nothing references them.
-- New connections from the VPN-out peers are not dropped. Their `allowed-address` is `0.0.0.0/0`, so the VPN provider side could open connections into the LAN.
 
 **Address lists**:
 
@@ -130,6 +129,7 @@ Notes on the forward chain:
 | `free-services` | zero-rated destinations | no |
 | `local-servers` | see above | no |
 | `dns-internal` | internal resolvers | no |
+| ~~`vpn-routing-sites`~~ | removed 2026-10-11 (8 disabled entries, its rule had 0 hits) | — |
 
 **FastTrack**: IPv4 FastTrack (the software fast path) handled 8.9M packets / 10.9 GB since boot. The IPv6 rule matched 3.2M packets but fast-tracked none.
 
@@ -166,34 +166,35 @@ Notes on the forward chain:
 |---|---|
 | SSH | enabled, from `10.0.0.0/24` + `10.0.100.0/24` only, key auth (`id_hungnguyen`), `strong-crypto=yes` |
 | WWW, Winbox | enabled, LAN + WireGuard-in only |
-| API (8728) | **enabled from any address**; reachable from Guest, IoT and every non-`wan` interface. `admin` has no address restriction. |
-| reverse-proxy (443) | enabled with no rules |
-| bandwidth-server | enabled |
-| FTP, Telnet, API-SSL, WWW-SSL | disabled |
-| NTP | client + server (`local-clock-stratum=10`); server also broadcasts, multicasts and manycasts |
-| MAC-Winbox / neighbor discovery | limited to the `lan` interface list, which holds only `wg-home` and a dangling `*25`, so effectively off on the LAN |
-| detect-internet | on for the `wan` list; flaps `pppoe-out1`/`lte1` between WAN and INTERNET in the log |
-| IPv6 ND | per-bridge entries for `br-lan`, `br-iot`, `br-guest`, **plus the default `interface=all` entry**, so RAs also go to WAN/VPN interfaces |
+| API, API-SSL, reverse-proxy, FTP, Telnet, WWW-SSL | disabled (API and reverse-proxy since 2026-10-11; the API was reachable from Guest/IoT before). `admin` has no address restriction. |
+| bandwidth-server | disabled |
+| NTP | client + server (`local-clock-stratum=10`), unicast only |
+| MAC-Winbox / neighbor discovery | limited to the `lan` interface list, which holds only `wg-home`, so effectively off on the LAN |
+| detect-internet | off (`detect-interface-list=none`); the `wan` list is static |
+| IPv6 ND | per-bridge entries for `br-lan`, `br-iot`, `br-guest`; the default `interface=all` entry is disabled |
 
-## Pending tuning: `scripts/tune-mikrotik-hexs.rsc`
+## Tuning applied 2026-10-11: `scripts/tune-mikrotik-hexs.rsc`
 
-The script is written but **not applied yet**. Auto mode blocked Claude from changing the router, so it needs to be run by hand:
+The script is idempotent and saves `pre-tune.rsc` on the router before changing anything. Re-apply with:
 
 ```
 scp scripts/tune-mikrotik-hexs.rsc admin@10.0.0.254:
 ssh admin@10.0.0.254 '/import file-name=tune-mikrotik-hexs.rsc verbose=yes'
 ```
 
-It first saves `pre-tune.rsc` on the router, then:
-
 | Area | Change |
 |---|---|
-| Services | Disables the API, reverse-proxy and bandwidth-server; turns off NTP broadcast/multicast/manycast; clears `mdns-repeat-ifaces`; turns off detect-internet |
-| WAN In marks | Adds `new` to `WAN 1/2 - In` (IPv4 + IPv6), fixing port-forward replies leaking to LTE |
-| Input / forward hardening | Drops input from `vpn-out`, `sfp1`, TCP from `br-iptv`, and UDP 53/123/161/5678 from `br-iptv`. Drops new forwarded connections from `vpn-out` unless DSTNATed |
-| STP | Sets `br-lan` priority to `0x1000`, so the router (not AP-3) is STP root |
-| IPv6 ND | Disables the default `interface=all` ND entry |
-| Cleanup | Removes the disabled leases, the "Test MSM8916 IP" address (missing interface), the dangling `lan` list member, the dead "To VPN" mangle rule and its disabled `vpn-routing-sites` entries, and the empty `to-wan2-f` table |
+| Services | API, reverse-proxy and bandwidth-server off; NTP broadcast/multicast/manycast off; `mdns-repeat-ifaces` cleared; detect-internet off |
+| WAN In marks | `WAN 1/2 - In` (IPv4 + IPv6) also match `new`, so port-forward replies no longer leak to LTE |
+| Input / forward hardening | Drop input from `vpn-out`, `sfp1`, TCP from `br-iptv`, and UDP 53/123/161/5678 from `br-iptv`; drop new forwarded connections from `vpn-out` unless DSTNATed |
+| STP | `br-lan` priority `0x1000`: the router is root (the APs report root `1000.<router MAC>`) |
+| IPv6 ND | Default `interface=all` ND entry disabled; RAs only on `br-lan`, `br-iot`, `br-guest` |
+| Cleanup | Removed the disabled Chainedbox/STK1AW32SC leases, the "Test MSM8916 IP" address, the dangling `lan` list member, the "To VPN" mangle rule and its `vpn-routing-sites` entries, and the empty `to-wan2-f` table |
+
+Verified afterwards:
+- IPv4/IPv6 internet and router DNS work.
+- The site-to-site and both VPN-out tunnels handshake.
+- The IPTV DHCP client is bound and the IPTV accept rule still counts, while the new IPTV drop rules have 0 hits.
 
 ## Open decisions
 

@@ -110,7 +110,7 @@ A 3-tier home network: a MikroTik router (`home`) doing dual-stack routing/firew
 
 ## Documentation
 
-- **[MIKROTIK-HEXS.md](MIKROTIK-HEXS.md)** — router config (plus pending `tune-mikrotik-hexs.rsc` and open decisions): VLANs, dual-stack Multi-WAN policy routing & PCC load balancing (`free-services`), dual-stack WireGuard, IPv4/IPv6 FastTrack, NAT66 architecture, DNS, IGMP/multicast, scheduler scripts.
+- **[MIKROTIK-HEXS.md](MIKROTIK-HEXS.md)** — router config (plus the applied `tune-mikrotik-hexs.rsc` and open decisions): VLANs, dual-stack Multi-WAN policy routing & PCC load balancing (`free-services`), dual-stack WireGuard, IPv4/IPv6 FastTrack, NAT66 architecture, DNS, IGMP/multicast, scheduler scripts.
 - **[DEBIAN-SERVER.md](DEBIAN-SERVER.md)** — Wyse 5070 server: Debian 13, hardware specs, storage layout and flash-wear tuning, three-interface network with policy routing, IoT-facing host firewall, Jellyfin Intel QuickSync (QSV), service inventory, bootstrap and `tune-wyse5070.sh`.
 - **[ARMBIAN-SERVER.md](ARMBIAN-SERVER.md)** — (retired box, kept for reference) full service inventory for Chainedbox: storage layout, every service, dual-homed network/VLAN wiring, static IPv4/IPv6 netplan.
 - **[WIFI-APS.md](WIFI-APS.md)** — the 4-AP fleet: VLAN/SSID scheme (IoT keeps 802.11r off for the Mi Box 3), 802.11s mesh + STP backup, radios, `usteer`, Unbound, AP firewall, and the wifi-config-tool (including copying Wi-Fi config to a new AP).
