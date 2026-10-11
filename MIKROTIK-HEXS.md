@@ -1,135 +1,219 @@
 # Home — MikroTik hEX S Router
 
+State below was verified with a read-only audit on 2026-10-11. Several live object names embed the site name: the identity, the WireGuard-in interface, the site-to-site peer and the local/remote network address lists. This doc uses generic names (`home`, `wg-home`, `local-network`, `remote-network`) for them.
+
 ## Identity & hardware
 
-- **System identity**: `home` (aliased in `~/.ssh/config` as `home` / `hexs`)
-- **Model**: RB760iGS ("hEX S") — MikroTik's 5-port Gigabit router with one SFP cage, running RouterOS v7.24 (MediaTek MT7621A, MMIPS 1004Kc 880MHz dual-core / 4-threads, 256MB RAM).
-- **Serial number / Software ID**: present in the export header — not reproduced here; treat them like the credentials elsewhere in this repo (they identify/license this specific unit).
+- **Identity**: `home` (aliased in `~/.ssh/config` as `home` / `hexs`).
+- **Model**: RB760iGS "hEX S": 5× GbE + 1 SFP, MT7621A (880 MHz, 2 cores / 4 threads), 256 MB RAM, 16 MB flash.
+- **Software**:
+  - RouterOS **7.24.4** stable, with 7.24.5 available. RouterBOOT is 7.24.4 (current = upgrade).
+  - Installed packages are `routeros` and `wireless`. The board has no radio, so `wireless` only takes flash.
+- **Load and health**: CPU 2–8 % per core, about 186 MB RAM free. Flash is nearly full at about 3.4 MB free. 12 V, 54 °C.
 - **Timezone**: Asia/Bangkok (`+07:00`).
-- **Auto-upgrade**: `/system routerboard settings` has `auto-upgrade=yes` — RouterOS updates itself and just needs a reboot to apply.
+- **Upgrades**: `/system routerboard settings auto-upgrade=yes` only reflashes RouterBOOT after a RouterOS upgrade, and a second reboot applies it. RouterOS itself is upgraded by hand.
+- **Not reproduced here**: the serial number and software ID.
 
 ## Network topology
 
-Three physical LAN segments plus a VPN-delivered "LAN" segment, layered over 5 Ethernet ports, 1 SFP, 1 LTE modem, and a PPPoE WAN:
-
 | Bridge | Purpose | Members | Subnet |
 |---|---|---|---|
-| `br-lan` | Trusted home LAN | `ether1` (Switch), `ether2` (Wifi), `ether3` (**Wyse 5070**, `10.0.0.100`), `ether4` | `10.0.0.0/24` (`.1`–`.210` pool, `.254` gateway) |
-| `br-iot` | IoT / cameras / NVR — isolated from LAN | `ether5` ("IoT - NVR"), `vlan-e1.10`, `vlan-e2.10`, `vlan-e3.10` (Wyse 5070 IoT `10.0.1.6`) | `10.0.1.0/24` |
-| `br-guest` | Guest Wi-Fi — isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
-| `br-iptv` | ISP IPTV bridge | `vlan-sfp1.99` (Multicast / IGMP), `vlan-sfp1.1100` (Portal Web / DHCP) | DHCP client (`IPTV`), no default route |
+| `br-lan` | Trusted LAN | `ether1` (Switch), `ether2` (Wifi), `ether5` (**Wyse 5070**, `10.0.0.100`); `ether3`/`ether4` are members with no link | `10.0.0.0/24`, gateway `.254`, pool `.1`–`.254`; also `192.168.1.254/24` (undocumented secondary address) |
+| `br-iot` | IoT / cameras / NVR, isolated from LAN | `vlan-e1.10`, `vlan-e2.10`, `vlan-e5.10` (Wyse IoT `10.0.1.100`) | `10.0.1.0/24` |
+| `br-guest` | Guest Wi-Fi, isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
+| `br-iptv` | ISP IPTV | `vlan-sfp1.99` (multicast), `vlan-sfp1.1100` (portal / DHCP) | DHCP client (`IPTV`), no default route |
 
-`ether1` and `ether2` are trunked (carry VLANs 10 and 12 for IoT/Guest respectively, alongside their default untagged LAN membership) — i.e. the same physical switch port to the AP/Wi-Fi gear back-hauls all three segments via VLAN tags. `sfp1` (comment: "SFP - Hisense LTE3415-SCA+") carries the PPPoE VLAN (10), the IPTV Portal VLAN (1100), and the Multicast VLAN (99), bridged together on `br-iptv` to feed the IGMP Proxy and DHCP client untagged frames.
+Notes on the ports and bridges:
+- **Trunks**: `ether1` and `ether2` carry VLAN 1 untagged plus VLANs 10 and 12 tagged to the switch and APs. `ether5` carries VLAN 1 untagged plus VLAN 10 tagged to the Wyse.
+- **IoT gear** (NVR, cameras, inverter) joins VLAN 10 through the trunks; no router port is IoT-only any more.
+- **RSTP**: all bridges run it. `br-iot` shares `ether1`'s MAC with `br-lan` and changed its auto-MAC twice at boot. That's harmless, but `admin-mac` would pin it.
+- **`sfp1`**: comment "SFP - Hisense LTE3415-SCA+". It carries the PPPoE VLAN (10), the IPTV portal VLAN (1100) and the multicast VLAN (99).
 
-WAN: **dual-WAN with failover/load-balancing**:
-- **WAN 1** — PPPoE (`pppoe-out1`, user redacted) over `vlan-sfp1.10`, via VNPT (Vietnamese ISP), through the SFP-connected Hisense LTE3415 (an LTE-to-Ethernet/SFP bridge device, despite the "SFP" naming — it's actually another modem, not a fiber ONT).
-- **WAN 2** — USB M.2 WWAN modem (`lte1`), Telit LN940-A9 (Foxconn T77W676, Cat9 LTE) configured in **MBIM mode (`SETMODE=1`)**, carrier Vinaphone (Band 3) — cellular failover and PCC load-balancing path.
-  - Mode switcher utility script: [`scripts/lte-ln940-mode.sh`](scripts/lte-ln940-mode.sh) (`curl -fsSL https://raw.githubusercontent.com/hungngit2/home-network/main/scripts/lte-ln940-mode.sh | sudo bash`).
-  - Native RouterOS AT command: `/interface/lte/at-chat lte1 input="AT^SETMODE=1"`.
+WANs:
+- **WAN 1**: PPPoE (`pppoe-out1`, user redacted) over `vlan-sfp1.10`, VNPT. The connection passes through the SFP-attached Hisense LTE3415, which is another modem, not a fiber ONT.
+- **WAN 2**: `lte1`, a Telit LN940-A9 (Foxconn T77W676, Cat9) in **MBIM mode** (`SETMODE=1`) on Vinaphone, LTE band 3. It is up and passing traffic.
+  - The default APN has `add-default-route=yes default-route-distance=2`.
+  - The modem logs harmless "mbim conn_ext bs info BAD_SIM" lines on connect, and dropped once ("wdm send failed") on 2026-10-10.
+  - Mode switcher: [`scripts/lte-ln940-mode.sh`](scripts/lte-ln940-mode.sh), or natively: `/interface/lte/at-chat lte1 input="AT^SETMODE=1"`.
 
-## Multi-WAN routing & policy routing (the interesting part)
+## Multi-WAN routing & policy routing
 
-This is the most involved piece of the config — dual-stack routing tables (`to-wan1`, `to-wan2`) plus mangle chains in both IPv4 and IPv6 implement per-connection load balancing across WAN 1/WAN 2, with policy routing on top:
+Mangle `prerouting` in both IPv4 and IPv6 marks connections, and routing tables `to-wan1` / `to-wan2` / `to-vpn-out` carry them.
 
-1. **Dual-Stack PCC Load Balancing for Free Services (IPv4 & IPv6)**: `to-wan1`/`to-wan2` routing tables both default-route out their respective WAN (`pppoe-out1` as WAN 1, `lte1` as WAN 2), selected via connection marks (`wan1`/`wan2`) that mangle assigns using `per-connection-classifier` with a 6:1 weighted split (7 buckets: `7/0`–`7/5` to WAN 1, `7/6` to WAN 2) for both IPv4 and IPv6 traffic. To protect the cellular WAN 2 5GB/day data allowance on the Vinaphone Thaga70 plan, the `Load Blancing Mark` master rule targets only unlimited zero-rated destinations (`dst-address-list=free-services`: YouTube/Google, TikTok, Facebook/Meta/Instagram/Messenger), while all other general internet traffic routes exclusively through WAN 1 (`pppoe-out1`). Both IPv4 and IPv6 use the `Load Blancing Mark` rule in `prerouting` as an easy master toggle.
-2. **"Unblock Sites" → forced through VPN-out**: an IPv4 `mark-routing` rule sends anything matching the `Unblock Sites` address-list (a short hand-picked list of geo-blocked services) out `to-vpn-out` instead — i.e. specific geo-blocked sites are forced through the WireGuard tunnels rather than the ISP. Unused legacy GeoIP static address lists have been purged to keep config lightweight and conserve flash memory.
+1. **PCC load balancing (live)**:
+   - `Load Blancing Mark` matches every new connection to a non-private destination (`dst-address-list=!rfc1918` on IPv4, `!private-ipv6` on IPv6) that isn't headed for the VPN. PCC then splits it into **5 buckets: `5/0`–`5/3` → WAN 1, `5/4` → WAN 2**, i.e. 4:1.
+   - The result is that about 20 % of all new internet connections leave over LTE: 2.0 GB down in the 19 h before the audit.
+   - **This is not the original design.** That design sent only zero-rated destinations (`dst-address-list=free-services`: YouTube/Google, TikTok, Meta) to LTE, to protect the Vinaphone 5 GB/day allowance. `free-services` is still resolved (47 IPv4 / 37 IPv6 entries), but no rule uses it.
+   - To restore the original design, run `set [find comment="Load Blancing Mark"] dst-address-list=free-services` under both `/ip firewall mangle` and `/ipv6 firewall mangle`.
+2. **Inbound WAN marks**: `WAN 1/2 - In` tag connections arriving on `pppoe-out1` / `lte1` so that replies leave the same way.
+   - They only match `established,related`, so a new inbound connection (the 80/443 port-forwards, WireGuard-in) stays unmarked on its first packet.
+   - The server's reply is then picked up by the load-balancing rule, and 1 in 5 replies leave via LTE, which breaks the connection.
+   - `tune-mikrotik-hexs.rsc` adds `new` to the match.
+3. **"Unblock Sites"**: an IPv4 `mark-routing` sends `dst-address-list=unblock-sites` (FQDN entries) to `to-vpn-out`.
 
-Both IPv4 and IPv6 utilize identical 1:1 symmetric dual-target recursive routing with `check-gateway=ping` for health checks:
-- **WAN 1 (`to-wan1`)**: Primary via Cloudflare (`1.1.1.1` / `2606:4700:4700::1111`, `d=1`), Secondary via Google (`8.8.8.8` / `2001:4860:4860::8888`, `d=2`), Fallback to LTE (`lte1`, `d=10`).
-- **WAN 2 (`to-wan2`)**: Primary via Cloudflare (`1.0.0.1` / `2606:4700:4700::1001`, `d=1`), Secondary via OpenDNS (`208.67.222.222` / `2620:119:35::35`, `d=2`), Fallback to PPPoE (`pppoe-out1`, `d=10`). (Avoids Google DNS on WAN 2 so zero-rated free-service routing doesn't create false-positive health checks when quota expires).
-- **Main Table**: Primary on WAN 1 (`d=1`, static via `pppoe-out1`), Secondary on WAN 2 (`d=2`, dynamic via `lte1`'s APN profile — `/interface lte apn` has `add-default-route=yes default-route-distance=2`, not a generic DHCP client). No separate `d=10` static LTE fallback: it duplicated the APN-installed `d=2` route and was removed, along with the redundant ECMP IPv6 default from `pppoe-out1`'s DHCPv6-PD client (`add-default-route` set to `no`; the manually configured static `d=1` default route already covers WAN 1).
-- **VPN-Out (`to-vpn-out`)**: Primary via `wg-vpn-out1` (`9.9.9.9`, `d=1`), Fallback via `wg-vpn-out2` (`149.112.112.112`, `d=2`).
+Routes:
+- **`to-wan1`**: Cloudflare `1.1.1.1` / `2606:4700:4700::1111` (`d=1`), then Google (`d=2`), via recursive `check-gateway=ping`. Fallback is `lte1` (`d=10`).
+- **`to-wan2`**: Cloudflare `1.0.0.1` / `2606:4700:4700::1001` (`d=1`), then OpenDNS (`d=2`). Fallback is `pppoe-out1` (`d=10`). Google is avoided here so an expired zero-rating quota doesn't fake a healthy check.
+- **Main table**: dynamic defaults from the PPPoE client (IPv4 and IPv6, `d=1`) and from `lte1`'s APN (`d=2`).
+- **`to-vpn-out`**: `wg-out1` (`9.9.9.9`, `d=1`), with `wg-out2` (`149.112.112.112`, `d=2`) as fallback.
 
 ## VPN
 
-- **WireGuard inbound** (`wg-home`, UDP `13231`, comment "home <- VPN") — the router's own remote-access & site-to-site VPN, fully dual-stack:
-  - **IPv4 subnet**: `10.0.100.254/24` (road-warrior client peers on `10.0.100.1`–`.3`, site-to-site peer on `10.0.100.100`)
-  - **IPv6 subnet**: `fd39:10:100::254/64` (road-warrior client peers on `fd39:10:100::1`–`::3/128`, site-to-site peer on `fd39:10:100::100/128`)
-  - Peers configured:
-    - **Remote client peers**: Road-warrior mobile & laptop devices (`10.0.100.1`–`.3/32`, `fd39:10:100::1`–`::3/128`)
-    - **Site-to-site peer** (`site1-to-site2`): Remote site (Site 2) OpenWrt gateway (`10.0.100.100/32`, `10.1.0.0/16` [LAN + WG], `fd39:10:100::100/128`, `fd86:10::/48` [ULA], routed via static routes on `wg-home`)
-      - ⚠️ **Must set `endpoint-address=<site2-wan-ip> endpoint-port=13231`** on this peer (Site 2's current WAN IP). See [Troubleshooting](#troubleshooting).
-- **WireGuard outbound ×2** — `wg-vpn-out1` (Primary, `distance=1`) and `wg-vpn-out2` (Fallback, `distance=2`) — these are the tunnels traffic gets routed into for the geo-unblocking rule above, configured with recursive ping health checks.
+- **WireGuard in** (`wg-home`, UDP `13231`) is dual-stack: `10.0.100.254/24`, `fd39:10:100::254/64`. It has four peers:
+  - three road-warrior clients (`10.0.100.1`–`.3`, `fd39:10:100::1`–`::3`);
+  - a site-to-site peer to the remote OpenWrt gateway (`10.0.100.100`, `10.1.0.0/16`, `fd39:10:100::100`, `fd86:10::/48`, routed via static routes). Its endpoint is set to the remote site's DDNS hostname and the handshake is current; see [Troubleshooting](#troubleshooting).
+- **WireGuard out ×2**: `wg-out1` (primary) and `wg-out2` (fallback), used by the "Unblock Sites" rule. Both handshake regularly.
 
 ## DNS
 
-- **Upstream servers**: `10.0.0.100` (Wyse 5070 / AdGuard Home — see [DEBIAN-SERVER.md](DEBIAN-SERVER.md)) listed first, then the 4 OpenWrt APs (`10.0.0.200`–`.203`), then public fallbacks (`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`).
-- **`cache-max-ttl=0s`**: Configured on the router so DNS queries resolve directly via AdGuard Home without stale double-caching, while dynamic FQDN entries in firewall address-lists are retained via `address-list-extra-time=12h`.
-- **Split DNS for IPTV**: a static DNS rule forwards anything matching `*.vmp.tv` to a dedicated forwarder (`mytv-dns` → `172.16.3.246`/`172.16.3.247`, DoH-cert-check disabled) — routes the ISP's IPTV EPG/portal domain to the ISP's own resolvers instead of the normal upstream chain, matching the `iptv/fetchNewList.php` EPG scraper on Wyse 5070.
-- **A disabled scheduler script** (`Check-AGHome`, currently off) implements automatic DNS failover: every minute, if the router is using Wyse 5070 as DNS and a test resolve fails, it fails over to the 4 AP IPs as backup DNS; if already on the backup, it tries switching back.
+- **Servers**: `10.0.0.100` and `10.0.0.101` (the Wyse 5070's AdGuard Home over wired and Wi-Fi, see [DEBIAN-SERVER.md](DEBIAN-SERVER.md)), then the four AP Unbounds `10.0.0.200`–`.203`. There are **no public fallbacks**.
+- **`allow-remote-requests=yes`**: the WAN is dropped by the input chain.
+- **`cache-max-ttl=0s`**: avoids double-caching behind AdGuard. `address-list-extra-time=12h` keeps the FQDN address lists stable.
+- **Split DNS for IPTV**: `*.vmp.tv` is forwarded to the ISP resolvers (`172.16.3.246`/`.247`) for the EPG/portal domain used by `iptv/fetchNewList.php` on the Wyse.
+- **`mdns-repeat-ifaces=br-iot`**: a no-op with only one interface. Avahi on the Wyse does the LAN ⇄ IoT reflection.
+
+## DHCP
+
+LAN clients get DNS `10.0.0.100, 10.0.0.101, 10.0.0.254` and NTP `10.0.0.254`. IoT clients get DNS `10.0.1.100, 10.0.1.254`. Guest clients get the router only.
+
+Notable reservations:
+
+| Address | Device |
+|---|---|
+| `10.0.0.100` | Wyse 5070, wired |
+| `10.0.0.101` | Wyse 5070, Wi-Fi |
+| `10.0.1.100` | Wyse 5070, VLAN 10 |
+| `10.0.0.200`–`.203` | the four APs |
+| `10.0.1.3` | Mi Box 3 (Android TV 9, on the IoT SSID) |
+
+The disabled Chainedbox (`10.0.0.110`) and STK1AW32SC (`10.0.1.6`) reservations are stale.
 
 ## Firewall
 
-Standard MikroTik default-configuration baseline (established/related/untracked accept, drop-invalid, drop-from-WAN-unless-DSTNATed) plus:
+**IPv4 input**, in order:
+1. accept established/related/untracked;
+2. drop invalid;
+3. accept ICMP;
+4. accept WireGuard-in UDP 13231 to `wan-ip`;
+5. accept IGMP and all UDP from `br-iptv`;
+6. accept loopback;
+7. **drop `in-interface-list=wan`** (`pppoe-out1`, `lte1`).
 
-- **IGMP/UDP accepted inbound from `br-iptv`** — lets the ISP's multicast IPTV stream traffic actually reach the router.
-- **Address Lists for Subnets & Hosts**:
-  - **`local-servers`**: Application servers permitted for inter-site & IoT access (`10.0.0.100` [Wyse 5070], `10.0.0.101` [Chainedbox] on IPv4; `fd39:10::100/128`, `fd39:10::101/128` on IPv6).
-  - **`free-services`**: Domain-based zero-rated service list (`youtube.com`, `google.com`, `tiktok.com`, `facebook.com`, `instagram.com`, `messenger.com`, and related CDNs) dynamically resolved and tracked on both IPv4 and IPv6 for PCC load-balancing across WAN 1 and WAN 2.
-  - **`remote-network`**: Remote site network (`10.1.0.0/16` on IPv4, `fd86:10::/48` on IPv6).
-  - **`local-network`**: Local site umbrella (`10.0.0.0/16` on IPv4, `fd39:10::/48` on IPv6).
-  - **`wan-ip`**: Dynamic Cloud DDNS FQDN (`your-router-id.sn.mynetname.net` on IPv4 & IPv6).
-  - **`rfc1918`**: RFC 1918 private IPv4 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
-  - **`dns-internal`**: Internal DNS forwarders (`10.0.0.100`, `10.0.0.200`–`203` on IPv4; `fd39:10::100/128` on IPv6).
-  - **`unblock-sites`**: Domain-based FQDN bypass list (`address=<domain>`) in IPv4 address-list for automatic DNS-tracked VPN routing (`to-vpn-out`).
-- **IoT & Guest isolation**:
-  - **IPv4**: IoT can reach `local-servers` directly and resolve DNS, but is blocked from LAN (`br-iot`→`private`). Guest is completely blocked from LAN/IoT (`br-guest`→`private`).
-  - **IPv6**: Mirrors IPv4 exactly — allows IoT to `local-servers` and DNS (`:53`), while dropping `br-iot`→`private` and `br-guest`→`private`.
-- **Site-to-Site Access Control (`remote-network` $\rightarrow$ Local)**:
-  - **IPv4**: `remote-network` is blocked from accessing `local-network`, with explicit exceptions only for `local-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMP.
-  - **IPv6**: `remote-network` is blocked from accessing `local-network`, with explicit exceptions only for `local-servers`: DNS UDP (`:53`), Combined TCP (`:53, :80, :443, :5140`), and ICMPv6.
-- **FastTrack**: Rule #1 in the `forward` chain on both IPv4 (`FastTrack: IPv4`) and IPv6 (`FastTrack: IPv6`), hardware-accelerating established/related flows and keeping router CPU load at ~10-15%.
-- **NAT**: 
-  - **IPv4**: Standard masquerade for WAN/VPN-out egress, a hairpin NAT rule for LAN-to-LAN via the public/DDNS name, port-forward `80,443`→Wyse 5070 (`10.0.0.100`).
-  - **IPv6 (NAT66 / Masquerade & `pd-WAN` Anchor)**:
-    - **Why ULA + NAT66 across all segments (LAN, IoT, Guest, VPN)**: VNPT (ISP) only delegates a single `/64` prefix (insufficient for native multi-VLAN segmentation) and their upstream BRAS/BNG and OMC core routing suffer from routing loops and blackholes when handling individual downstream client SLAAC `/128` host routes. NAT66 collapses all outbound traffic from all segments into the router's single public GUA identity, completely bypassing VNPT's OMC routing mess while giving all internal VLANs and remote WireGuard clients rock-solid static ULA addressing (`fd39:...`).
-    - **The `pd-WAN` Anchor Mechanism**: VNPT delegates only a prefix (`IA_PD`), without assigning a WAN GUA address (`IA_NA`) to `pppoe-out1` (link-local only). RouterOS's `action=masquerade` engine requires at least one active GUA bound on the router to use as the public source IP. Binding `from-pool=ipv6-wan1-pool` directly to `pppoe-out1` (`pd-WAN`, `advertise=no`) provides this public anchor address cleanly without broadcasting public RAs to any client VLANs.
-    - **Outbound Rule**: `action=masquerade chain=srcnat out-interface-list=wan src-address=fc00::/7 comment="ULA -> Internet"`.
-    - **Inbound Destination NAT**: Port-forwards `80,443` to Wyse 5070 (`fd39:10::100/128`), with explicit forward filter acceptance (`connection-nat-state=dstnat in-interface-list=wan`).
+Interfaces that are neither LAN nor in `wan` can therefore reach the router's own services: `wg-out1/2`, `sfp1` and `br-iptv`, which reach DNS, NTP and MNDP (and the API until it is disabled). IPv6 input is fine.
+
+**Forward**, in order:
+1. FastTrack;
+2. accept established/related;
+3. drop invalid;
+4. IPsec accepts;
+5. drop new from WAN unless DSTNATed;
+6. **Block Remote Site to Local Network** (blanket);
+7. **Block IoT to LAN** (`br-iot` → `private` list);
+8. **Block Guest to LAN**.
+
+IPv6 has the same forward rules.
+
+Notes on the forward chain:
+- The exception rules that let IoT and the remote site reach `local-servers` (DNS, 80/443/5140, ICMP) were deleted via WebFig on 2026-10-10. Six IPv4 and five IPv6 rules were removed.
+- IoT still reaches the Wyse directly on its VLAN 10 address, where the Wyse's own firewall closes its admin ports. The remote site can no longer reach the Wyse.
+- `local-servers` (IPv4 `10.0.0.100`; IPv6 `fd39:10::100`, `fd39:10::101`) and `dns-internal` remain, but nothing references them.
+- New connections from the VPN-out peers are not dropped. Their `allowed-address` is `0.0.0.0/0`, so the VPN provider side could open connections into the LAN.
+
+**Address lists**:
+
+| List | Contents | Used by a rule |
+|---|---|---|
+| `wan-ip` | Cloud DDNS FQDN | yes |
+| `rfc1918` / `private-ipv6` | private ranges | yes |
+| `unblock-sites` | FQDN entries | yes |
+| `local-network` / `remote-network` | `10.0.0.0/16` + `fd39:10::/48` / `10.1.0.0/16` + `fd86:10::/48` | yes |
+| `free-services` | zero-rated destinations | no |
+| `local-servers` | see above | no |
+| `dns-internal` | internal resolvers | no |
+
+**FastTrack**: IPv4 FastTrack (the software fast path) handled 8.9M packets / 10.9 GB since boot. The IPv6 rule matched 3.2M packets but fast-tracked none.
+
+**IPv4 NAT**:
+- masquerade out `wan` / `vpn-out`, plus out `sfp1` (modem management) and `br-iptv`;
+- hairpin NAT for LAN → public name;
+- port-forward `80,443` → Wyse `10.0.0.100`;
+- disabled toggles: torrent `6889` tcp/udp → Wyse, "Force NTP IoT Local" and an NTP srcnat.
+
+**IPv6 NAT66** (why ULA + NAT66 everywhere):
+- **The problem**: VNPT delegates a single `/64` (`IA_PD` only, no `IA_NA` on `pppoe-out1`), and its BNG/OMC routing loops on per-client SLAAC `/128` routes.
+- **The fix**: every internal segment uses ULA `fd39:…`, and egress masquerades to one public address:
+  - `pd-WAN` binds `from-pool=ipv6-wan1-pool` to `pppoe-out1` (`advertise=no`), giving masquerade a GUA source without advertising public prefixes to clients;
+  - outbound: `chain=srcnat action=masquerade src-address=fc00::/7 out-interface-list=wan`;
+  - inbound: `80,443` → `fd39:10::100`, accepted by `connection-nat-state=dstnat in-interface-list=wan`.
+
+**Other mangle**: MSS clamp to PMTU on forward SYN, and "LTE - TTL Override" (set TTL 65 on `lte1`, disabled).
 
 ## Scheduler & scripts
 
-- **`IPTV DHCP Client Hook`** — **active**: Event-driven script attached directly to `/ip dhcp-client` for `br-iptv`. Whenever the dynamic IPTV lease binds or renews (`$bound=1`), it automatically cycles `br-lan` in `/routing igmp-proxy` so the kernel MFC table is instantly refreshed with valid upstream sockets.
-- **`IGMP-Proxy-Fix`** — **disabled** (superseded by the event-driven IPTV DHCP client hook above).
-- **`Reboot-Weekly`** — exists but disabled. (Interesting contrast with Chainedbox's *enabled* nightly reboot — the router isn't rebooted on a schedule, only Chainedbox is.)
-- **`Check-AGHome`** — see [DNS](#dns) above; exists but disabled.
+- **`IGMP-Proxy-Fix`**: enabled, every 4 h. It cycles the IGMP proxy's `br-lan` downstream so stale MFC entries are flushed after IPTV DHCP renewals, which causes a multicast blip of about 1 s. No DHCP-client hook exists.
+- **`Weekly-Reboot-Mon-4AM`**: disabled.
+- No netwatch entries, no `Check-AGHome` script.
 
 ## IGMP / multicast (IPTV)
 
-- **Architecture**: `br-iptv` is the upstream bridge (`alternative-subnets=0.0.0.0/0`, `multicast-querier=yes`, `igmp-version=2`), and `br-lan` is the downstream proxy interface with `multicast-router=permanent` on LAN switch ports (`ether1`–`ether4`) and active `query-interval=60s` / `query-response-interval=5s`.
-- **The Upstream IGMPv2 Protocol Fix**: RouterOS 7's IGMP Proxy defaults to IGMPv3 (`224.0.0.22`), which VNPT's IGMPv2 multicast BNGs ignore. Enabling `multicast-querier=yes` and `igmp-version=2` on `br-iptv` forces RouterOS's IGMP proxy into **IGMPv2 compatibility mode**, ensuring all upstream joins are transmitted as native IGMPv2 reports directly to the channel multicast IP (e.g. `232.84.1.117`), which triggers the ISP stream immediately.
-- **Automated Socket Recovery**: The event-driven DHCP client hook on `br-iptv` automatically cycles `br-lan` to purge stale kernel MFC table entries (`upstream-interface=*FFFFFFFF`) across dynamic DHCP renewals without relying on polling schedulers.
+- **Proxy layout**: `br-iptv` is the upstream (`alternative-subnets=0.0.0.0/0`, `multicast-querier=yes`, `igmp-version=2`), and `br-lan` is the only downstream. `multicast-router=permanent` is set on the LAN switch ports, with `query-interval=60s` / `query-response-interval=5s`.
+- **IGMPv2 fix**: RouterOS 7's proxy defaults to IGMPv3 reports (`224.0.0.22`), which VNPT's IGMPv2 BNG ignores. Querier + `igmp-version=2` on `br-iptv` forces IGMPv2 joins to the group address (e.g. `232.84.1.117`).
+- **Routes**: the `172.16.0.0/16` IPTV route hard-codes the ISP gateway `10.52.88.1`. If the IPTV DHCP lease ever moves to another gateway, that route breaks.
 
 ## Services
 
 | Service | State |
 |---|---|
-| SSH | **enabled** (key-based auth `yes-if-no-key` with `id_hungnguyen`, `strong-crypto=yes`, restricted to `10.0.0.0/24` + `10.0.100.0/24`, aliased in `~/.ssh/config` as `home` / `hexs`) |
-| FTP, Telnet, API, API-SSL | **disabled** |
-| WWW (HTTP config UI), Winbox | enabled, restricted to `10.0.0.0/24` + `10.0.100.0/24` (LAN + WireGuard-in) |
-| SMB (file sharing on the router itself) | disabled |
-| NTP client | enabled; NTP server also enabled (broadcast/multicast, `local-clock-stratum=10`) — the router serves time to the LAN in addition to syncing itself against Cloudflare/`vn.pool.ntp.org`/`asia.pool.ntp.org` |
-| `/tool sniffer` | stopped / default (no active filters) |
-| Kid Control | disabled / no active profiles |
+| SSH | enabled, from `10.0.0.0/24` + `10.0.100.0/24` only, key auth (`id_hungnguyen`), `strong-crypto=yes` |
+| WWW, Winbox | enabled, LAN + WireGuard-in only |
+| API (8728) | **enabled from any address**; reachable from Guest, IoT and every non-`wan` interface. `admin` has no address restriction. |
+| reverse-proxy (443) | enabled with no rules |
+| bandwidth-server | enabled |
+| FTP, Telnet, API-SSL, WWW-SSL | disabled |
+| NTP | client + server (`local-clock-stratum=10`); server also broadcasts, multicasts and manycasts |
+| MAC-Winbox / neighbor discovery | limited to the `lan` interface list, which holds only `wg-home` and a dangling `*25`, so effectively off on the LAN |
+| detect-internet | on for the `wan` list; flaps `pppoe-out1`/`lte1` between WAN and INTERNET in the log |
+| IPv6 ND | per-bridge entries for `br-lan`, `br-iot`, `br-guest`, **plus the default `interface=all` entry**, so RAs also go to WAN/VPN interfaces |
+
+## Pending tuning: `scripts/tune-mikrotik-hexs.rsc`
+
+The script is written but **not applied yet**. Auto mode blocked Claude from changing the router, so it needs to be run by hand:
+
+```
+scp scripts/tune-mikrotik-hexs.rsc admin@10.0.0.254:
+ssh admin@10.0.0.254 '/import file-name=tune-mikrotik-hexs.rsc verbose=yes'
+```
+
+It first saves `pre-tune.rsc` on the router, then:
+
+| Area | Change |
+|---|---|
+| Services | Disables the API, reverse-proxy and bandwidth-server; turns off NTP broadcast/multicast/manycast; clears `mdns-repeat-ifaces`; turns off detect-internet |
+| WAN In marks | Adds `new` to `WAN 1/2 - In` (IPv4 + IPv6), fixing port-forward replies leaking to LTE |
+| Input / forward hardening | Drops input from `vpn-out`, `sfp1`, TCP from `br-iptv`, and UDP 53/123/161/5678 from `br-iptv`. Drops new forwarded connections from `vpn-out` unless DSTNATed |
+| STP | Sets `br-lan` priority to `0x1000`, so the router (not AP-3) is STP root |
+| IPv6 ND | Disables the default `interface=all` ND entry |
+| Cleanup | Removes the disabled leases, the "Test MSM8916 IP" address (missing interface), the dangling `lan` list member, the dead "To VPN" mangle rule and its disabled `vpn-routing-sites` entries, and the empty `to-wan2-f` table |
+
+## Open decisions
+
+- **PCC scope**: keep balancing all traffic 4:1 onto LTE, or go back to `free-services` only (see [Multi-WAN](#multi-wan-routing--policy-routing)).
+- **RouterOS 7.24.5**: upgrade, and `/system package uninstall wireless` to free flash. This needs two reboots (RouterOS, then RouterBOOT) and a WAN/VPN outage.
+- **Remote-site access**: restore remote-site access to the Wyse (DNS/HTTP/IPTV), or delete the now-unused `local-servers` / `dns-internal` lists.
+- **`192.168.1.254/24` on `br-lan`**: remove it if nothing on `192.168.1.x` needs it.
 
 ## Troubleshooting
 
-### Site-to-Site VPN drops after reboot
+### Site-to-site VPN drops after reboot
 
-**Symptom**: The remote site router sends WireGuard handshake initiations every ~5s to this router's WAN IP on port `13231`. The IPv4 firewall rule accepts the packets. But this router's WireGuard sends **zero responses** — `rx=0 tx=0`, `current-endpoint-address=""` forever.
+**Symptom**: the remote router sends WireGuard handshake initiations every ~5 s to this router's WAN IP on port `13231`. The firewall accepts them, but this router never answers (`rx=0 tx=0`, empty `current-endpoint-address`).
 
-**Root cause (2026-08-30)**: After upgrading to **RouterOS 7.24**, WireGuard in pure passive/responder mode (peer with `endpoint-address=""`) silently drops valid handshake initiations without responding. This was not observed on earlier versions — likely a regression introduced in 7.24, or a RouterOS design limitation that was masked by a warm session surviving the previous reboot.
+**Root cause (2026-08-30, RouterOS 7.24)**: a peer in pure passive/responder mode (empty `endpoint-address`) silently ignored valid initiations after the upgrade.
 
-**Fix**: Set `endpoint-address` and `endpoint-port` on the site-to-site peer so this router also acts as an initiator (bidirectional):
+**Fix (in place since then)**: give the site-to-site peer an endpoint, so this router also initiates. Live, it points at the remote site's DDNS hostname, which survives the remote PPPoE address changing:
 
 ```
-# Get Site 2's current WAN IP first (run on Site 2 router):
-#   ip address show dev pppoe-internet | grep 'inet '
-
-/interface/wireguard/peers/set [find name=site2-to-home] \
-  endpoint-address=<site2-wan-ip> endpoint-port=13231
+/interface/wireguard/peers/set <site-to-site peer> endpoint-address=<remote-site-ddns-name> endpoint-port=13231
 ```
 
-> **Rule of thumb**: For site-to-site WireGuard on MikroTik, **always configure endpoints on both sides**. This lets either peer recover from a dropped session independently and avoids the passive-responder issue entirely.
->
-> Note: Site 2's WAN IP is assigned dynamically by the ISP (PPPoE). If it changes after a reconnect, update the endpoint accordingly — or set up a dynamic DNS hostname for Site 2 and use that instead.
+> **Rule of thumb**: for site-to-site WireGuard on MikroTik, configure endpoints on both sides, so either peer can recover a dropped session on its own.
