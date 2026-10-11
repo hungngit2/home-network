@@ -89,7 +89,7 @@ One cable runs from `enp1s0` to the MikroTik's `ether5`, carrying VLAN 1 untagge
 
 | Interface | Segment | IPv4 | IPv6 | Managed by | Default-route metric (v4 / v6) |
 |---|---|---|---|---|---|
-| `enp1s0` | LAN (VLAN 1) | `10.0.0.100` (DHCP reservation) | `fd39:10::100/64` (static + token `::100`) | ifupdown (`/etc/network/interfaces`) | 0 / 100 (kernel RA, `ra_defrtr_metric`) |
+| `enp1s0` | LAN (VLAN 1) | `10.0.0.100` (static; the router reservation is kept) | `fd39:10::100/64` (static + token `::100`) | ifupdown (`/etc/network/interfaces`) | 0 / 100 (kernel RA, `ra_defrtr_metric`) |
 | `enp1s0.10` | IoT (VLAN 10) | `10.0.1.100` (DHCP reservation) | `fd39:10:0:1::100/64` (static, `ipv6.method=manual`, no RA) | NetworkManager, generated from `/etc/netplan/90-vlan10.yaml` | 400 / none |
 | `wlp0s12f0` | LAN over Wi-Fi, 5 GHz only | `10.0.0.101` (DHCP reservation) | `fd39:10::101/64` (static, gateway `fd39:10::254`) | NetworkManager keyfile (home Wi-Fi SSID, WPA-PSK, `802-11-wireless.band a`, `powersave 2` = off) | 600 / 600 |
 
@@ -109,8 +109,9 @@ How the pieces fit together:
 
 ```
 auto enp1s0
-iface enp1s0 inet dhcp
-    metric 100
+iface enp1s0 inet static
+    address 10.0.0.100/24
+    gateway 10.0.0.254
     post-up ip route replace 224.0.0.0/4 dev enp1s0 || true
     post-up ethtool -s enp1s0 wol g || true
     # Reply from 10.0.0.100 via the router, not straight out VLAN 10 (asymmetric routing)
@@ -126,7 +127,9 @@ iface enp1s0 inet6 auto
     up ip token set ::100 dev enp1s0 || true
 ```
 
-The `metric 100` line has no effect with ifupdown's DHCP client: the wired default route is installed at metric 0. It still wins over VLAN 10 (400) and Wi-Fi (600).
+The wired default route sits at metric 0, ahead of VLAN 10 (400) and Wi-Fi (600).
+
+**Why static (since 2026-10-11)**: ifupdown used BusyBox `udhcpc`, which sends only 3 discovers, 3 s apart, and gives up. On the 2026-10-11 reboot the first discover went out while the 1G link was still negotiating. The next ones hit the router port before it started forwarding, so the LAN's primary DNS server came up without `10.0.0.100`; only the Wi-Fi and VLAN 10 addresses worked. `udhcpc` also rewrote `/etc/resolv.conf` on every renewal. The hEX S port (`ether5`) is now `edge=yes-discover` as well, so it forwards as soon as the link is up.
 
 ### Policy routing (IPv4)
 
@@ -227,6 +230,18 @@ These settings were cloned from the Chainedbox (1 GB ARM).
   - MariaDB defaults: one small `kodbox` database.
   - rtp2httpd: `workers=1`, `maxclients=5`.
 
+### Boot, flash wear and disk health (2026-10-11)
+
+- **Boot**: `/etc/initramfs-tools/conf.d/resume` still pointed at the `sda3` swap partition removed on 2026-09-20. Every boot waited about 30 s in the initramfs for it (kernel stage 34 s). It is now `RESUME=none`.
+- **Jellyfin transcodes**: segments go to tmpfs at `/tmp/jellyfin-transcodes` (`TranscodingTempPath`, created by `/etc/tmpfiles.d/jellyfin-transcodes.conf`) instead of the flash drive.
+- **Flash writes**: vnstat saves every 30 min instead of 5, and root is mounted `noatime`.
+- **Bluetooth**: off (`/etc/modprobe.d/disable-bluetooth.conf`). BlueZ isn't installed and nothing uses it.
+- **SMART**: smartd runs a short self-test daily at 03:00 and a long one on Sundays at 04:00.
+- **Remaining writes**: about 5 GB/day.
+  - Home Assistant: about 2 GB/day of real energy-sensor history.
+  - KodBox's file cache (`/appsrv/www/kodbox/data/temp/_cache`): about 0.6 GB/day.
+  - The AdGuard query log.
+
 ### Packages removed (2026-10-11)
 
 - **Installer leftovers and tasks**: `os-prober`, `tasksel`, `tasksel-data`, `task-english`, `task-ssh-server` (`openssh-server` was marked manual first), `laptop-detect`, `installation-report`, `reportbug` and its Python libraries.
@@ -244,7 +259,7 @@ Kept on purpose:
 
 ## Tuning script and what's left
 
-[`scripts/tune-wyse5070.sh`](scripts/tune-wyse5070.sh) applies everything marked 2026-10-11 above. It is idempotent, backs up each edited file as `*.bak-YYYYMMDD`, and leaves `enp1s0` (the SSH path) alone. Re-run it after a rebuild:
+[`scripts/tune-wyse5070.sh`](scripts/tune-wyse5070.sh) applies everything marked 2026-10-11 above. It is idempotent and backs up each edited file under `/root/tune-backups-YYYYMMDD/<original path>`. Backups never go next to the file: a `resume.bak` left in `/etc/initramfs-tools/conf.d/` was sourced by the initramfs and kept a 30 s boot wait alive. It touches `enp1s0` (the SSH path) only to convert it from DHCP to static, in the background. Re-run it after a rebuild:
 
 ```bash
 ssh -i ~/.ssh/id_hungnguyen root@10.0.0.100 'bash -s' < scripts/tune-wyse5070.sh

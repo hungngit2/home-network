@@ -34,6 +34,8 @@
 
 # An AP that reboots weekly was STP root: netifd's default 0x7fff beats RouterOS's 0x8000
 /interface bridge set br-lan priority=0x1000
+# ether5 is the Wyse (a host, no bridge behind it): forward as soon as the link is up
+/interface bridge port set [find interface=ether5 bridge=br-lan] edge=yes-discover
 
 # Each bridge has its own ND entry; the default one also advertised on WAN and VPN interfaces
 /ipv6 nd set [find default=yes] disabled=yes

@@ -1,8 +1,8 @@
 #!/bin/bash
 # Apply the flash-wear, network, security and cleanup tuning documented in
-# DEBIAN-SERVER.md to the live Wyse 5070. Idempotent; backs up every file it edits.
+# DEBIAN-SERVER.md to the live Wyse 5070. Idempotent; backs up edited files under /root/tune-backups-<date>/.
 # Usage: ssh -i ~/.ssh/id_hungnguyen root@10.0.0.100 'bash -s' < scripts/tune-wyse5070.sh
-# Brief blips: Home Assistant restarts, VLAN 10 and Wi-Fi reconnect (wired enp1s0 is untouched).
+# Services restart only when their config changes; enp1s0 is re-applied only when converting it to static.
 set -euo pipefail
 
 BOLD="\033[1m"
@@ -23,6 +23,8 @@ STAMP="$(date +%Y%m%d)"
 WIRED_IF="enp1s0"
 VLAN_IF="enp1s0.10"
 VLAN_CON="vlan10"
+WIRED_IP="10.0.0.100/24"
+GATEWAY="10.0.0.254"
 WIFI_IF="wlp0s12f0"
 VLAN_V6="fd39:10:0:1::100/64"
 IOT_V4="10.0.1.0/24"
@@ -30,8 +32,15 @@ IOT_V6="fd39:10:0:1::/64"
 PASSWORD_OK_FROM="10.0.0.0/24,10.0.100.0/24,fd39:10::/64,fd39:10:100::/64"
 HA_CONFIG="/opt/docker/homeassistant/config/configuration.yaml"
 
+BACKUP_DIR="/root/tune-backups-${STAMP}"
+
+# Never next to the file: conf.d directories (e.g. initramfs-tools) source every file in them
 backup() {
-    [[ -e "$1" && ! -e "$1.bak-${STAMP}" ]] && cp -a "$1" "$1.bak-${STAMP}"
+    local dest="${BACKUP_DIR}$(readlink -f "$1")"
+    if [[ -e "$1" && ! -e "${dest}" ]]; then
+        mkdir -p "$(dirname "${dest}")"
+        cp -a "$1" "${dest}"
+    fi
     return 0
 }
 
@@ -91,12 +100,28 @@ EOF
         docker restart homeassistant >/dev/null
         log_succ "Recorder tuned, Home Assistant restarted"
     else
-        cp -a "${HA_CONFIG}.bak-${STAMP}" "${HA_CONFIG}"
+        cp -a "${BACKUP_DIR}$(readlink -f "${HA_CONFIG}")" "${HA_CONFIG}"
         log_err "check_config failed (see /tmp/ha-check.log); configuration.yaml restored"
     fi
 fi
 
-log_head "4/11 IPv6 routing: static VLAN 10 address, wired default route preferred"
+log_head "4/11 Wired static IPv4; IPv6 routing: static VLAN 10 address, wired default route preferred"
+# udhcpc (ifupdown's DHCP client here) sent 3 discovers while the 1G link was still negotiating and gave up,
+# leaving the LAN's DNS server without its address after a reboot; it also rewrites resolv.conf on renew
+if grep -qE "^iface ${WIRED_IF} inet dhcp" /etc/network/interfaces; then
+    backup /etc/network/interfaces
+    python3 - "${WIRED_IF}" "${WIRED_IP}" "${GATEWAY}" <<'PY'
+import re, sys
+iface, addr, gw = sys.argv[1:]
+p = "/etc/network/interfaces"
+s = open(p).read()
+s = re.sub(rf"^iface {iface} inet dhcp\n(\s+metric \d+\n)?",
+           f"iface {iface} inet static\n    address {addr}\n    gateway {gw}\n", s, count=1, flags=re.M)
+open(p, "w").write(s)
+PY
+    nohup sh -c "sleep 2; [ -f /run/udhcpc.${WIRED_IF}.pid ] && kill \$(cat /run/udhcpc.${WIRED_IF}.pid); rm -f /run/udhcpc.${WIRED_IF}.pid; ifdown ${WIRED_IF}; ifup ${WIRED_IF}" >/root/ifup-static.log 2>&1 &
+    log_info "${WIRED_IF} switched to static ${WIRED_IP} (re-applied in the background; the SSH session may pause for a second)"
+fi
 NETPLAN_VLAN=/etc/netplan/90-vlan10.yaml
 VLAN_MAC="$(awk '/macaddress:/ {gsub(/"/, "", $2); print $2}' "${NETPLAN_VLAN}")"
 if [[ -z "${VLAN_MAC}" ]]; then
@@ -439,7 +464,7 @@ if [[ ! -e /etc/modprobe.d/disable-bluetooth.conf ]]; then
     log_info "Bluetooth disabled (no BlueZ on the host, nothing uses it)"
 fi
 
-if ! grep -q -- '-s (S/' /etc/smartd.conf; then
+if ! grep -qE '^DEVICESCAN .* -s \(' /etc/smartd.conf; then
     backup /etc/smartd.conf
     sed -i -E 's#^DEVICESCAN -d removable -n standby -m root#DEVICESCAN -d removable -n standby -s (S/../.././03|L/../../7/04) -m root#' /etc/smartd.conf
     systemctl restart smartmontools
@@ -448,4 +473,4 @@ fi
 log_succ "Root mount: $(findmnt -no OPTIONS /)"
 
 log_head "Done"
-log_info "Backups: *.bak-${STAMP} next to each edited file"
+log_info "Backups: ${BACKUP_DIR}/<original path>"

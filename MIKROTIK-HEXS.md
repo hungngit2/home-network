@@ -187,7 +187,7 @@ ssh admin@10.0.0.254 '/import file-name=tune-mikrotik-hexs.rsc verbose=yes'
 | Services | API, reverse-proxy and bandwidth-server off; NTP broadcast/multicast/manycast off; `mdns-repeat-ifaces` cleared; detect-internet off |
 | WAN In marks | `WAN 1/2 - In` (IPv4 + IPv6) also match `new`, so port-forward replies no longer leak to LTE |
 | Input / forward hardening | Drop input from `vpn-out`, `sfp1`, TCP from `br-iptv`, and UDP 53/123/161/5678 from `br-iptv`; drop new forwarded connections from `vpn-out` unless DSTNATed |
-| STP | `br-lan` priority `0x1000`: the router is root (the APs report root `1000.<router MAC>`) |
+| STP | `br-lan` priority `0x1000`: the router is root (the APs report root `1000.<router MAC>`). `ether5` (the Wyse) is `edge=yes-discover`, so it forwards as soon as the link is up |
 | IPv6 ND | Default `interface=all` ND entry disabled; RAs only on `br-lan`, `br-iot`, `br-guest` |
 | Cleanup | Removed the disabled Chainedbox/STK1AW32SC leases, the "Test MSM8916 IP" address, the dangling `lan` list member, the "To VPN" mangle rule and its `vpn-routing-sites` entries, and the empty `to-wan2-f` table |
 
