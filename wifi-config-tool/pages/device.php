@@ -108,6 +108,14 @@ if ($loginSuccess) {
                 } else {
                      $_SESSION['flash_error'] = "No interfaces selected for removal.";
                 }
+            } elseif ($_POST['action'] === 'clone_from') {
+                $sourceDevice = $deviceManager->getDevice(trim($_POST['copy_from'] ?? ''));
+                if ($sourceDevice && $sourceDevice['name'] !== $device['name']) {
+                    $result = \OpenWrt\ConfigCloner::cloneDevice($sourceDevice, $device);
+                    $_SESSION[$result['ok'] ? 'flash_success' : 'flash_error'] = ucfirst($result['message']) . '.';
+                } else {
+                    $_SESSION['flash_error'] = "Pick another access point to copy from.";
+                }
             } elseif ($_POST['action'] === 'update_region') {
                 $newRegion = trim($_POST['region'] ?? 'Default');
                 $deviceManager->updateDeviceRegion($name, $newRegion);
@@ -230,6 +238,39 @@ $regions = $deviceManager->getRegions();
                 }
             }
             ?>
+
+            <?php
+            $otherDevices = array_values(array_filter($deviceManager->getDevices(), function ($d) use ($device) {
+                return $d['name'] !== $device['name'];
+            }));
+            ?>
+            <?php if (!empty($otherDevices)): ?>
+                <div class="card" style="border-left: 5px solid #805ad5;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0;">Copy Wi-Fi Config From Another AP</h3>
+                        <button type="button" onclick="toggleSection('clone-form', 'toggle-clone-icon')" class="btn" style="background-color: #777; padding: 5px 15px;">
+                            <span id="toggle-clone-icon"><?= empty($ssidGroups) ? '▲' : '▼' ?></span>
+                        </button>
+                    </div>
+                    <div id="clone-form" style="display: <?= empty($ssidGroups) ? 'block' : 'none' ?>; margin-top: 15px;">
+                        <form method="post" onsubmit="return confirm('Replace every client SSID on <?= htmlspecialchars($device['name'], ENT_QUOTES) ?> with the selected AP\'s? Wi-Fi on this AP restarts.');">
+                            <input type="hidden" name="action" value="clone_from">
+                            <div class="form-group">
+                                <label for="copy_from">Source Access Point</label>
+                                <select name="copy_from" id="copy_from" style="width: 100%; padding: 8px;">
+                                    <?php foreach ($otherDevices as $d): ?>
+                                        <option value="<?= htmlspecialchars($d['name']) ?>" <?= ($d['region'] ?? '') === ($device['region'] ?? '') ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($d['name']) ?><?= count($regions) > 1 ? ' (' . htmlspecialchars($d['region'] ?? 'Default') . ')' : '' ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small style="color:#777;">Client SSIDs are matched to radios by band and replace this AP's current ones. Channels, mesh backhaul and MAC-specific options stay as they are; the previous config is kept in <code>/etc/config/wireless.bak-clone</code>.</small>
+                            </div>
+                            <button type="submit" class="btn" style="background-color: #805ad5;">Copy Wi-Fi Config</button>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <?php if (empty($ssidGroups)): ?>
                 <div class="card">
@@ -379,6 +420,14 @@ $regions = $deviceManager->getRegions();
             if (ssidSelector.value) {
                 ssidSelector.dispatchEvent(new Event('change'));
             }
+        }
+
+        function toggleSection(formId, iconId) {
+            const form = document.getElementById(formId);
+            const icon = document.getElementById(iconId);
+            const hidden = form.style.display === 'none';
+            form.style.display = hidden ? 'block' : 'none';
+            icon.textContent = hidden ? '▲' : '▼';
         }
 
         // Toggle Add SSID form

@@ -187,6 +187,10 @@ class OpenWrtClient {
         return $res !== null;
     }
 
+    public function runBatch(array $commands) {
+        return $this->execCommand(implode(' && ', $commands)) !== null;
+    }
+
     public function deleteWirelessInterface($sectionName) {
         $cmd = "uci delete wireless." . escapeshellarg($sectionName) . " && uci commit wireless";
         $res = $this->execCommand($cmd);

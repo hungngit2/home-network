@@ -28,13 +28,15 @@ class Standards {
                 'ieee80211r' => '1',
                 'ieee80211k' => '1',
                 'ieee80211v' => '1',
-                'ft_over_ds' => '1',
+                'ft_over_ds' => '0',
                 'ft_psk_generate_local' => '1',
                 'mobility_domain' => '1076'
             ],
             'ssid_overrides' => [
+                // Mi Box 3 (Android TV 9) and older IoT chips fail to join when FT-PSK is advertised
                 '*IoT*' => [
-                    'ieee80211w' => '0'
+                    'ieee80211w' => '0',
+                    'ieee80211r' => '0'
                 ]
             ]
         ];
@@ -77,7 +79,7 @@ class Standards {
         $options['encryption'] = !empty($key) ? ($options['encryption'] ?? 'psk2+ccmp') : 'none';
         $options['network'] = $network;
 
-        // 1. Apply SSID-specific overrides (e.g. "*IoT*", "lotus IoT", etc.)
+        // 1. Apply SSID-specific overrides (e.g. "*IoT*", "home IoT", etc.)
         if (isset($standards['ssid_overrides']) && is_array($standards['ssid_overrides'])) {
             foreach ($standards['ssid_overrides'] as $pattern => $overrideOpts) {
                 if (fnmatch($pattern, $ssid, FNM_CASEFOLD) || strcasecmp($pattern, $ssid) === 0) {
@@ -99,7 +101,7 @@ class Standards {
             $options['ieee80211r'] = $roaming ? '1' : '0';
             $options['ieee80211k'] = $roaming ? '1' : '0';
             $options['ieee80211v'] = $roaming ? '1' : '0';
-            $options['ft_over_ds'] = $roaming ? '1' : '0';
+            $options['ft_over_ds'] = '0';
             $options['ft_psk_generate_local'] = $roaming ? '1' : '0';
         }
 
@@ -114,8 +116,6 @@ class Standards {
         } else {
             $options['mobility_domain'] = '';
             $options['ieee80211r'] = '0';
-            $options['ieee80211k'] = '0';
-            $options['ieee80211v'] = '0';
             $options['ft_over_ds'] = '0';
             $options['ft_psk_generate_local'] = '0';
         }

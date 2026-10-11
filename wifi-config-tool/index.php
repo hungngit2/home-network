@@ -26,9 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Clean hostname/IP
         $url = preg_replace('/^https?:\/\//i', '', $url);
         
+        $copyFrom = trim($_POST['copy_from'] ?? '');
+
         if ($name && $url) {
             $deviceManager->addDevice($name, $url, $username, '', $port, $region);
-            $message = "Access Point '$name' added successfully to group '" . htmlspecialchars($region ?: 'Default') . "'.";
+            $message = "Access Point '$name' added successfully to group '" . ($region ?: 'Default') . "'.";
+
+            $sourceDevice = ($copyFrom !== '' && $copyFrom !== $name) ? $deviceManager->getDevice($copyFrom) : null;
+            if ($sourceDevice) {
+                $result = \OpenWrt\ConfigCloner::cloneDevice($sourceDevice, $deviceManager->getDevice($name));
+                if ($result['ok']) {
+                    $message .= ' Wi-Fi: ' . $result['message'] . '.';
+                } else {
+                    $message .= " Copying Wi-Fi from '$copyFrom' failed: " . $result['message'] . '. Retry from the AP page once it is reachable.';
+                    $isError = true;
+                }
+            }
         } else {
             $message = "Please provide both an Access Point Name and an IP address.";
             $isError = true;
@@ -183,6 +196,23 @@ foreach ($displayGroups as $list) {
                         <div id="new_group_container" style="display: none; margin: 8px 0 14px 0;">
                             <label for="new_region_name">New Group Name</label>
                             <input type="text" id="new_region_name" name="new_region_name" placeholder="e.g. office, warehouse">
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($devices)): ?>
+                        <div class="form-group" style="margin: 8px 0 14px 0;">
+                            <label for="copy_from">Copy Wi-Fi Config From</label>
+                            <select id="copy_from" name="copy_from">
+                                <option value="">— Don't copy —</option>
+                                <?php foreach ($groupedDevices as $r => $devs): ?>
+                                    <?php foreach ($devs as $i => $d): ?>
+                                        <option value="<?= htmlspecialchars($d['name']) ?>" <?= ($activeRegion === $r && $i === 0) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($d['name']) ?><?= $hasMultipleRegions ? ' (' . htmlspecialchars($r) . ')' : '' ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </select>
+                            <small style="color: #64748b;">Copies every client SSID (password, network, roaming, PMF) per band plus radio country, and replaces the new AP's default SSIDs. Channels and the mesh backhaul are left alone.</small>
                         </div>
                     <?php endif; ?>
 
