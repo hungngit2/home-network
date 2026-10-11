@@ -660,6 +660,7 @@ fetch_repo_file "wifi-config-tool/src/bootstrap.php" "${APPSRV_DIR}/www/wifi-con
 fetch_repo_file "wifi-config-tool/src/OpenWrtClient.php" "${APPSRV_DIR}/www/wifi-config-tool/src/OpenWrtClient.php"
 fetch_repo_file "wifi-config-tool/src/DeviceManager.php" "${APPSRV_DIR}/www/wifi-config-tool/src/DeviceManager.php"
 fetch_repo_file "wifi-config-tool/src/Standards.php" "${APPSRV_DIR}/www/wifi-config-tool/src/Standards.php"
+fetch_repo_file "wifi-config-tool/src/ConfigCloner.php" "${APPSRV_DIR}/www/wifi-config-tool/src/ConfigCloner.php"
 
 # Install / Update yt-dlp binary for YouTube Dashboard
 log_info "Installing / updating yt-dlp to /usr/local/bin/yt-dlp..."

@@ -160,7 +160,7 @@ foreach ($displayGroups as $list) {
             </div>
 
             <div id="add-device-form" style="display: none; margin-top: 15px; border-top: 1px solid #edf2f7; padding-top: 15px;">
-                <form method="post">
+                <form method="post" onsubmit="const src = this.copy_from ? this.copy_from.value : ''; return !src || confirm('Replace every client SSID on the new AP with ' + src + '\'s and restart its Wi-Fi?');">
                     <input type="hidden" name="action" value="add">
 
                     <div class="form-grid">
@@ -205,8 +205,8 @@ foreach ($displayGroups as $list) {
                             <select id="copy_from" name="copy_from">
                                 <option value="">— Don't copy —</option>
                                 <?php foreach ($groupedDevices as $r => $devs): ?>
-                                    <?php foreach ($devs as $i => $d): ?>
-                                        <option value="<?= htmlspecialchars($d['name']) ?>" <?= ($activeRegion === $r && $i === 0) ? 'selected' : '' ?>>
+                                    <?php foreach ($devs as $d): ?>
+                                        <option value="<?= htmlspecialchars($d['name']) ?>">
                                             <?= htmlspecialchars($d['name']) ?><?= $hasMultipleRegions ? ' (' . htmlspecialchars($r) . ')' : '' ?>
                                         </option>
                                     <?php endforeach; ?>

@@ -210,7 +210,10 @@ class OpenWrtClient {
     }
 
     public function applyWifi() {
-        $cmd = "/sbin/wifi reload 2>/dev/null || ubus call network reload 2>/dev/null";
+        // `wifi reload` leaves 5 GHz AP vifs down next to an 802.11s mesh on MT76, and usteer loses BSSes it saw go away
+        $settle = 'sleep 30; for v in /sys/class/net/phy*-ap*; do [ "$(cat $v/operstate)" = up ] || { wifi down; sleep 3; wifi up; sleep 30; break; }; done; '
+            . '[ -x /etc/init.d/usteer ] && /etc/init.d/usteer restart';
+        $cmd = "wifi down; sleep 3; wifi up; ( {$settle} ) </dev/null >/dev/null 2>&1 &";
         $res = $this->execCommand($cmd);
         return $res !== null;
     }
