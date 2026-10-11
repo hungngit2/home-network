@@ -1,1 +1,0 @@
-mikrotik-lte/index.php
