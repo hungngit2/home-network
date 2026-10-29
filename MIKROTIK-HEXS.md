@@ -16,22 +16,24 @@ State below was verified with a read-only audit on 2026-10-11. Several live obje
 
 ## Network topology
 
-| Bridge | Purpose | Members | Subnet |
+| Bridge / interface | Purpose | Members | Subnet |
 |---|---|---|---|
-| `br-lan` | Trusted LAN | `ether1` (Switch), `ether2` (Wifi), `ether5` (**Wyse 5070**, `10.0.0.100`); `ether3`/`ether4` are members with no link | `10.0.0.0/24`, gateway `.254`, pool `.1`–`.254` (an unused secondary `192.168.1.254/24` was removed on 2026-10-11) |
-| `br-iot` | IoT / cameras / NVR, isolated from LAN | `vlan-e1.10`, `vlan-e2.10`, `vlan-e5.10` (Wyse IoT `10.0.1.100`) | `10.0.1.0/24` |
-| `br-guest` | Guest Wi-Fi, isolated from LAN | `vlan-e1.12`, `vlan-e2.12` | `192.168.12.0/24` |
+| `br-lan` (`vlan-filtering=yes`) | Trusted LAN, VLAN 1 untagged | `ether1` (Switch), `ether2` (Wifi), `ether5` (**Wyse 5070**, `10.0.0.100`); `ether3`/`ether4` are members with no link | `10.0.0.0/24`, gateway `.254`, pool `.1`–`.254` (an unused secondary `192.168.1.254/24` was removed on 2026-10-11) |
+| `vlan-iot` (VLAN 10 on `br-lan`) | IoT / cameras / NVR, isolated from LAN | tagged on `ether1`, `ether2`, `ether5` (Wyse IoT `10.0.1.100`) | `10.0.1.0/24` |
+| `vlan-guest` (VLAN 12 on `br-lan`) | Guest Wi-Fi, isolated from LAN | tagged on `ether1`, `ether2` | `192.168.12.0/24` |
 | `br-iptv` | ISP IPTV | `vlan-sfp1.99` (multicast), `vlan-sfp1.1100` (portal / DHCP) | DHCP client (`IPTV`), no default route |
 
 Notes on the ports and bridges:
-- **Trunks**: `ether1` and `ether2` carry VLAN 1 untagged plus VLANs 10 and 12 tagged to the switch and APs. `ether5` carries VLAN 1 untagged plus VLAN 10 tagged to the Wyse.
+- **Trunks**: `ether1` and `ether2` carry VLAN 1 untagged plus VLANs 10 and 12 tagged to the switch and APs. `ether5` carries VLAN 1 untagged plus VLAN 10 tagged to the Wyse. The tagging lives in `/interface bridge vlan` on `br-lan`.
 - **IoT gear** (NVR, cameras, inverter) joins VLAN 10 through the trunks; no router port is IoT-only any more.
-- **RSTP**: all bridges run it. `br-iot` shares `ether1`'s MAC with `br-lan` and changed its auto-MAC twice at boot. That's harmless, but `admin-mac` would pin it.
+- **RSTP**: `br-lan` and `br-iptv` run it. No `br-lan` port is hardware-offloaded (it wasn't before the 2026-10-29 VLAN change either).
 - **`sfp1`**: comment "SFP - Hisense LTE3415-SCA+". It carries the PPPoE VLAN (10), the IPTV portal VLAN (1100) and the multicast VLAN (99).
 
 WANs:
 - **WAN 1**: PPPoE (`pppoe-out1`, user redacted) over `vlan-sfp1.10`, VNPT. The connection passes through the SFP-attached Hisense LTE3415, which is another modem, not a fiber ONT.
+  - MTU **1492** (`max-mtu`/`max-mru`; raised from 1480 on 2026-10-29). Don't-fragment pings at 1492 reach `1.1.1.1` and `8.8.8.8`, and IPv6 works at 1492.
 - **WAN 2**: `lte1`, a Telit LN940-A9 (Foxconn T77W676, Cat9) in **MBIM mode** (`SETMODE=1`) on Vinaphone, LTE band 3. It is up and passing traffic.
+  - MTU **1500** (raised from 1480 on 2026-10-29; the network advertises 1500). Don't-fragment pings at 1500 reach `1.1.1.1` and `8.8.8.8`.
   - The default APN has `add-default-route=yes default-route-distance=2`.
   - The modem logs harmless "mbim conn_ext bs info BAD_SIM" lines on connect, and dropped once ("wdm send failed") on 2026-10-10.
   - Mode switcher: [`scripts/lte-ln940-mode.sh`](scripts/lte-ln940-mode.sh), or natively: `/interface/lte/at-chat lte1 input="AT^SETMODE=1"`.
@@ -108,7 +110,7 @@ The step 7 drops were added on 2026-10-11. Before that, `wg-out1/2`, `sfp1` and 
 4. IPsec accepts;
 5. drop new from WAN unless DSTNATed, and (since 2026-10-11) new from `vpn-out` unless DSTNATed;
 6. **Block Remote Site to Local Network** (blanket);
-7. **Block IoT to LAN** (`br-iot` → `private` list);
+7. **Block IoT to LAN** (`vlan-iot` → `private` list);
 8. **Block Guest to LAN**.
 
 IPv6 has the same forward rules.
@@ -171,7 +173,7 @@ Notes on the forward chain:
 | NTP | client + server (`local-clock-stratum=10`), unicast only |
 | MAC-Winbox / neighbor discovery | limited to the `lan` interface list, which holds only `wg-home`, so effectively off on the LAN |
 | detect-internet | off (`detect-interface-list=none`); the `wan` list is static |
-| IPv6 ND | per-bridge entries for `br-lan`, `br-iot`, `br-guest`; the default `interface=all` entry is disabled |
+| IPv6 ND | entries for `br-lan`, `vlan-iot`, `vlan-guest`; the default `interface=all` entry is disabled |
 
 ## Tuning applied 2026-10-11: `scripts/tune-mikrotik-hexs.rsc`
 
@@ -188,13 +190,24 @@ ssh admin@10.0.0.254 '/import file-name=tune-mikrotik-hexs.rsc verbose=yes'
 | WAN In marks | `WAN 1/2 - In` (IPv4 + IPv6) also match `new`, so port-forward replies no longer leak to LTE |
 | Input / forward hardening | Drop input from `vpn-out`, `sfp1`, TCP from `br-iptv`, and UDP 53/123/161/5678 from `br-iptv`; drop new forwarded connections from `vpn-out` unless DSTNATed |
 | STP | `br-lan` priority `0x1000`: the router is root (the APs report root `1000.<router MAC>`). `ether5` (the Wyse) is `edge=yes-discover`, so it forwards as soon as the link is up |
-| IPv6 ND | Default `interface=all` ND entry disabled; RAs only on `br-lan`, `br-iot`, `br-guest` |
+| IPv6 ND | Default `interface=all` ND entry disabled; RAs only on `br-lan`, `br-iot`, `br-guest` (now `vlan-iot`, `vlan-guest`) |
 | Cleanup | Removed the disabled Chainedbox/STK1AW32SC leases, the "Test MSM8916 IP" address, the dangling `lan` list member, the "To VPN" mangle rule and its `vpn-routing-sites` entries, and the empty `to-wan2-f` table |
 
 Verified afterwards:
 - IPv4/IPv6 internet and router DNS work.
 - The site-to-site and both VPN-out tunnels handshake.
 - The IPTV DHCP client is bound and the IPTV accept rule still counts, while the new IPTV drop rules have 0 hits.
+
+## Bridge VLAN filtering applied 2026-10-29: `scripts/hexs-vlan-filtering.rsc`
+
+RouterOS 7.25 flagged `vlan-e1.10`, `vlan-e1.12`, `vlan-e2.10`, `vlan-e2.12` and `vlan-e5.10` with "vlan parent is a slave": they were VLAN interfaces on ports that were also `br-lan` members, which RouterOS doesn't support (the switch chip can forward tagged frames between `br-lan` ports, bypassing the router). The script:
+- adds `vlan-iot` (10) and `vlan-guest` (12) on `br-lan`, with `/interface bridge vlan` entries tagging 10 on `ether1,ether2,ether5` and 12 on `ether1,ether2`;
+- moves the IPv4/IPv6 addresses, DHCP servers, ND entries, `private` list members and the IPv4/IPv6 "Block IoT/Guest to LAN" rules from `br-iot` / `br-guest` to them;
+- removes the five per-port VLANs and the `br-iot` / `br-guest` bridges, then sets `br-lan vlan-filtering=yes` behind a 3-minute auto-revert scheduler (removed by hand once SSH was confirmed).
+
+It saves `pre-vlan-filtering.rsc` and `pre-vlan-filtering.backup` on the router first. Verified afterwards: the "slave" warnings are gone, SSH over `br-lan` works, the Wyse answers on `10.0.1.100`, IoT ARP and leases are present, and PPPoE reaches `1.1.1.1`. Guest had no leases before or after, so Guest Wi-Fi still needs a client test.
+
+`vlan-guest` now uses `br-lan`'s MAC instead of `br-guest`'s pinned `admin-mac`.
 
 ## Open decisions
 
