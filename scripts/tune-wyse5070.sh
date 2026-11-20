@@ -50,14 +50,14 @@ if [[ $EUID -ne 0 || ! -d "/sys/class/net/${WIRED_IF}" || ! -d "/sys/class/net/$
     exit 1
 fi
 
-log_head "1/11 Journal size cap"
+log_head "1/12 Journal size cap"
 mkdir -p /etc/systemd/journald.conf.d
 printf '[Journal]\nSystemMaxUse=256M\nSystemMaxFileSize=32M\n' > /etc/systemd/journald.conf.d/10-size.conf
 systemctl restart systemd-journald
 journalctl --vacuum-size=256M >/dev/null 2>&1 || true
 log_succ "$(journalctl --disk-usage)"
 
-log_head "2/11 Docker daemon (drop dead mirrors, live-restore)"
+log_head "2/12 Docker daemon (drop dead mirrors, live-restore)"
 if python3 -c 'import json,sys; d=json.load(open("/etc/docker/daemon.json")); sys.exit(0 if "registry-mirrors" in d or d.get("live-restore") is not True else 1)'; then
     backup /etc/docker/daemon.json
     python3 - <<'PY'
@@ -83,7 +83,7 @@ for net in $(docker network ls --filter type=custom --format '{{.Name}}'); do
     fi
 done
 
-log_head "3/11 Home Assistant recorder"
+log_head "3/12 Home Assistant recorder"
 if grep -q '^recorder:' "${HA_CONFIG}"; then
     log_info "recorder: block already present, leaving it alone"
 else
@@ -106,7 +106,7 @@ EOF
     fi
 fi
 
-log_head "4/11 NetworkManager DHCP on every interface; IPv6 routing"
+log_head "4/12 NetworkManager DHCP on every interface; IPv6 routing"
 WIRED_YAML="/etc/netplan/10-${WIRED_IF}.yaml"
 WIRED_NEW="$(mktemp)"
 cat > "${WIRED_NEW}" <<EOF
@@ -236,7 +236,7 @@ fi
 ip -br addr show "${VLAN_IF}"
 ip -6 route show default
 
-log_head "5/11 Wi-Fi: 5 GHz only, unused NetworkManager profiles"
+log_head "5/12 Wi-Fi: 5 GHz only, unused NetworkManager profiles"
 WIFI_CON="$(nmcli -t -f NAME,TYPE connection show | awk -F: '$2=="802-11-wireless" {print $1}' | head -n 1 || true)"
 if [[ -n "${WIFI_CON}" && "$(nmcli -g 802-11-wireless.band,802-11-wireless.powersave connection show "${WIFI_CON}" | xargs)" != "a disable" ]]; then
     nmcli connection modify "${WIFI_CON}" 802-11-wireless.band a 802-11-wireless.powersave 2
@@ -248,7 +248,7 @@ for con in cellular "Wired connection 1"; do
     fi
 done
 
-log_head "6/11 SSH: passwords only from LAN and VPN"
+log_head "6/12 SSH: passwords only from LAN and VPN"
 SSHD_DROPIN=/etc/ssh/sshd_config.d/10-password-lan-vpn-only.conf
 cat > "${SSHD_DROPIN}" <<EOF
 PasswordAuthentication no
@@ -265,7 +265,7 @@ else
     log_err "sshd validation failed (lan=${lan_pw:-?} iot=${iot_pw:-?}); drop-in removed, SSH unchanged"
 fi
 
-log_head "7/11 Host firewall and forwarding: admin ports closed to IoT, no routing between LAN/IoT/Wi-Fi"
+log_head "7/12 Host firewall and forwarding: admin ports closed to IoT, no routing between LAN/IoT/Wi-Fi"
 # With forwarding on and FORWARD policy ACCEPT, an IoT device could route through this box into the LAN
 sed -i -E 's/^(net\.ipv6\.conf\.(all|default)\.forwarding) = 1/\1 = 0/' /etc/sysctl.d/99-server.conf
 sysctl -q -w net.ipv6.conf.all.forwarding=0 net.ipv6.conf.default.forwarding=0
@@ -319,7 +319,7 @@ systemctl enable nft-hostguard.service >/dev/null 2>&1
 systemctl restart nft-hostguard.service
 log_succ "hostguard loaded; tables now: $(nft list tables | awk '{print $2"/"$3}' | xargs)"
 
-log_head "8/11 DNS: resolve through the local AdGuard Home"
+log_head "8/12 DNS: resolve through the local AdGuard Home"
 printf '[main]\ndns=none\n' > /etc/NetworkManager/conf.d/90-dns-none.conf
 systemctl reload NetworkManager
 if [[ ! -L /etc/resolv.conf ]] && ! grep -q '^nameserver 127.0.0.1' /etc/resolv.conf; then
@@ -328,7 +328,7 @@ if [[ ! -L /etc/resolv.conf ]] && ! grep -q '^nameserver 127.0.0.1' /etc/resolv.
 fi
 log_succ "resolv.conf first server $(awk '/^nameserver/ {print $2; exit}' /etc/resolv.conf); test: $(getent hosts deb.debian.org | awk '{print $1; exit}')"
 
-log_head "9/11 Services inherited from the Chainedbox"
+log_head "9/12 Services inherited from the Chainedbox"
 UNBOUND_DIR=/etc/unbound/unbound.conf.d
 if [[ -e "${UNBOUND_DIR}/custom.conf" ]]; then
     mv "${UNBOUND_DIR}/custom.conf" "/root/unbound-custom.conf.removed-${STAMP}"
@@ -423,7 +423,7 @@ cat > /etc/logrotate.d/nginx-appsrv <<'EOF'
 EOF
 logrotate -d /etc/logrotate.d/nginx-appsrv >/dev/null 2>&1 && log_info "nginx logs on /appsrv now rotate weekly"
 
-log_head "10/11 Packages and leftovers"
+log_head "10/12 Packages and leftovers"
 if systemctl list-unit-files wol.service >/dev/null 2>&1 && [[ -e /etc/systemd/system/wol.service ]]; then
     systemctl disable wol.service >/dev/null 2>&1 || true
     rm -f /etc/systemd/system/wol.service
@@ -457,7 +457,7 @@ apt-get autoremove --purge -y -q >/dev/null
 rm -rf /var/log/installer
 log_succ "Kernels left: $(dpkg -l 'linux-image-[0-9]*' | awk '/^ii/ {print $2}' | xargs)"
 
-log_head "11/11 Boot, flash wear and disk health"
+log_head "11/12 Boot, flash wear and disk health"
 # The resume UUID pointed at the sda3 swap partition removed on 2026-09-20; each boot waited ~30 s for it
 if grep -q '^RESUME=UUID=' /etc/initramfs-tools/conf.d/resume 2>/dev/null; then
     backup /etc/initramfs-tools/conf.d/resume
@@ -514,6 +514,23 @@ if ! grep -qE '^DEVICESCAN .* -s \(' /etc/smartd.conf; then
     log_info "smartd: short self-test daily 03:00, long test Sundays 04:00"
 fi
 log_succ "Root mount: $(findmnt -no OPTIONS /)"
+
+log_head "12/12 Clock: chrony always steps, containers wait for NTP sync"
+# The RTC comes up ~16h slow; chrony's default "makestep 1 3" can spend its steps before the sources agree,
+# then slews for days and Home Assistant stamps history and energy statistics with the wrong date
+if [[ ! -e /etc/chrony/conf.d/10-always-step.conf ]]; then
+    printf 'makestep 1 -1\n' > /etc/chrony/conf.d/10-always-step.conf
+    systemctl restart chrony
+    log_info "chrony: step whenever the clock is off by more than 1 s"
+fi
+# Wants, not Requires: without internet Docker still starts after chrony-wait's 180 s timeout
+if [[ ! -e /etc/systemd/system/docker.service.d/10-wait-ntp.conf ]]; then
+    mkdir -p /etc/systemd/system/docker.service.d
+    printf '[Unit]\nWants=time-sync.target\nAfter=time-sync.target\n' > /etc/systemd/system/docker.service.d/10-wait-ntp.conf
+    systemctl daemon-reload
+fi
+systemctl enable --quiet chrony-wait.service
+log_succ "Clock: $(timedatectl show -p NTPSynchronized --value | sed 's/yes/synced/;s/no/NOT synced/'); docker after: $(systemctl show docker -p After | grep -o time-sync.target)"
 
 log_head "Done"
 log_info "Backups: ${BACKUP_DIR}/<original path>"
