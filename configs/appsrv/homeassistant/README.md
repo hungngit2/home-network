@@ -22,7 +22,7 @@ The dashboard needs the HACS cards `apexcharts-card` and Home Energy Hub (`grata
 
 The card's `pv_forecast` uses `sensor.house_39_pv_open_meteo_energy_production_today`, `_today_remaining`, `_tomorrow` and `_d2`–`_d4`. In the Energy settings it is the only solar forecast; HA adds every listed forecast together, so never list two sources at once.
 
-On 2026-11-20 Open-Meteo forecast 28.2 kWh against 25.2 kWh actual, while Forecast.Solar forecast 9.37 kWh. The two Forecast.Solar entries and their `sensor.pv_forecast_*` sums are still installed only for comparison; delete them once Open-Meteo has proven itself.
+Open-Meteo replaced Forecast.Solar on 2026-11-20. For that day Open-Meteo forecast 28.2 kWh against 25.2 kWh actual, while Forecast.Solar's free tier forecast 9.37 kWh. The Forecast.Solar entries and their `sensor.pv_forecast_*` sums have been removed.
 
 ## Restore
 
