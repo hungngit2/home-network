@@ -11,6 +11,17 @@ Exported from `/opt/docker/homeassistant/config` on the Wyse (HA 2026.9, Docker,
 
 The dashboard needs the HACS cards `apexcharts-card` and Home Energy Hub (`gratak/solar-flow-card`, `type: custom:home-energy-hub`, Diorama theme on the Energy view).
 
+## Solar forecast
+
+Two Forecast.Solar entries, one per string (Settings → Devices & services → Forecast.Solar). Both use HA's home location and face south (azimuth 180):
+
+| Entry | Tilt | Peak power | Sensors |
+|---|---|---|---|
+| PV string 1 (6 x 550 W) | 9° | 3300 W | `sensor.energy_production_today`, `_remaining`, `_tomorrow` |
+| PV string 2 (3 x 615 W) | 14° | 1845 W | the same with a `_2` suffix |
+
+`configuration.yaml` sums them into `sensor.pv_forecast_today`, `sensor.pv_forecast_remaining_today` and `sensor.pv_forecast_tomorrow`, which feed the card's `pv_forecast`. Both entries are also set as the solar forecast in the Energy settings (Settings → Dashboards → Energy), which draws the card's hourly forecast line.
+
 ## Restore
 
 1. Replace `EVN_CUSTOMER_ID` in `lovelace.lovelace.json` with the EVN customer code; it is part of the `nestup_evn` entity IDs.

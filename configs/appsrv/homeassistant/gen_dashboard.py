@@ -159,7 +159,7 @@ home = {"title": "Home", "path": "home", "icon": "mdi:home", "type": "sections",
 hub.update({
     "title": "House 39",
     "colors": {"solar": "#ffc107", "load": "#2196f3", "grid": "#ff5722", "battery": "#4caf50"},
-    "sections": ["flow", "today", "sources", "inverter", "forecast", "energy", "consumers", "insights",
+    "sections": ["flow", "today", "sources", "inverter", "forecast", "pv_forecast", "energy", "consumers", "insights",
                  "comparison", "panels"],
     "collapsible": True,
     "collapsed": ["comparison", "panels"],

@@ -97,3 +97,24 @@ template:
           {{ has_value('sensor.luxpower_inverter_battery_battery_soc')
              and states('sensor.luxpower_inverter_battery_battery_soc') | float(0) > 30
              and states('sensor.luxpower_inverter_battery_battery_flow') | float(0) > 50 }}
+      - name: "PV Forecast Today"
+        unique_id: pv_forecast_today
+        unit_of_measurement: "kWh"
+        device_class: energy
+        icon: mdi:solar-power-variant
+        state: "{{ (states('sensor.energy_production_today') | float(0) + states('sensor.energy_production_today_2') | float(0)) | round(2) }}"
+        availability: "{{ has_value('sensor.energy_production_today') and has_value('sensor.energy_production_today_2') }}"
+      - name: "PV Forecast Remaining Today"
+        unique_id: pv_forecast_remaining_today
+        unit_of_measurement: "kWh"
+        device_class: energy
+        icon: mdi:solar-power-variant
+        state: "{{ (states('sensor.energy_production_today_remaining') | float(0) + states('sensor.energy_production_today_remaining_2') | float(0)) | round(2) }}"
+        availability: "{{ has_value('sensor.energy_production_today_remaining') and has_value('sensor.energy_production_today_remaining_2') }}"
+      - name: "PV Forecast Tomorrow"
+        unique_id: pv_forecast_tomorrow
+        unit_of_measurement: "kWh"
+        device_class: energy
+        icon: mdi:solar-power-variant
+        state: "{{ (states('sensor.energy_production_tomorrow') | float(0) + states('sensor.energy_production_tomorrow_2') | float(0)) | round(2) }}"
+        availability: "{{ has_value('sensor.energy_production_tomorrow') and has_value('sensor.energy_production_tomorrow_2') }}"

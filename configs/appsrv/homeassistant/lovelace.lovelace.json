@@ -1128,6 +1128,7 @@
                     "sources",
                     "inverter",
                     "forecast",
+                    "pv_forecast",
                     "energy",
                     "consumers",
                     "insights",
@@ -1139,7 +1140,15 @@
                     "comparison",
                     "panels"
                   ],
-                  "title": "House 39"
+                  "title": "House 39",
+                  "pv_forecast": {
+                    "today": "sensor.pv_forecast_today",
+                    "remaining": "sensor.pv_forecast_remaining_today",
+                    "days": [
+                      "sensor.pv_forecast_tomorrow"
+                    ],
+                    "hourly": true
+                  }
                 }
               ]
             },
