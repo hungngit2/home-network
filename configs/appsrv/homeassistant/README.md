@@ -6,7 +6,8 @@ Exported from `/opt/docker/homeassistant/config` on the Wyse (HA 2026.9, Docker,
 |---|---|---|
 | `configuration.yaml` | `configuration.yaml` | Recorder tuning; kWh templates for the Tuya energy plugs, which report Wh (with `availability:` guards); Battery Status and Battery Runtime sensors |
 | `automations.yaml` | `automations.yaml` | Grid fallback at 30%/40% battery SOC, low-battery and grid-fallback alerts, inverter fault and offline alerts, irrigation auto-off, bike charger cut-off |
-| `lovelace.lovelace.json` | `.storage/lovelace.lovelace` | Default dashboard: Home, Energy, Battery & Inverter, System |
+| `lovelace.lovelace.json` | `.storage/lovelace.lovelace` | Default dashboard: Home, Energy, Equipment, Settings (admin only) |
+| `gen_dashboard.py` | — | Rebuilds that dashboard. Run it on the Wyse with HA stopped: `python3 gen_dashboard.py .storage/lovelace.lovelace`. It keeps the live Home Energy Hub card and the EVN entity IDs |
 
 The dashboard needs the HACS cards `apexcharts-card` and Home Energy Hub (`gratak/solar-flow-card`, `type: custom:home-energy-hub`, Diorama theme on the Energy view).
 
