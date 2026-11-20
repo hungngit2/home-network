@@ -8,7 +8,7 @@ Exported from `/opt/docker/homeassistant/config` on the Wyse (HA 2026.9, Docker,
 | `automations.yaml` | `automations.yaml` | Grid fallback at 30%/40% battery SOC, low-battery and grid-fallback alerts, inverter fault and offline alerts, irrigation auto-off, bike charger cut-off |
 | `lovelace.lovelace.json` | `.storage/lovelace.lovelace` | Default dashboard: Home, Energy, Battery & Inverter, System |
 
-The dashboard needs the HACS cards `apexcharts-card` and `Power-Flow-Card-Inverter`.
+The dashboard needs the HACS cards `apexcharts-card` and Home Energy Hub (`gratak/solar-flow-card`, `type: custom:home-energy-hub`, Diorama theme on the Energy view).
 
 ## Restore
 
