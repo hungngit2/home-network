@@ -1,0 +1,1700 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.lovelace",
+  "data": {
+    "config": {
+      "title": "Home",
+      "views": [
+        {
+          "title": "Home",
+          "path": "home",
+          "icon": "mdi:home",
+          "type": "sections",
+          "max_columns": 3,
+          "badges": [
+            {
+              "type": "entity",
+              "entity": "weather.forecast_home",
+              "show_state": true,
+              "show_icon": true,
+              "state_content": [
+                "state",
+                "temperature"
+              ]
+            },
+            {
+              "type": "entity",
+              "entity": "sensor.luxpower_inverter_pv_pv_energy_today",
+              "name": "Solar today",
+              "show_name": true,
+              "show_state": true,
+              "show_icon": true,
+              "color": "amber"
+            },
+            {
+              "type": "entity",
+              "entity": "sensor.luxpower_inverter_home_consumption_today_calculated",
+              "name": "Used today",
+              "show_name": true,
+              "show_state": true,
+              "show_icon": true,
+              "color": "blue"
+            },
+            {
+              "type": "entity",
+              "entity": "switch.grid_protector",
+              "name": "On grid",
+              "show_name": true,
+              "show_state": true,
+              "show_icon": true,
+              "color": "deep-orange",
+              "icon": "mdi:transmission-tower",
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "switch.grid_protector",
+                  "state": "on"
+                }
+              ]
+            }
+          ],
+          "sections": [
+            {
+              "type": "grid",
+              "visibility": [
+                {
+                  "condition": "or",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.luxpower_inverter_active_fault_text",
+                      "state_not": [
+                        "No Faults",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "sensor.luxpower_inverter_active_warning_text",
+                      "state_not": [
+                        "No Warnings",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "state": "unavailable"
+                    },
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "below": 31
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.cb_ground_floor_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.cb_floor_1_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.cb_floor_2_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.meter_protector_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.grid_protector_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.refrigerator_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.mosquito_repellent_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.sac_xe_problem",
+                      "state": "on"
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.mosquito_liquid_problem",
+                      "state": "on"
+                    }
+                  ]
+                }
+              ],
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Needs attention",
+                  "icon": "mdi:alert-circle",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_active_fault_text",
+                  "name": "Inverter fault",
+                  "icon": "mdi:alert-octagon",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.luxpower_inverter_active_fault_text",
+                      "state_not": [
+                        "No Faults",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_active_warning_text",
+                  "name": "Inverter warning",
+                  "icon": "mdi:alert",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.luxpower_inverter_active_warning_text",
+                      "state_not": [
+                        "No Warnings",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                  "name": "Inverter offline",
+                  "icon": "mdi:lan-disconnect",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "state": "unavailable"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                  "name": "Battery low, running on grid fallback",
+                  "icon": "mdi:battery-alert",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "below": 31
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.cb_ground_floor_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.cb_ground_floor_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.cb_floor_1_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.cb_floor_1_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.cb_floor_2_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.cb_floor_2_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.meter_protector_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.meter_protector_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.grid_protector_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.grid_protector_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.refrigerator_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.refrigerator_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.mosquito_repellent_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.mosquito_repellent_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.sac_xe_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.sac_xe_problem",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.mosquito_liquid_problem",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "binary_sensor.mosquito_liquid_problem",
+                      "state": "on"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Power now",
+                  "icon": "mdi:solar-power-variant",
+                  "heading_style": "title",
+                  "badges": [
+                    {
+                      "type": "entity",
+                      "entity": "sensor.luxpower_inverter_inverter_state",
+                      "show_icon": true,
+                      "show_state": true,
+                      "tap_action": {
+                        "action": "more-info"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "gauge",
+                  "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                  "name": "Battery",
+                  "min": 0,
+                  "max": 100,
+                  "needle": true,
+                  "severity": {
+                    "green": 50,
+                    "yellow": 31,
+                    "red": 0
+                  },
+                  "grid_options": {
+                    "columns": 6,
+                    "rows": 2
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv_power",
+                  "name": "Solar",
+                  "icon": "mdi:solar-power",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_load_power",
+                  "name": "Home using",
+                  "icon": "mdi:home-lightning-bolt",
+                  "color": "blue",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.battery_status",
+                  "name": "Battery",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.battery_runtime",
+                  "name": "Runtime until grid fallback (30%)",
+                  "icon": "mdi:timer-sand",
+                  "color": "teal",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.battery_runtime",
+                      "state_not": "unavailable"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.grid_protector",
+                  "name": "Grid fallback",
+                  "icon": "mdi:transmission-tower",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  },
+                  "state_content": [
+                    "state",
+                    "last_changed"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Controls",
+                  "icon": "mdi:gesture-tap-button",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.sonoff_10014c209d_1",
+                  "name": "Front light",
+                  "icon": "mdi:outdoor-lamp",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "features": [
+                    {
+                      "type": "toggle"
+                    }
+                  ],
+                  "features_position": "inline"
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.sonoff_1000eff333",
+                  "name": "Irrigation (auto-off 15 min)",
+                  "icon": "mdi:sprinkler-variant",
+                  "color": "cyan",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "features": [
+                    {
+                      "type": "toggle"
+                    }
+                  ],
+                  "features_position": "inline",
+                  "state_content": [
+                    "state",
+                    "last_changed"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.sonoff_10014c1f48_1",
+                  "name": "Water pump",
+                  "icon": "mdi:water-pump",
+                  "color": "blue",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "features": [
+                    {
+                      "type": "toggle"
+                    }
+                  ],
+                  "features_position": "inline",
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "switch.sonoff_10014c1f48_1",
+                      "state_not": "unavailable"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.sac_xe",
+                  "name": "Bike charger (auto-off when full)",
+                  "icon": "mdi:bicycle-electric",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "features": [
+                    {
+                      "type": "toggle"
+                    }
+                  ],
+                  "features_position": "inline"
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.mosquito_liquid",
+                  "name": "Mosquito repellent",
+                  "icon": "mdi:spray",
+                  "color": "purple",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "features": [
+                    {
+                      "type": "toggle"
+                    }
+                  ],
+                  "features_position": "inline"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Where power goes",
+                  "icon": "mdi:meter-electric",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.meter_protector_power",
+                  "name": "Whole house",
+                  "icon": "mdi:home-lightning-bolt-outline",
+                  "color": "blue",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.cb_ground_floor_power",
+                  "name": "Ground floor",
+                  "icon": "mdi:home-floor-g",
+                  "color": "indigo",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.cb_floor_1_power",
+                  "name": "Floor 1",
+                  "icon": "mdi:home-floor-1",
+                  "color": "indigo",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.cb_floor_2_power",
+                  "name": "Floor 2",
+                  "icon": "mdi:home-floor-2",
+                  "color": "indigo",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.refrigerator_power",
+                  "name": "Fridge",
+                  "icon": "mdi:fridge-outline",
+                  "color": "light-blue",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.mosquito_repellent_power",
+                  "name": "Chest freezer",
+                  "icon": "mdi:fridge-industrial-outline",
+                  "color": "light-blue",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.sac_xe_power",
+                  "name": "Bike charger",
+                  "icon": "mdi:bicycle-electric",
+                  "color": "light-blue",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Media",
+                  "icon": "mdi:television-play",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.mibox3",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.l50p8",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "media_player.l50p8",
+                      "state_not": "unavailable"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Energy",
+          "path": "energy",
+          "icon": "mdi:lightning-bolt",
+          "type": "sections",
+          "max_columns": 3,
+          "sections": [
+            {
+              "type": "grid",
+              "column_span": 2,
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Live flow",
+                  "icon": "mdi:transit-connection-variant",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "custom:power-flow-card-inverter",
+                  "dashboard_layout": "full",
+                  "language": "en",
+                  "three_phase": false,
+                  "single_load_mode": true,
+                  "invert_grid_power": true,
+                  "invert_battery_power": true,
+                  "inverter_image": false,
+                  "inverter_icon": "mdi:solar-inverter",
+                  "entities": {
+                    "inverter_power": "sensor.luxpower_inverter_inverter_power",
+                    "inverter_current": "sensor.luxpower_inverter_inverter_current",
+                    "inverter_voltage": "sensor.luxpower_inverter_bus_1_voltage",
+                    "inverter_temp": "sensor.luxpower_inverter_radiator_temperature",
+                    "battery1_battery2_power": "sensor.luxpower_inverter_battery_battery_flow",
+                    "battery1_battery2_current": "sensor.luxpower_inverter_battery_bms_battery_current",
+                    "pv_power": "sensor.luxpower_inverter_pv_pv_power",
+                    "pv1_power": "sensor.luxpower_inverter_pv_pv1_power",
+                    "pv1_voltage": "sensor.luxpower_inverter_pv_pv1_voltage",
+                    "pv1_current": "sensor.luxpower_inverter_pv_pv1_current",
+                    "pv2_power": "sensor.luxpower_inverter_pv_pv2_power",
+                    "pv2_voltage": "sensor.luxpower_inverter_pv_pv2_voltage",
+                    "pv2_current": "sensor.luxpower_inverter_pv_pv2_current",
+                    "grid_power": "sensor.luxpower_inverter_grid_grid_flow",
+                    "grid_voltage": "sensor.luxpower_inverter_grid_grid_voltage",
+                    "grid_frequency": "sensor.luxpower_inverter_grid_grid_frequency",
+                    "grid_current": "sensor.luxpower_inverter_inverter_current",
+                    "load_power": "sensor.luxpower_inverter_load_power",
+                    "load_voltage": "sensor.luxpower_inverter_grid_grid_voltage",
+                    "load_frequency": "sensor.luxpower_inverter_grid_grid_frequency",
+                    "eps_power": "sensor.luxpower_inverter_eps_eps_power",
+                    "eps_voltage": "sensor.luxpower_inverter_eps_eps_voltage",
+                    "eps_frequency": "sensor.luxpower_inverter_eps_eps_frequency",
+                    "battery_power": "sensor.luxpower_inverter_battery_battery_flow",
+                    "battery_voltage": "sensor.luxpower_inverter_battery_battery_voltage",
+                    "battery_soc": "sensor.luxpower_inverter_battery_battery_soc",
+                    "battery_current": "sensor.luxpower_inverter_battery_bms_battery_current",
+                    "battery_temp": "sensor.luxpower_inverter_battery_bms_max_cell_temperature",
+                    "pv_daily": "sensor.luxpower_inverter_pv_pv_energy_today",
+                    "pv_total": "sensor.luxpower_inverter_pv_pv_energy_total",
+                    "grid_buy_daily": "sensor.luxpower_inverter_grid_energy_from_grid_today",
+                    "grid_buy_total": "sensor.luxpower_inverter_grid_energy_from_grid_total",
+                    "grid_sell_daily": "sensor.luxpower_inverter_grid_energy_to_grid_today",
+                    "grid_sell_total": "sensor.luxpower_inverter_grid_energy_to_grid_total",
+                    "load_daily": "sensor.luxpower_inverter_home_consumption_today_calculated",
+                    "load_total": "sensor.luxpower_inverter_home_consumption_total_calculated",
+                    "battery_charge_daily": "sensor.luxpower_inverter_charge_energy_today",
+                    "battery_charge_total": "sensor.luxpower_inverter_charge_energy_total",
+                    "battery_discharge_daily": "sensor.luxpower_inverter_discharge_energy_today",
+                    "battery_discharge_total": "sensor.luxpower_inverter_discharge_energy_total"
+                  },
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "custom:apexcharts-card",
+                  "header": {
+                    "show": true,
+                    "title": "Last 24 hours",
+                    "show_states": true,
+                    "colorize_states": true
+                  },
+                  "graph_span": "24h",
+                  "apex_config": {
+                    "legend": {
+                      "show": false
+                    },
+                    "chart": {
+                      "height": 280
+                    }
+                  },
+                  "yaxis": [
+                    {
+                      "id": "power",
+                      "min": 0,
+                      "decimals": 0,
+                      "apex_config": {
+                        "title": {
+                          "text": "W"
+                        }
+                      }
+                    },
+                    {
+                      "id": "soc",
+                      "opposite": true,
+                      "min": 0,
+                      "max": 100,
+                      "decimals": 0,
+                      "apex_config": {
+                        "title": {
+                          "text": "%"
+                        }
+                      }
+                    }
+                  ],
+                  "series": [
+                    {
+                      "entity": "sensor.luxpower_inverter_pv_pv_power",
+                      "name": "Solar",
+                      "color": "#f9a825",
+                      "yaxis_id": "power",
+                      "type": "area",
+                      "opacity": 0.25,
+                      "stroke_width": 2,
+                      "group_by": {
+                        "func": "avg",
+                        "duration": "5min"
+                      }
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_load_power",
+                      "name": "Home",
+                      "color": "#1e88e5",
+                      "yaxis_id": "power",
+                      "stroke_width": 2,
+                      "group_by": {
+                        "func": "avg",
+                        "duration": "5min"
+                      }
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "name": "Battery",
+                      "color": "#43a047",
+                      "yaxis_id": "soc",
+                      "stroke_width": 2,
+                      "group_by": {
+                        "func": "last",
+                        "duration": "5min"
+                      }
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Today",
+                  "icon": "mdi:calendar-today",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv_energy_today",
+                  "name": "Solar made",
+                  "icon": "mdi:solar-power",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_home_consumption_today_calculated",
+                  "name": "Home used",
+                  "icon": "mdi:home",
+                  "color": "blue",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_charge_energy_today",
+                  "name": "Into battery",
+                  "icon": "mdi:battery-arrow-up",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_discharge_energy_today",
+                  "name": "From battery",
+                  "icon": "mdi:battery-arrow-down",
+                  "color": "teal",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_grid_energy_from_grid_today",
+                  "name": "From grid",
+                  "icon": "mdi:transmission-tower-import",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                },
+                {
+                  "type": "heading",
+                  "heading": "EVN bill",
+                  "icon": "mdi:receipt-text",
+                  "heading_style": "subtitle"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.EVN_CUSTOMER_ID_econ_monthly_new",
+                  "name": "This period",
+                  "icon": "mdi:counter",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.EVN_CUSTOMER_ID_ecost_monthly_new",
+                  "name": "Cost",
+                  "icon": "mdi:cash",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.EVN_CUSTOMER_ID_payment_needed",
+                  "name": "Payment",
+                  "icon": "mdi:check-decagram",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "state_content": [
+                    "state"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.EVN_CUSTOMER_ID_to_date",
+                  "name": "Data up to",
+                  "icon": "mdi:calendar-sync",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "column_span": 3,
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "History",
+                  "icon": "mdi:chart-bar",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "energy-date-selection",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "energy-distribution",
+                  "link_dashboard": false,
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "energy-usage-graph",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "energy-solar-graph",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "energy-devices-graph",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Battery & Inverter",
+          "path": "battery",
+          "icon": "mdi:home-battery",
+          "type": "sections",
+          "max_columns": 3,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Battery health",
+                  "icon": "mdi:battery-heart-variant",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                  "name": "Charge",
+                  "icon": "mdi:battery-high",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_battery_soh",
+                  "name": "Health",
+                  "icon": "mdi:heart-pulse",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_battery_voltage",
+                  "name": "Voltage",
+                  "icon": "mdi:sine-wave",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_battery_current",
+                  "name": "Current",
+                  "icon": "mdi:current-dc",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_max_cell_temperature",
+                  "name": "Cell temp (max)",
+                  "icon": "mdi:thermometer",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_cell_difference",
+                  "name": "Cell imbalance",
+                  "icon": "mdi:scale-unbalanced",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_cycle_count",
+                  "name": "Cycles",
+                  "icon": "mdi:counter",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_days_since_soc_99",
+                  "name": "Days since full",
+                  "icon": "mdi:calendar-check",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "statistics-graph",
+                  "title": "Charge, last 7 days",
+                  "entities": [
+                    "sensor.luxpower_inverter_battery_battery_soc"
+                  ],
+                  "days_to_show": 7,
+                  "period": "hour",
+                  "stat_types": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "chart_type": "line",
+                  "hide_legend": true,
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Inverter",
+                  "icon": "mdi:solar-power-variant",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_inverter_state",
+                  "name": "Mode",
+                  "icon": "mdi:state-machine",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_radiator_temperature",
+                  "name": "Temperature",
+                  "icon": "mdi:thermometer",
+                  "color": "orange",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_load_percentage",
+                  "name": "Load",
+                  "icon": "mdi:gauge",
+                  "color": "blue",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv1_power",
+                  "name": "PV string 1",
+                  "icon": "mdi:solar-panel",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv2_power",
+                  "name": "PV string 2",
+                  "icon": "mdi:solar-panel",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv1_voltage",
+                  "name": "PV1 voltage",
+                  "icon": "mdi:flash-triangle",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv2_voltage",
+                  "name": "PV2 voltage",
+                  "icon": "mdi:flash-triangle",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_eps_eps_voltage",
+                  "name": "Output voltage",
+                  "icon": "mdi:sine-wave",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "binary_sensor.luxpower_inverter_grid_grid_connected",
+                  "name": "Grid present",
+                  "icon": "mdi:transmission-tower",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_active_fault_text",
+                  "name": "Faults",
+                  "icon": "mdi:alert-octagon-outline",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_active_warning_text",
+                  "name": "Warnings",
+                  "icon": "mdi:alert-outline",
+                  "grid_options": {
+                    "columns": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Battery limits",
+                  "icon": "mdi:tune-variant",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "markdown",
+                  "content": "Grid fallback closes at **30%** and opens again at **40%** (automations). Change inverter limits below only if you know why.",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "entities",
+                  "state_color": true,
+                  "grid_options": {
+                    "columns": "full"
+                  },
+                  "entities": [
+                    {
+                      "entity": "number.luxpower_inverter_battery_off_grid_cut_off_soc",
+                      "name": "Off-grid cut-off SOC"
+                    },
+                    {
+                      "entity": "number.luxpower_inverter_battery_on_grid_cut_off_soc",
+                      "name": "On-grid cut-off SOC"
+                    },
+                    {
+                      "entity": "number.luxpower_inverter_battery_battery_low_soc_alarm",
+                      "name": "Low SOC alarm"
+                    },
+                    {
+                      "entity": "number.luxpower_inverter_battery_battery_stop_charging_soc",
+                      "name": "Stop charging at"
+                    },
+                    {
+                      "entity": "number.luxpower_inverter_battery_charge_current",
+                      "name": "Max charge current"
+                    },
+                    {
+                      "entity": "number.luxpower_inverter_battery_discharge_current",
+                      "name": "Max discharge current"
+                    },
+                    {
+                      "entity": "number.luxpower_inverter_battery_ac_charge_soc_limit",
+                      "name": "AC charge SOC limit"
+                    },
+                    {
+                      "entity": "select.luxpower_inverter_output_priority_config",
+                      "name": "Output priority"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "System",
+          "path": "system",
+          "icon": "mdi:cog",
+          "type": "sections",
+          "max_columns": 3,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Breakers",
+                  "icon": "mdi:electric-switch",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "markdown",
+                  "content": "**Status only.** Floor breakers feed the router, Wi-Fi and this server: switching one off from here can take the whole network down with no remote way back. Use the physical breaker.",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.cb_ground_floor_power",
+                  "name": "Ground floor",
+                  "icon": "mdi:home-floor-g",
+                  "color": "grey",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.cb_floor_1_power",
+                  "name": "Floor 1 (network)",
+                  "icon": "mdi:home-floor-1",
+                  "color": "grey",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.cb_floor_2_power",
+                  "name": "Floor 2",
+                  "icon": "mdi:home-floor-2",
+                  "color": "grey",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.sonoff_1000a8b00e",
+                  "name": "Network relay",
+                  "icon": "mdi:router-network",
+                  "color": "grey",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.grid_protector",
+                  "name": "Grid fallback",
+                  "icon": "mdi:transmission-tower",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle",
+                    "confirmation": {
+                      "text": "Switch grid fallback by hand? The battery automations may switch it back."
+                    }
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.mosquito_repellent",
+                  "name": "Chest freezer plug",
+                  "icon": "mdi:fridge-industrial",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle",
+                    "confirmation": {
+                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Inverter settings",
+                  "icon": "mdi:cog-outline",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "markdown",
+                  "content": "Read-only here. Open a tile to change it.",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_ac_charging",
+                  "name": "AC charging",
+                  "icon": "mdi:transmission-tower-import",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_charge_first_pv",
+                  "name": "Charge first (PV)",
+                  "icon": "mdi:solar-power",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_eco_mode",
+                  "name": "Eco mode",
+                  "icon": "mdi:leaf",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_green_mode",
+                  "name": "Green mode",
+                  "icon": "mdi:sprout",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_forced_discharge",
+                  "name": "Forced discharge",
+                  "icon": "mdi:battery-arrow-down",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_seamless_eps_switching",
+                  "name": "Seamless EPS",
+                  "icon": "mdi:swap-horizontal",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_grid_power_backup",
+                  "name": "Power backup",
+                  "icon": "mdi:shield-home",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.luxpower_inverter_buzzer",
+                  "name": "Buzzer",
+                  "icon": "mdi:volume-high",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "icon_tap_action": {
+                    "action": "more-info"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Health",
+                  "icon": "mdi:heart-pulse",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.meter_protector_temperature",
+                  "name": "Meter box temp",
+                  "icon": "mdi:thermometer",
+                  "color": "orange",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.grid_protector_leakage_current",
+                  "name": "Leakage current",
+                  "icon": "mdi:flash-alert",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.meter_protector_voltage",
+                  "name": "House voltage",
+                  "icon": "mdi:sine-wave",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.grid_protector_voltage_a",
+                  "name": "Grid voltage",
+                  "icon": "mdi:transmission-tower",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.sonoff_1000a8b00e_rssi",
+                  "name": "Network relay Wi-Fi",
+                  "icon": "mdi:wifi",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.sonoff_10014c209d_rssi",
+                  "name": "Front light Wi-Fi",
+                  "icon": "mdi:wifi",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.sonoff_1000eff333_rssi",
+                  "name": "Irrigation Wi-Fi",
+                  "icon": "mdi:wifi",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.backup_last_successful_automatic_backup",
+                  "name": "Last backup",
+                  "icon": "mdi:backup-restore",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "heading",
+                  "heading": "Updates",
+                  "icon": "mdi:update",
+                  "heading_style": "subtitle"
+                },
+                {
+                  "type": "entity-filter",
+                  "state_filter": [
+                    "on"
+                  ],
+                  "show_empty": true,
+                  "card": {
+                    "type": "entities",
+                    "title": null
+                  },
+                  "entities": [
+                    "update.hacs_update",
+                    "update.tuya_local_update",
+                    "update.sonoff_lan_update",
+                    "update.luxpower_inverter_modbus_update",
+                    "update.power_flow_card_inverter_update",
+                    "update.tuya_smart_ir_ac_update",
+                    "update.evn_vn_update"
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "markdown",
+                  "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · [Logs](/config/logs) · [Energy setup](/config/energy)",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
