@@ -1,6 +1,6 @@
 - id: '1781580392967'
   alias: Bike Overcharge Cutoff
-  description: 'Automatically cut power to bike charger when power consumption drops below 10W'
+  description: 'Turn off bike charger when power drops below 10W for 1 minute.'
   triggers:
   - type: power
     device_id: 01523d6cb975fbc9ef844ed4331409d4
@@ -18,4 +18,133 @@
     device_id: 01523d6cb975fbc9ef844ed4331409d4
     entity_id: 2cc28aefed6d2ddd22cc970e48a0e9ac
     domain: switch
+  mode: single
+
+- id: 'luxpower_offgrid_close_grid_protector_30pct'
+  alias: 'Solar Off-Grid: Close Grid Protector at <= 30% SOC'
+  description: 'Close Grid Protector when Battery SOC drops to 30% or below.'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    below: 31
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 20
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    below: 31
+  actions:
+  - action: switch.turn_on
+    target:
+      entity_id: switch.grid_protector
+  mode: single
+
+- id: 'luxpower_offgrid_open_grid_protector_40pct'
+  alias: 'Solar Off-Grid: Open Grid Protector at >= 40% SOC'
+  description: 'Open Grid Protector when Battery SOC recovers to 40% or above.'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    above: 39
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    above: 39
+  actions:
+  - action: switch.turn_off
+    target:
+      entity_id: switch.grid_protector
+  mode: single
+
+- id: 'alert_low_battery_soc'
+  alias: 'Alert: Low Battery SOC'
+  description: 'Send notification when battery drops to 35% or lower.'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    below: 36
+  actions:
+  - action: notify.hung_s_iphonese2
+    data:
+      title: 'Low Battery Warning'
+      message: "Battery is at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%. Grid fallback closes at 30%."
+  mode: single
+
+- id: 'alert_grid_protector_closed'
+  alias: 'Alert: Grid Protector Engaged'
+  description: 'Send notification when grid fallback breaker turns on.'
+  triggers:
+  - trigger: state
+    entity_id: switch.grid_protector
+    from: 'off'
+    to: 'on'
+  actions:
+  - action: notify.hung_s_iphonese2
+    data:
+      title: 'Grid Fallback Active'
+      message: "House is now on grid power. Battery at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%."
+  mode: single
+
+- id: 'irrigation_pump_auto_shutoff'
+  alias: 'Garden: Irrigation Pump Auto Shut-off'
+  description: 'Turn off irrigation pump automatically after 15 minutes.'
+  triggers:
+  - trigger: state
+    entity_id: switch.sonoff_1000eff333
+    from: 'off'
+    to: 'on'
+    for:
+      minutes: 15
+  actions:
+  - action: switch.turn_off
+    target:
+      entity_id: switch.sonoff_1000eff333
+  mode: single
+
+- id: 'alert_inverter_fault'
+  alias: 'Alert: Inverter Fault or Warning'
+  description: 'Notify when the LuxPower inverter reports a fault or warning.'
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.luxpower_inverter_active_fault_text
+    - sensor.luxpower_inverter_active_warning_text
+    not_to:
+    - 'No Faults'
+    - 'No Warnings'
+    - 'unavailable'
+    - 'unknown'
+    for:
+      seconds: 30
+  actions:
+  - action: notify.hung_s_iphonese2
+    data:
+      title: 'Inverter Alert'
+      message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
+  mode: queued
+
+- id: 'alert_inverter_offline'
+  alias: 'Alert: Inverter Offline'
+  description: 'Notify when the inverter stops reporting for 10 minutes.'
+  triggers:
+  - trigger: state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    to: 'unavailable'
+    for:
+      minutes: 10
+  actions:
+  - action: notify.hung_s_iphonese2
+    data:
+      title: 'Inverter Offline'
+      message: 'No data from the LuxPower inverter for 10 minutes. Check the dongle and network.'
   mode: single

@@ -1,3 +1,4 @@
+
 # Loads default set of integrations. Do not remove.
 default_config:
 
@@ -15,3 +16,84 @@ recorder:
   exclude:
     entity_globs:
       - sensor.*_last_raw_mqtt_hex
+
+template:
+  - sensor:
+      - name: "Main Meter Energy kWh"
+        unique_id: main_meter_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.meter_protector_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.meter_protector_energy') }}"
+      - name: "Ground Floor Energy kWh"
+        unique_id: cb_ground_floor_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.cb_ground_floor_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.cb_ground_floor_energy') }}"
+      - name: "Floor 1 Energy kWh"
+        unique_id: cb_floor_1_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.cb_floor_1_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.cb_floor_1_energy') }}"
+      - name: "Floor 2 Energy kWh"
+        unique_id: cb_floor_2_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.cb_floor_2_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.cb_floor_2_energy') }}"
+      - name: "Refrigerator Energy kWh"
+        unique_id: refrigerator_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.refrigerator_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.refrigerator_energy') }}"
+      - name: "Chest Freezer Energy kWh"
+        unique_id: mosquito_repellent_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.mosquito_repellent_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.mosquito_repellent_energy') }}"
+      - name: "Bike Charger Energy kWh"
+        unique_id: sac_xe_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.sac_xe_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.sac_xe_energy') }}"
+      - name: "Mosquito Liquid Energy kWh"
+        unique_id: mosquito_liquid_energy_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: "{{ (states('sensor.mosquito_liquid_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.mosquito_liquid_energy') }}"
+      - name: "Battery Status"
+        unique_id: battery_status
+        icon: >-
+          {% set f = states('sensor.luxpower_inverter_battery_battery_flow') | float(0) %}
+          {{ 'mdi:battery-charging' if f < -30 else 'mdi:battery-arrow-down' if f > 30 else 'mdi:battery' }}
+        state: >-
+          {% set f = states('sensor.luxpower_inverter_battery_battery_flow') | float(0) %}
+          {% if f < -30 %}Charging {{ (-f) | int }} W{% elif f > 30 %}Discharging {{ f | int }} W{% else %}Idle{% endif %}
+        availability: "{{ has_value('sensor.luxpower_inverter_battery_battery_flow') }}"
+      # 16.08 kWh = energy-dashboard battery capacity; 30% = grid-fallback automation threshold
+      - name: "Battery Runtime"
+        unique_id: battery_runtime
+        unit_of_measurement: "h"
+        icon: mdi:timer-sand
+        state: >-
+          {% set soc = states('sensor.luxpower_inverter_battery_battery_soc') | float(0) %}
+          {% set kw = states('sensor.luxpower_inverter_battery_battery_flow') | float(0) / 1000 %}
+          {{ ((soc - 30) / 100 * 16.08 / kw) | round(1) }}
+        availability: >-
+          {{ has_value('sensor.luxpower_inverter_battery_battery_soc')
+             and states('sensor.luxpower_inverter_battery_battery_soc') | float(0) > 30
+             and states('sensor.luxpower_inverter_battery_battery_flow') | float(0) > 50 }}
