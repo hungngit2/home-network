@@ -287,8 +287,8 @@ table inet hostguard {
 	}
 	chain input {
 		type filter hook input priority filter - 10; policy accept;
-		ip saddr @iot4 tcp dport { 22, 139, 445, 3000, 6800, 8088 } counter reject with tcp reset
-		ip6 saddr @iot6 tcp dport { 22, 139, 445, 3000, 6800, 8088 } counter reject with tcp reset
+		ip saddr @iot4 tcp dport { 22, 139, 445, 3000, 6800, 8088, 8123 } counter reject with tcp reset
+		ip6 saddr @iot6 tcp dport { 22, 139, 445, 3000, 6800, 8088, 8123 } counter reject with tcp reset
 		ip saddr @iot4 udp dport { 137, 138 } counter drop
 	}
 	chain forward {

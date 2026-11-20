@@ -22,14 +22,13 @@ The dashboard needs the HACS cards `apexcharts-card` and `Power-Flow-Card-Invert
 - **HTTP settings are not in YAML.** HA 2026.9 ignores an `http:` block in `configuration.yaml` without any warning. They live in `.storage/http` → `data.stable`:
 
   ```json
-  "server_host": ["127.0.0.1", "::1"],
   "use_x_forwarded_for": true,
   "trusted_proxies": ["127.0.0.1", "::1"],
   "ip_ban_enabled": true,
   "login_attempts_threshold": 5
   ```
 
-  `internal_url` and `external_url` (`https://ha.REDACTED-domain`) live in `.storage/core.config`. HA is reachable only through the nginx vhost (see DEBIAN-SERVER.md).
+  `internal_url` and `external_url` (`https://ha.REDACTED-domain`) live in `.storage/core.config`. HA listens on all addresses: `http://10.0.0.100:8123` works from the LAN, port 8123 is rejected from the IoT VLAN by nft-hostguard, and the internet reaches it only through the nginx vhost (see DEBIAN-SERVER.md).
 
 ## Safety
 
