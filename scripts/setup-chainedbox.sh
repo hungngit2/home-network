@@ -262,7 +262,7 @@ apt-get install -y --no-install-recommends \
 
 # Apply custom sysctl tuning
 log_info "Deploying custom kernel sysctl (BBR, ZRAM swappiness=100, conntrack)..."
-fetch_repo_file "configs/chainedbox/system/sysctl.conf" "/etc/sysctl.d/99-chainedbox.conf"
+fetch_repo_file "configs/appsrv/system/sysctl.conf" "/etc/sysctl.d/99-chainedbox.conf"
 sysctl --system >/dev/null 2>&1 || true
 
 # Nightly reboot crontab (idempotent)
@@ -271,7 +271,7 @@ log_info "Setting nightly 03:00 maintenance reboot crontab..."
 
 # Docker daemon configuration
 log_info "Configuring Docker daemon data-root and log rotation..."
-fetch_repo_file "configs/chainedbox/system/daemon.json" "/etc/docker/daemon.json"
+fetch_repo_file "configs/appsrv/system/daemon.json" "/etc/docker/daemon.json"
 sed -i "s|\"data-root\": \"/mnt/appsrv/docker\"|\"data-root\": \"${APPSRV_DIR}/docker\"|g" /etc/docker/daemon.json
 systemctl enable --now docker 2>/dev/null || true
 systemctl restart docker 2>/dev/null || true
@@ -369,9 +369,9 @@ log_info "Configuring Unbound DNS resolver on port ${UNBOUND_PORT}..."
 mkdir -p /etc/unbound/unbound.conf.d /var/lib/unbound
 unbound-anchor -a /var/lib/unbound/root.key 2>/dev/null || true
 chown -R unbound:unbound /var/lib/unbound /etc/unbound 2>/dev/null || true
-fetch_repo_file "configs/chainedbox/unbound/unbound-custom-port.conf" "/etc/unbound/unbound.conf.d/custom-port.conf"
+fetch_repo_file "configs/appsrv/unbound/unbound-custom-port.conf" "/etc/unbound/unbound.conf.d/custom-port.conf"
 sed -i "s/port: 5335/port: ${UNBOUND_PORT}/g" /etc/unbound/unbound.conf.d/custom-port.conf
-fetch_repo_file "configs/chainedbox/unbound/unbound-remote-control.conf" "/etc/unbound/unbound.conf.d/remote-control.conf"
+fetch_repo_file "configs/appsrv/unbound/unbound-remote-control.conf" "/etc/unbound/unbound.conf.d/remote-control.conf"
 systemctl restart unbound
 systemctl enable unbound
 
@@ -388,7 +388,7 @@ if [[ ! -f /opt/AdGuardHome/AdGuardHome ]]; then
 fi
 
 # Download AdGuardHome.yaml template to appsrv and substitute variables
-fetch_repo_file "configs/chainedbox/adguard-home/AdGuardHome.yaml" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
+fetch_repo_file "configs/appsrv/adguard-home/AdGuardHome.yaml" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 sed -i "s|/mnt/appsrv/adguard-home/|${APPSRV_DIR}/adguard-home/|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 sed -i "s|127.0.0.1:5335|127.0.0.1:${UNBOUND_PORT}|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
 sed -i "s|REDACTED-domain|${DDNS_DOMAIN}|g" "${APPSRV_DIR}/adguard-home/AdGuardHome.yaml"
@@ -402,7 +402,7 @@ systemctl enable AdGuardHome 2>/dev/null || true
 
 # Avahi-daemon mDNS reflector
 log_info "Configuring Avahi mDNS reflector bridging ${IFACE_NAME} and ${IFACE_NAME}.${VLAN10_ID}..."
-fetch_repo_file "configs/chainedbox/avahi/avahi-daemon.conf" "/etc/avahi/avahi-daemon.conf"
+fetch_repo_file "configs/appsrv/avahi/avahi-daemon.conf" "/etc/avahi/avahi-daemon.conf"
 sed -i "s/allow-interfaces=end0,end0.10/allow-interfaces=${IFACE_NAME},${IFACE_NAME}.${VLAN10_ID}/g" /etc/avahi/avahi-daemon.conf
 systemctl restart avahi-daemon
 systemctl enable avahi-daemon
@@ -418,7 +418,7 @@ log_head "Step 5/8: Configuring Nginx, PHP-FPM & Web Apps"
 PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || echo "8.3")
 log_info "Configuring PHP-FPM ${PHP_VER} memory pool..."
 mkdir -p "/etc/php/${PHP_VER}/fpm/pool.d" /run/php
-fetch_repo_file "configs/chainedbox/php/www.conf" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
+fetch_repo_file "configs/appsrv/php/www.conf" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
 sed -i "s|/run/php/php8.3-fpm.sock|/run/php/php${PHP_VER}-fpm.sock|g" "/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
 systemctl restart "php${PHP_VER}-fpm" 2>/dev/null || true
 systemctl enable "php${PHP_VER}-fpm" 2>/dev/null || true
@@ -452,7 +452,7 @@ fi
 
 # Deploy Nginx Default VHost to appsrv
 log_info "Deploying Nginx reverse proxy configuration..."
-fetch_repo_file "configs/chainedbox/nginx/default.conf" "${APPSRV_DIR}/nginx/default"
+fetch_repo_file "configs/appsrv/nginx/default.conf" "${APPSRV_DIR}/nginx/default"
 # Substitute dynamic paths and domains in nginx config
 sed -i "s|root /mnt/appsrv/www;|root ${APPSRV_DIR}/www;|g" "${APPSRV_DIR}/nginx/default"
 sed -i "s|/mnt/appsrv/nginx/log|${APPSRV_DIR}/nginx/log|g" "${APPSRV_DIR}/nginx/default"
@@ -519,10 +519,10 @@ fi
 
 # Deploy JK BMS Configuration Tool
 log_info "Deploying JK BMS Configuration Tool to ${APPSRV_DIR}/www/jk..."
-fetch_repo_file "configs/chainedbox/jk/index.html" "${APPSRV_DIR}/www/jk/index.html"
-fetch_repo_file "configs/chainedbox/jk/styles.css" "${APPSRV_DIR}/www/jk/styles.css"
-fetch_repo_file "configs/chainedbox/jk/jk-bms-generator.js" "${APPSRV_DIR}/www/jk/jk-bms-generator.js"
-fetch_repo_file "configs/chainedbox/jk/clipboard.min.js" "${APPSRV_DIR}/www/jk/clipboard.min.js"
+fetch_repo_file "configs/appsrv/jk/index.html" "${APPSRV_DIR}/www/jk/index.html"
+fetch_repo_file "configs/appsrv/jk/styles.css" "${APPSRV_DIR}/www/jk/styles.css"
+fetch_repo_file "configs/appsrv/jk/jk-bms-generator.js" "${APPSRV_DIR}/www/jk/jk-bms-generator.js"
+fetch_repo_file "configs/appsrv/jk/clipboard.min.js" "${APPSRV_DIR}/www/jk/clipboard.min.js"
 
 chown -R www-data:www-data "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
 chmod -R 775 "${APPSRV_DIR}/www" "${APPSRV_DIR}/ytb-owntone" 2>/dev/null || true
@@ -545,12 +545,12 @@ fi
 
 # Deploy tuned rtp2httpd.conf & customize parameters
 log_info "Applying tuned rtp2httpd configuration..."
-fetch_repo_file "configs/chainedbox/rtp2httpd/rtp2httpd.conf" "/etc/rtp2httpd.conf"
+fetch_repo_file "configs/appsrv/rtp2httpd/rtp2httpd.conf" "/etc/rtp2httpd.conf"
 sed -i "s|external-m3u = http://10.0.0.100/iptv/|external-m3u = http://${STATIC_IPV4}/iptv/|g" /etc/rtp2httpd.conf
 sed -i "s|web-auth-user = mytv|web-auth-user = ${MYTV_AUTH_USER}|g" /etc/rtp2httpd.conf
 sed -i "s|web-auth-password = <REDACTED>|web-auth-password = ${MYTV_AUTH_PASS}|g" /etc/rtp2httpd.conf
 sed -i "s|\* 5140|\* ${RTP2HTTPD_PORT}|g" /etc/rtp2httpd.conf
-fetch_repo_file "configs/chainedbox/rtp2httpd/rtp2httpd.service" "/etc/systemd/system/rtp2httpd.service"
+fetch_repo_file "configs/appsrv/rtp2httpd/rtp2httpd.service" "/etc/systemd/system/rtp2httpd.service"
 
 systemctl daemon-reload
 systemctl enable rtp2httpd
@@ -563,7 +563,7 @@ if ! command -v owntone >/dev/null 2>&1; then
 fi
 
 log_info "Configuring OwnTone server memory drop-in..."
-fetch_repo_file "configs/chainedbox/owntone/owntone-memorymax-override.conf" "/etc/systemd/system/owntone.service.d/50-MemoryMax.conf"
+fetch_repo_file "configs/appsrv/owntone/owntone-memorymax-override.conf" "/etc/systemd/system/owntone.service.d/50-MemoryMax.conf"
 systemctl daemon-reload
 systemctl restart owntone 2>/dev/null || true
 systemctl enable owntone 2>/dev/null || true
@@ -604,7 +604,7 @@ EOF
 
 # Deploy network.xml to configure BaseUrl (/jellyfin) for reverse proxy compatibility
 if [[ ! -f "${APPSRV_DIR}/jellyfin/config/network.xml" ]]; then
-    fetch_repo_file "configs/chainedbox/jellyfin/network.xml" "${APPSRV_DIR}/jellyfin/config/network.xml"
+    fetch_repo_file "configs/appsrv/jellyfin/network.xml" "${APPSRV_DIR}/jellyfin/config/network.xml"
 fi
 
 # Hardware acceleration: enable Intel VAAPI if /dev/dri/renderD128 is available
@@ -616,7 +616,7 @@ if [[ -e /dev/dri/renderD128 ]]; then
     usermod -aG render,video jellyfin 2>/dev/null || true
     # Deploy encoding.xml to enable VAAPI (only if not already customised by user)
     if [[ ! -f "${APPSRV_DIR}/jellyfin/config/encoding.xml" ]]; then
-        fetch_repo_file "configs/chainedbox/jellyfin/encoding.xml" "${APPSRV_DIR}/jellyfin/config/encoding.xml"
+        fetch_repo_file "configs/appsrv/jellyfin/encoding.xml" "${APPSRV_DIR}/jellyfin/config/encoding.xml"
     fi
     log_succ "Jellyfin hardware acceleration (VAAPI) enabled."
 else
@@ -639,7 +639,7 @@ log_head "Step 7/8: Configuring Samba Shares & Aria2 Daemon"
 
 # Samba
 log_info "Configuring Samba file shares for ${NASDATA_DIR}..."
-fetch_repo_file "configs/chainedbox/samba/smb.conf" "${APPSRV_DIR}/samba/smb.conf"
+fetch_repo_file "configs/appsrv/samba/smb.conf" "${APPSRV_DIR}/samba/smb.conf"
 sed -i "s|netbios name = chainedbox|netbios name = ${SMB_NETBIOS_NAME}|g" "${APPSRV_DIR}/samba/smb.conf"
 sed -i "s|workgroup = WORKGROUP|workgroup = ${SMB_WORKGROUP}|g" "${APPSRV_DIR}/samba/smb.conf"
 sed -i "s|/mnt/nasdata|${NASDATA_DIR}|g" "${APPSRV_DIR}/samba/smb.conf"
@@ -653,14 +653,14 @@ systemctl enable smbd nmbd
 log_info "Configuring Aria2 daemon & post-download trigger..."
 mkdir -p "${APPSRV_DIR}/aria2/.aria2" "${NASDATA_DIR}/downloads"
 touch "${APPSRV_DIR}/aria2/.aria2/aria2.session"
-fetch_repo_file "configs/chainedbox/aria2/aria2.conf" "${APPSRV_DIR}/aria2/aria2.conf"
+fetch_repo_file "configs/appsrv/aria2/aria2.conf" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|dir=/mnt/nasdata/downloads|dir=${NASDATA_DIR}/downloads|g" "${APPSRV_DIR}/aria2/aria2.conf"
 sed -i "s|/mnt/appsrv/aria2|${APPSRV_DIR}/aria2|g" "${APPSRV_DIR}/aria2/aria2.conf"
 
-fetch_repo_file "configs/chainedbox/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
+fetch_repo_file "configs/appsrv/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 chmod +x "${APPSRV_DIR}/aria2/aria2-post-download.sh"
 ln -sf "${APPSRV_DIR}/aria2/aria2-post-download.sh" "${APPSRV_DIR}/aria2/post-download.sh"
-fetch_repo_file "configs/chainedbox/aria2/aria2.service" "/etc/systemd/system/aria2.service"
+fetch_repo_file "configs/appsrv/aria2/aria2.service" "/etc/systemd/system/aria2.service"
 sed -i "s|/mnt/appsrv|${APPSRV_DIR}|g" /etc/systemd/system/aria2.service
 if ! mountpoint -q "${APPSRV_DIR}"; then
     sed -i '/ConditionPathIsMountPoint/d' /etc/systemd/system/aria2.service
@@ -679,8 +679,8 @@ log_head "Step 8/8: Setting up Home Assistant Container & Health Checks"
 
 # Deploy Home Assistant configuration files
 mkdir -p /opt/docker/homeassistant/config /opt/docker/homeassistant/media
-fetch_repo_file "configs/chainedbox/homeassistant/configuration.yaml" "/opt/docker/homeassistant/config/configuration.yaml"
-fetch_repo_file "configs/chainedbox/homeassistant/automations.yaml" "/opt/docker/homeassistant/config/automations.yaml"
+fetch_repo_file "configs/appsrv/homeassistant/configuration.yaml" "/opt/docker/homeassistant/config/configuration.yaml"
+fetch_repo_file "configs/appsrv/homeassistant/automations.yaml" "/opt/docker/homeassistant/config/automations.yaml"
 
 log_info "Deploying / starting Home Assistant container..."
 if ! docker ps -a --format '{{.Names}}' | grep -q '^homeassistant$'; then

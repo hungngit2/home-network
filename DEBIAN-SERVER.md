@@ -78,8 +78,8 @@ Mitigations applied on 2026-10-11, also deployed by `setup-debian.sh`:
 
 | Mitigation | Repo file | Live path |
 |---|---|---|
-| Journal cap: `SystemMaxUse=256M`, `SystemMaxFileSize=32M` (journal went from 1.4 GB to 241 MB) | `configs/chainedbox/system/journald-size.conf` | `/etc/systemd/journald.conf.d/10-size.conf` |
-| HA recorder: `commit_interval: 30`; excludes `sensor.*_last_raw_mqtt_hex` (about 11k rows/day of raw debug hex) | `configs/chainedbox/homeassistant/configuration.yaml` | `/opt/docker/homeassistant/config/configuration.yaml` |
+| Journal cap: `SystemMaxUse=256M`, `SystemMaxFileSize=32M` (journal went from 1.4 GB to 241 MB) | `configs/appsrv/system/journald-size.conf` | `/etc/systemd/journald.conf.d/10-size.conf` |
+| HA recorder: `commit_interval: 30`; excludes `sensor.*_last_raw_mqtt_hex` (about 11k rows/day of raw debug hex) | `configs/appsrv/homeassistant/configuration.yaml` | `/opt/docker/homeassistant/config/configuration.yaml` |
 
 The NetworkManager warning flood was also fixed (see [Network](#network)). The power and energy sensors stay recorded on purpose.
 
@@ -174,7 +174,7 @@ Rules 97 and 100 come from `10-enp1s0.yaml`, and 98 and 101 from `90-vlan10.yaml
 
 - **IPTV multicast**: the `224.0.0.0/4 dev enp1s0` route (in `10-enp1s0.yaml`) forces `rtp2httpd`'s IGMP joins out the wired LAN NIC toward the router's IGMP proxy.
 - **ARP flux**: two NICs share `10.0.0.0/24`, so `arp_ignore=1` / `arp_announce=2` stop each NIC from answering for the other's address.
-- **`/etc/sysctl.d/99-server.conf`** (repo: `configs/chainedbox/system/sysctl-swapfile.conf`) sets:
+- **`/etc/sysctl.d/99-server.conf`** (repo: `configs/appsrv/system/sysctl-swapfile.conf`) sets:
   - `fq` + BBR;
   - IPv4 `ip_forward` on (Docker needs it); IPv6 forwarding **off** since 2026-10-11, because Docker has no IPv6 and the box must not route between its segments;
   - `igmp_max_memberships=100`;
@@ -234,7 +234,7 @@ The live config is `/appsrv/jellyfin/config/encoding.xml`. It uses `jellyfin-ffm
 
 ### Docker
 
-`/etc/docker/daemon.json` (repo: `configs/chainedbox/system/daemon.json`) does the following:
+`/etc/docker/daemon.json` (repo: `configs/appsrv/system/daemon.json`) does the following:
 - moves `data-root` to `/appsrv/docker`;
 - sets the default bridge to `172.31.0.1/24`;
 - sets `json-file` logs to 10 MB × 5;

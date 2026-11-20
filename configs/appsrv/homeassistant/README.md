@@ -1,6 +1,6 @@
 # Home Assistant config (Wyse 5070)
 
-Exported from `/opt/docker/homeassistant/config` on the Wyse (HA 2026.9, Docker, host network) on 2026-11-20. The folder name is historical; this is the live Wyse config.
+Exported from `/opt/docker/homeassistant/config` on the Wyse (HA 2026.9, Docker, host network) on 2026-11-20.
 
 | File | Restores to | Contents |
 |---|---|---|
