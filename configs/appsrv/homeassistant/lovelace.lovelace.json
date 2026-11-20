@@ -777,7 +777,14 @@
                     "last_month",
                     "year",
                     "all"
-                  ]
+                  ],
+                  "pv_capacity": 5.145,
+                  "pv_panels": 9,
+                  "panels_per_string": [
+                    6,
+                    3
+                  ],
+                  "panels_average": "per_string"
                 }
               ]
             },
