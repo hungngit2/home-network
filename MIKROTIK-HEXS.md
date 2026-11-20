@@ -63,7 +63,14 @@ Routes:
 - **WireGuard in** (`wg-home`, UDP `13231`) is dual-stack: `10.0.100.254/24`, `fd39:10:100::254/64`. It has four peers:
   - three road-warrior clients (`10.0.100.1`–`.3`, `fd39:10:100::1`–`::3`);
   - a site-to-site peer to the remote OpenWrt gateway (`10.0.100.100`, `10.1.0.0/16`, `fd39:10:100::100`, `fd86:10::/48`, routed via static routes). Its endpoint is set to the remote site's DDNS hostname and the handshake is current; see [Troubleshooting](#troubleshooting).
-- **WireGuard out ×2**: `wg-out1` (primary) and `wg-out2` (fallback), used by the "Unblock Sites" rule. Both handshake regularly.
+- **WireGuard out ×2**: `wg-out1` (primary, peer comment `vpn -> sg`) and `wg-out2` (fallback, `vpn -> hk`), used by the "Unblock Sites" rule. Both were replaced with new provider configs on 2026-11-20 and handshake. When the provider issues new configs, load them with [`scripts/update-wg-out.sh`](scripts/update-wg-out.sh):
+
+  ```sh
+  scripts/update-wg-out.sh wg-out1 ~/Downloads/sg_wg.conf --dry-run   # parse and show the commands, keys masked
+  scripts/update-wg-out.sh wg-out1 ~/Downloads/sg_wg.conf             # apply, wait for the handshake, ping through the tunnel
+  ```
+
+  The script sets the private key, the IPv4 `Address`, and the peer's public key, preshared key, endpoint and keepalive. It leaves comments, routes and NAT alone and ignores the `.conf`'s `DNS =`. It exits non-zero if the handshake or the ping through the tunnel fails. Never commit the `.conf` files: they contain private keys.
 
 ## DNS
 
