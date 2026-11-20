@@ -693,14 +693,8 @@
           "sections": [
             {
               "type": "grid",
-              "column_span": 2,
+              "column_span": 3,
               "cards": [
-                {
-                  "type": "heading",
-                  "heading": "Live flow",
-                  "icon": "mdi:transit-connection-variant",
-                  "heading_style": "title"
-                },
                 {
                   "type": "custom:home-energy-hub",
                   "theme": "diorama",
@@ -726,7 +720,6 @@
                     "battery_temperature": "sensor.luxpower_inverter_battery_bms_max_cell_temperature",
                     "battery_voltage": "sensor.luxpower_inverter_battery_battery_voltage",
                     "battery_current": "sensor.luxpower_inverter_battery_bms_battery_current",
-                    "grid_status": "binary_sensor.luxpower_inverter_grid_grid_connected",
                     "pv1_power": "sensor.luxpower_inverter_pv_pv1_power",
                     "pv1_voltage": "sensor.luxpower_inverter_pv_pv1_voltage",
                     "pv1_current": "sensor.luxpower_inverter_pv_pv1_current",
@@ -771,8 +764,27 @@
                       "entity": "sensor.luxpower_inverter_eps_eps_voltage",
                       "name": "Output voltage"
                     }
+                  ],
+                  "wide": true,
+                  "show_insights": true,
+                  "co2_factor": 0.68,
+                  "currency": "₫",
+                  "periods": [
+                    "today",
+                    "3d",
+                    "7d",
+                    "month",
+                    "last_month",
+                    "year",
+                    "all"
                   ]
-                },
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "column_span": 2,
+              "cards": [
                 {
                   "type": "custom:apexcharts-card",
                   "header": {
