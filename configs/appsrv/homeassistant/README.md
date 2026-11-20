@@ -13,14 +13,16 @@ The dashboard needs the HACS cards `apexcharts-card` and Home Energy Hub (`grata
 
 ## Solar forecast
 
-Two Forecast.Solar entries, one per string (Settings → Devices & services → Forecast.Solar). Both use HA's home location and face south (azimuth 180):
+**Open-Meteo Solar Forecast** (HACS `rany2/ha-open-meteo-solar-forecast`) feeds the card and the Energy settings. It is one entry, "House 39 PV (Open-Meteo)", with two arrays at HA's home location, both facing south (azimuth 180):
 
-| Entry | Tilt | Peak power | Sensors |
-|---|---|---|---|
-| PV string 1 (6 x 550 W) | 9° | 3300 W | `sensor.energy_production_today`, `_remaining`, `_tomorrow` |
-| PV string 2 (3 x 615 W) | 14° | 1845 W | the same with a `_2` suffix |
+| Array | Tilt | Peak power |
+|---|---|---|
+| String 1 (6 x 550 W) | 9° | 3300 W |
+| String 2 (3 x 615 W) | 14° | 1845 W |
 
-`configuration.yaml` sums them into `sensor.pv_forecast_today`, `sensor.pv_forecast_remaining_today` and `sensor.pv_forecast_tomorrow`, which feed the card's `pv_forecast`. Both entries are also set as the solar forecast in the Energy settings (Settings → Dashboards → Energy), which draws the card's hourly forecast line.
+The card's `pv_forecast` uses `sensor.house_39_pv_open_meteo_energy_production_today`, `_today_remaining`, `_tomorrow` and `_d2`–`_d4`. In the Energy settings it is the only solar forecast; HA adds every listed forecast together, so never list two sources at once.
+
+On 2026-11-20 Open-Meteo forecast 28.2 kWh against 25.2 kWh actual, while Forecast.Solar forecast 9.37 kWh. The two Forecast.Solar entries and their `sensor.pv_forecast_*` sums are still installed only for comparison; delete them once Open-Meteo has proven itself.
 
 ## Restore
 
