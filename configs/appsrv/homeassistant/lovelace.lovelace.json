@@ -726,7 +726,13 @@
                     "battery_temperature": "sensor.luxpower_inverter_battery_bms_max_cell_temperature",
                     "battery_voltage": "sensor.luxpower_inverter_battery_battery_voltage",
                     "battery_current": "sensor.luxpower_inverter_battery_bms_battery_current",
-                    "grid_status": "binary_sensor.luxpower_inverter_grid_grid_connected"
+                    "grid_status": "binary_sensor.luxpower_inverter_grid_grid_connected",
+                    "pv1_power": "sensor.luxpower_inverter_pv_pv1_power",
+                    "pv1_voltage": "sensor.luxpower_inverter_pv_pv1_voltage",
+                    "pv1_current": "sensor.luxpower_inverter_pv_pv1_current",
+                    "pv2_power": "sensor.luxpower_inverter_pv_pv2_power",
+                    "pv2_voltage": "sensor.luxpower_inverter_pv_pv2_voltage",
+                    "pv2_current": "sensor.luxpower_inverter_pv_pv2_current"
                   },
                   "consumers": [
                     {
@@ -747,7 +753,25 @@
                   ],
                   "grid_options": {
                     "columns": "full"
-                  }
+                  },
+                  "inverter_details": [
+                    {
+                      "entity": "sensor.luxpower_inverter_inverter_state",
+                      "name": "Mode"
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_radiator_temperature",
+                      "name": "Temperature"
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_load_percentage",
+                      "name": "Load"
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_eps_eps_voltage",
+                      "name": "Output voltage"
+                    }
+                  ]
                 },
                 {
                   "type": "custom:apexcharts-card",
