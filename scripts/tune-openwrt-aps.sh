@@ -76,6 +76,8 @@ uci set unbound.ub_main.rebind_protection='1'
 if uci -q get unbound.auth_icann >/dev/null; then
     uci set unbound.auth_icann.enabled='0'
 fi
+# The Redmi has 116 MB RAM and the kernel OOM-killed Unbound at resource=default
+[ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 200000 ] && uci set unbound.ub_main.resource='tiny'
 uci commit unbound
 service unbound restart >/dev/null 2>&1
 
