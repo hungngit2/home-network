@@ -808,7 +808,12 @@
                   "grid_options": {
                     "columns": 12
                   },
-                  "inverter_power_rating": 6.5
+                  "inverter_power_rating": 6.5,
+                  "diorama_style": "classic",
+                  "ev": {
+                    "power": "sensor.sac_xe_power",
+                    "name": "Bike charger"
+                  }
                 }
               ]
             },
@@ -1188,7 +1193,12 @@
                     ],
                     "hourly": true
                   },
-                  "inverter_power_rating": 6.5
+                  "inverter_power_rating": 6.5,
+                  "diorama_style": "classic",
+                  "ev": {
+                    "power": "sensor.sac_xe_power",
+                    "name": "Bike charger"
+                  }
                 }
               ]
             },
