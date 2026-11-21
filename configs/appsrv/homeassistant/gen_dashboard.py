@@ -78,6 +78,8 @@ alerts = [
     (status(SOC, "Battery low: grid is powering the house", "mdi:battery-alert", 12, "deep-orange"),
      [{"condition": "numeric_state", "entity": SOC, "below": 31}], [{"condition": "numeric_state", "entity": SOC, "above": 30.9}]),
     (status(FREEZER, "Freezer plug is OFF", "mdi:fridge-industrial-alert", 12, "red", hide_state=True), [is_(FREEZER, "off")], [is_not(FREEZER, "off")]),
+    (status("input_boolean.grid_outage", "Grid power outage: running on battery", "mdi:transmission-tower-off", 12, "red", hide_state=True),
+     [is_("input_boolean.grid_outage", "on")], [is_not("input_boolean.grid_outage", "on")]),
     (status(BACKUP, "No backup has run yet", "mdi:backup-restore", 12, "deep-orange", hide_state=True), [is_(BACKUP, "unknown")], [is_not(BACKUP, "unknown")]),
 ] + [
     (status(f"binary_sensor.{e}_problem", n, "mdi:alert-circle", 12, "red"), [is_(f"binary_sensor.{e}_problem", "on")],

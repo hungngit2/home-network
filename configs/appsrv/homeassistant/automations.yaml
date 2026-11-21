@@ -213,3 +213,64 @@
     target:
       entity_id: switch.grid_protector
   mode: single
+- id: alert_grid_outage
+  alias: 'Alert: Grid Power Outage'
+  description: 'EVN supply lost: the grid protector (supply side) reads under 150 V for 1 min, or is offline for 5 min (longer than an HA restart).'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.grid_protector_voltage_a
+    below: 150
+    for:
+      minutes: 1
+  - trigger: state
+    entity_id: sensor.grid_protector_voltage_a
+    to: unavailable
+    for:
+      minutes: 5
+  conditions:
+  - condition: state
+    entity_id: input_boolean.grid_outage
+    state: 'off'
+  actions:
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.grid_outage
+  - action: notify.mobile_app_hung_s_iphonese2
+    continue_on_error: true
+    data:
+      title: Grid power outage
+      message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'') }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'') }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
+  - action: notify.mobile_app_mais_iphone16p
+    continue_on_error: true
+    data:
+      title: Grid power outage
+      message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'') }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'') }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
+  mode: single
+- id: alert_grid_restored
+  alias: 'Alert: Grid Power Restored'
+  description: 'EVN supply back: the grid protector reads over 190 V for 2 minutes after an outage alert.'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.grid_protector_voltage_a
+    above: 190
+    for:
+      minutes: 2
+  conditions:
+  - condition: state
+    entity_id: input_boolean.grid_outage
+    state: 'on'
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.grid_outage
+  - action: notify.mobile_app_hung_s_iphonese2
+    continue_on_error: true
+    data:
+      title: Grid power restored
+      message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0) }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
+  - action: notify.mobile_app_mais_iphone16p
+    continue_on_error: true
+    data:
+      title: Grid power restored
+      message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0) }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
+  mode: single

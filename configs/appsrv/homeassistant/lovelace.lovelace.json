@@ -478,6 +478,36 @@
                 },
                 {
                   "type": "tile",
+                  "entity": "input_boolean.grid_outage",
+                  "name": "Grid power outage: running on battery",
+                  "icon": "mdi:transmission-tower-off",
+                  "color": "red",
+                  "hide_state": true,
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "input_boolean.grid_outage",
+                      "state": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
                   "entity": "sensor.luxpower_inverter_battery_battery_soc",
                   "name": "All systems normal",
                   "icon": "mdi:check-circle",
@@ -583,6 +613,11 @@
                         {
                           "condition": "state",
                           "entity": "binary_sensor.mosquito_liquid_problem",
+                          "state_not": "on"
+                        },
+                        {
+                          "condition": "state",
+                          "entity": "input_boolean.grid_outage",
                           "state_not": "on"
                         }
                       ]

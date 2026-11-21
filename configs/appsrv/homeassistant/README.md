@@ -35,7 +35,9 @@ The LuxPower inverter is rated 6.5 kW and runs Battery First with Take Load Toge
 
 The inverter's **on-grid cut-off SOC is 30%** (set 2026-11-21; it was 15%). With 15%, the inverter kept draining the battery after the grid was connected, so the low-battery fallback did nothing. Keep the cut-off equal to the fallback threshold.
 
-The alerts (low battery, grid engaged, inverter fault, inverter offline) go to `notify.mobile_app_hung_s_iphonese2` and `notify.mobile_app_mais_iphone16p`. Use the `notify.mobile_app_*` actions; the phones' `notify.*` entities are not services.
+Grid outage: `alert_grid_outage` fires when the grid protector, which measures the EVN supply side, reads under 150 V for 1 min or is offline for 5 min. It sets `input_boolean.grid_outage`, which shows a red line in the Home status row. `alert_grid_restored` fires when the voltage is back above 190 V for 2 min and clears the flag.
+
+The alerts (low battery, grid engaged, grid outage and restored, inverter fault, inverter offline) go to `notify.mobile_app_hung_s_iphonese2` and `notify.mobile_app_mais_iphone16p`. Use the `notify.mobile_app_*` actions; the phones' `notify.*` entities are not services.
 
 ## Restore
 
