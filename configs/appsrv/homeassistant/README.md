@@ -24,6 +24,19 @@ The card's `pv_forecast` uses `sensor.house_39_pv_open_meteo_energy_production_t
 
 Open-Meteo replaced Forecast.Solar on 2026-11-20. For that day Open-Meteo forecast 28.2 kWh against 25.2 kWh actual, while Forecast.Solar's free tier forecast 9.37 kWh. The Forecast.Solar entries and their `sensor.pv_forecast_*` sums have been removed.
 
+## Grid fallback and the inverter
+
+The LuxPower inverter is rated 6.5 kW and runs Battery First with Take Load Together on. `switch.grid_protector` connects the grid:
+
+| Rule | Connects the grid | Disconnects it |
+|---|---|---|
+| Low battery | SOC ≤ 30% | SOC ≥ 40% and load < 4 kW |
+| High load | load > 5.5 kW for 5 s | load < 4 kW for 5 min and SOC > 39% |
+
+The inverter's **on-grid cut-off SOC is 30%** (set 2026-11-21; it was 15%). With 15%, the inverter kept draining the battery after the grid was connected, so the low-battery fallback did nothing. Keep the cut-off equal to the fallback threshold.
+
+The alerts (low battery, grid engaged, inverter fault, inverter offline) go to `notify.mobile_app_hung_s_iphonese2` and `notify.mobile_app_mais_iphone16p`. Use the `notify.mobile_app_*` actions; the phones' `notify.*` entities are not services.
+
 ## Restore
 
 1. Replace `EVN_CUSTOMER_ID` in `lovelace.lovelace.json` with the EVN customer code; it is part of the `nestup_evn` entity IDs.

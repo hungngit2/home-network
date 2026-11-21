@@ -58,6 +58,9 @@
   - condition: numeric_state
     entity_id: sensor.luxpower_inverter_battery_battery_soc
     above: 39
+  - condition: numeric_state
+    entity_id: sensor.luxpower_inverter_load_power
+    below: 4000
   actions:
   - action: switch.turn_off
     target:
@@ -94,13 +97,13 @@
   - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: Grid Fallback Active
-      message: House is now on grid power. Battery at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
+      message: House is now on grid power. Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of 6500 W.
     continue_on_error: true
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Grid Fallback Active
-      message: House is now on grid power. Battery at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
+      message: House is now on grid power. Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of 6500 W.
   mode: single
 - id: irrigation_pump_auto_shutoff
   alias: 'Garden: Irrigation Pump Auto Shut-off'
@@ -170,4 +173,43 @@
     data:
       title: Inverter Offline
       message: No data from the LuxPower inverter for 10 minutes. Check the dongle and network.
+  mode: single
+- id: grid_assist_high_load_close
+  alias: 'Solar Off-Grid: Close Grid Protector on high load'
+  description: 'Inverter is 6.5 kW: connect the grid when the home load stays above 5.5 kW so grid and inverter share it (Take Load Together).'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.luxpower_inverter_load_power
+    above: 5500
+    for:
+      seconds: 5
+  conditions:
+  - condition: state
+    entity_id: switch.grid_protector
+    state: 'off'
+  actions:
+  - action: switch.turn_on
+    target:
+      entity_id: switch.grid_protector
+  mode: single
+- id: grid_assist_high_load_release
+  alias: 'Solar Off-Grid: Open Grid Protector after high load'
+  description: Disconnect the grid again once the load has stayed below 4 kW for 5 minutes, but only if the battery is above the 40% fallback level.
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.luxpower_inverter_load_power
+    below: 4000
+    for:
+      minutes: 5
+  conditions:
+  - condition: state
+    entity_id: switch.grid_protector
+    state: 'on'
+  - condition: numeric_state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    above: 39
+  actions:
+  - action: switch.turn_off
+    target:
+      entity_id: switch.grid_protector
   mode: single

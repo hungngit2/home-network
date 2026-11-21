@@ -772,7 +772,8 @@
                   "show_weather": false,
                   "grid_options": {
                     "columns": 12
-                  }
+                  },
+                  "inverter_power_rating": 6.5
                 }
               ]
             },
@@ -1151,7 +1152,8 @@
                       "sensor.house_39_pv_open_meteo_energy_production_d4"
                     ],
                     "hourly": true
-                  }
+                  },
+                  "inverter_power_rating": 6.5
                 }
               ]
             },
