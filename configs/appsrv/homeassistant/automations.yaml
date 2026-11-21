@@ -74,7 +74,7 @@
     entity_id: sensor.luxpower_inverter_battery_battery_soc
     below: 36
   actions:
-  - action: notify.hung_s_iphonese2
+  - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: 'Low Battery Warning'
       message: "Battery is at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%. Grid fallback closes at 30%."
@@ -89,7 +89,7 @@
     from: 'off'
     to: 'on'
   actions:
-  - action: notify.hung_s_iphonese2
+  - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: 'Grid Fallback Active'
       message: "House is now on grid power. Battery at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%."
@@ -127,7 +127,7 @@
     for:
       seconds: 30
   actions:
-  - action: notify.hung_s_iphonese2
+  - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: 'Inverter Alert'
       message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
@@ -142,8 +142,14 @@
     to: 'unavailable'
     for:
       minutes: 10
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: state
+    entity_id: sensor.luxpower_inverter_battery_battery_soc
+    state: 'unavailable'
   actions:
-  - action: notify.hung_s_iphonese2
+  - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: 'Inverter Offline'
       message: 'No data from the LuxPower inverter for 10 minutes. Check the dongle and network.'
