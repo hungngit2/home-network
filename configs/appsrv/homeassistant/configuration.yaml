@@ -108,7 +108,7 @@ template:
             data:
               device: fan_light
               command: light_power
-      - name: "1B Fan Light Power (all)"
+      - name: "1B Fan Light Power off"
         unique_id: 1b_fan_light_rf_power
         icon: "mdi:power"
         press:
@@ -238,3 +238,145 @@ template:
             data:
               device: fan_light
               command: timer_4h
+  - fan:
+      - name: "Kitchen Fan"
+        unique_id: kitchen_fan_rf
+        state: "{{ is_state('switch.fan_switch', 'on') and is_state('input_boolean.kitchen_fan_running', 'on') }}"
+        availability: "{{ has_value('switch.fan_switch') }}"
+        speed_count: 6
+        percentage: >-
+          {{ ((states('input_number.kitchen_fan_speed') | int(0)) * 100 / 6) | round(0)
+             if is_state('switch.fan_switch', 'on') and is_state('input_boolean.kitchen_fan_running', 'on') else 0 }}
+        preset_modes:
+          - natural
+          - sleep
+        preset_mode: >-
+          {{ none if is_state('input_select.kitchen_fan_preset', 'none')
+             else states('input_select.kitchen_fan_preset') }}
+        direction: "{{ 'reverse' if is_state('input_boolean.kitchen_fan_reverse', 'on') else 'forward' }}"
+        turn_on:
+          - variables:
+              speed: >-
+                {{ [1, ((percentage | int(0)) * 6 / 100) | round(0, 'ceil') | int] | max
+                   if percentage is defined and percentage else 3 }}
+          - if: "{{ is_state('switch.fan_switch', 'off') }}"
+            then:
+              - action: input_number.set_value
+                target:
+                  entity_id: input_number.kitchen_fan_next_speed
+                data:
+                  value: "{{ speed }}"
+              - action: switch.turn_on
+                target:
+                  entity_id: switch.fan_switch
+            else:
+              - action: button.press
+                target:
+                  entity_id: "button.1b_fan_light_fan_speed_{{ speed }}"
+              - action: input_number.set_value
+                target:
+                  entity_id: input_number.kitchen_fan_speed
+                data:
+                  value: "{{ speed }}"
+              - action: input_boolean.turn_on
+                target:
+                  entity_id: input_boolean.kitchen_fan_running
+        turn_off:
+          - action: button.press
+            target:
+              entity_id: button.1b_fan_light_power_off
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.kitchen_fan_running
+        set_percentage:
+          - variables:
+              speed: "{{ ((percentage | int(0)) * 6 / 100) | round(0, 'ceil') | int }}"
+          - choose:
+              - conditions: "{{ speed == 0 }}"
+                sequence:
+                  - action: button.press
+                    target:
+                      entity_id: button.1b_fan_light_power_off
+                  - action: input_boolean.turn_off
+                    target:
+                      entity_id: input_boolean.kitchen_fan_running
+              - conditions: "{{ is_state('switch.fan_switch', 'off') }}"
+                sequence:
+                  - action: input_number.set_value
+                    target:
+                      entity_id: input_number.kitchen_fan_next_speed
+                    data:
+                      value: "{{ speed }}"
+                  - action: switch.turn_on
+                    target:
+                      entity_id: switch.fan_switch
+            default:
+              - action: button.press
+                target:
+                  entity_id: "button.1b_fan_light_fan_speed_{{ speed }}"
+              - action: input_number.set_value
+                target:
+                  entity_id: input_number.kitchen_fan_speed
+                data:
+                  value: "{{ speed }}"
+              - action: input_select.select_option
+                target:
+                  entity_id: input_select.kitchen_fan_preset
+                data:
+                  option: "none"
+              - action: input_boolean.turn_on
+                target:
+                  entity_id: input_boolean.kitchen_fan_running
+        set_preset_mode:
+          - action: button.press
+            target:
+              entity_id: "button.1b_fan_light_{{ 'natural_wind' if preset_mode == 'natural' else 'sleep_wind' }}"
+          - action: input_select.select_option
+            target:
+              entity_id: input_select.kitchen_fan_preset
+            data:
+              option: "{{ preset_mode }}"
+          - action: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.kitchen_fan_running
+        set_direction:
+          - if: "{{ (direction == 'reverse') != is_state('input_boolean.kitchen_fan_reverse', 'on') }}"
+            then:
+              - action: button.press
+                target:
+                  entity_id: button.1b_fan_light_reverse_rotation
+              - action: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.kitchen_fan_reverse
+
+input_number:
+  kitchen_fan_speed:
+    name: Kitchen fan speed
+    min: 0
+    max: 6
+    step: 1
+    icon: mdi:fan
+  kitchen_fan_next_speed:
+    name: Kitchen fan speed at next switch-on
+    min: 1
+    max: 6
+    step: 1
+    initial: 3
+    icon: mdi:fan-clock
+
+input_select:
+  kitchen_fan_preset:
+    name: Kitchen fan preset
+    options:
+      - "none"
+      - natural
+      - sleep
+    icon: mdi:weather-windy
+
+input_boolean:
+  kitchen_fan_running:
+    name: Kitchen fan running
+    icon: mdi:fan
+  kitchen_fan_reverse:
+    name: Kitchen fan reversed
+    icon: mdi:rotate-3d-variant
