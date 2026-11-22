@@ -17,7 +17,7 @@ def monthly(field):
             f"[new Date(p.start + 'T00:00:00').getTime(), p.{field}]);")
 
 
-THOUSANDS_JS = "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US'); }"
+THOUSANDS_JS = "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
 
 
 def daily(field):
