@@ -138,9 +138,9 @@ template:
             data:
               device: fan_light
               command: power
-      - name: "1B Fan Light Fan on/off"
+      - name: "1B Fan Light Reverse rotation"
         unique_id: 1b_fan_light_rf_fan_power
-        icon: "mdi:fan"
+        icon: "mdi:rotate-3d-variant"
         press:
           - action: remote.send_command
             target:
