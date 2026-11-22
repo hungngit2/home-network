@@ -97,3 +97,164 @@ template:
           {{ has_value('sensor.luxpower_inverter_battery_battery_soc')
              and states('sensor.luxpower_inverter_battery_battery_soc') | float(0) > 30
              and states('sensor.luxpower_inverter_battery_battery_flow') | float(0) > 50 }}
+  - button:
+      - name: "1B Fan Light Light on/off"
+        unique_id: 1b_fan_light_rf_light_power
+        icon: "mdi:lightbulb"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: light_power
+      - name: "1B Fan Light Brightness up"
+        unique_id: 1b_fan_light_rf_brightness_up
+        icon: "mdi:brightness-7"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: brightness_up
+      - name: "1B Fan Light Brightness down"
+        unique_id: 1b_fan_light_rf_brightness_down
+        icon: "mdi:brightness-5"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: brightness_down
+      - name: "1B Fan Light Power (all)"
+        unique_id: 1b_fan_light_rf_power
+        icon: "mdi:power"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: power
+      - name: "1B Fan Light Fan on/off"
+        unique_id: 1b_fan_light_rf_fan_power
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_power
+      - name: "1B Fan Light Fan speed 1"
+        unique_id: 1b_fan_light_rf_fan_speed1
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_speed1
+      - name: "1B Fan Light Fan speed 2"
+        unique_id: 1b_fan_light_rf_fan_speed2
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_speed2
+      - name: "1B Fan Light Fan speed 3"
+        unique_id: 1b_fan_light_rf_fan_speed3
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_speed3
+      - name: "1B Fan Light Fan speed 4"
+        unique_id: 1b_fan_light_rf_fan_speed4
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_speed4
+      - name: "1B Fan Light Fan speed 5"
+        unique_id: 1b_fan_light_rf_fan_speed5
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_speed5
+      - name: "1B Fan Light Fan speed 6"
+        unique_id: 1b_fan_light_rf_fan_speed6
+        icon: "mdi:fan"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: fan_speed6
+      - name: "1B Fan Light Sleep wind"
+        unique_id: 1b_fan_light_rf_sleep_wind
+        icon: "mdi:weather-night"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: sleep_wind
+      - name: "1B Fan Light Natural wind"
+        unique_id: 1b_fan_light_rf_natural_wind
+        icon: "mdi:weather-windy"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: natural_wind
+      - name: "1B Fan Light Timer 1h"
+        unique_id: 1b_fan_light_rf_timer_1h
+        icon: "mdi:timer-outline"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: timer_1h
+      - name: "1B Fan Light Timer 2h"
+        unique_id: 1b_fan_light_rf_timer_2h
+        icon: "mdi:timer-outline"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: timer_2h
+      - name: "1B Fan Light Timer 4h"
+        unique_id: 1b_fan_light_rf_timer_4h
+        icon: "mdi:timer-outline"
+        press:
+          - action: remote.send_command
+            target:
+              entity_id: remote.1b_infrared_rf
+            data:
+              device: fan_light
+              command: timer_4h
