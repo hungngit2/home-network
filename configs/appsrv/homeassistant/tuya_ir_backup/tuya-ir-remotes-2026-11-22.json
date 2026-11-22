@@ -1,0 +1,2673 @@
+{
+  "created": "2026-11-22T22:42:20",
+  "hubs": {
+    "1B: Infrared RF": {
+      "device_id": "a37591e994003d74bazlw7",
+      "product_id": "nwpvjlq7qacvnqf3",
+      "product_name": "Infrared RF remote control",
+      "remotes": {
+        "1B: AC - Remote Ctrl.": {
+          "remote_id": "a3689d5abefdc5ff3ez2ng",
+          "meta": {
+            "area_id": 0,
+            "brand_id": 22,
+            "brand_name": "Toshiba",
+            "category_id": 5,
+            "operator_id": 0,
+            "remote_id": "a3689d5abefdc5ff3ez2ng",
+            "remote_index": 11867,
+            "remote_name": "1B: AC - Remote Ctrl."
+          },
+          "keys_v2": {
+            "brand_id": 22,
+            "category_id": 5,
+            "duplicate_power": false,
+            "key_list": [
+              {
+                "key": "F",
+                "key_id": 0,
+                "key_name": "fan speed",
+                "standard_key": true
+              },
+              {
+                "key": "M",
+                "key_id": 0,
+                "key_name": "mode",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOff",
+                "key_id": 0,
+                "key_name": "power off",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOn",
+                "key_id": 0,
+                "key_name": "power on",
+                "standard_key": true
+              },
+              {
+                "key": "T",
+                "key_id": 0,
+                "key_name": "temperature",
+                "standard_key": true
+              }
+            ],
+            "key_range": [
+              {
+                "mode": 0,
+                "mode_name": "mode cool",
+                "temp_list": [
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 17,
+                    "temp_name": "temperture 17"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 18,
+                    "temp_name": "temperture 18"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 19,
+                    "temp_name": "temperture 19"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 20,
+                    "temp_name": "temperture 20"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 21,
+                    "temp_name": "temperture 21"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 22,
+                    "temp_name": "temperture 22"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 23,
+                    "temp_name": "temperture 23"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 24,
+                    "temp_name": "temperture 24"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 25,
+                    "temp_name": "temperture 25"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 26,
+                    "temp_name": "temperture 26"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 27,
+                    "temp_name": "temperture 27"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 28,
+                    "temp_name": "temperture 28"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 29,
+                    "temp_name": "temperture 29"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 30,
+                    "temp_name": "temperture 30"
+                  }
+                ]
+              },
+              {
+                "mode": 1,
+                "mode_name": "mode heat",
+                "temp_list": [
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 17,
+                    "temp_name": "temperture 17"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 18,
+                    "temp_name": "temperture 18"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 19,
+                    "temp_name": "temperture 19"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 20,
+                    "temp_name": "temperture 20"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 21,
+                    "temp_name": "temperture 21"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 22,
+                    "temp_name": "temperture 22"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 23,
+                    "temp_name": "temperture 23"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 24,
+                    "temp_name": "temperture 24"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 25,
+                    "temp_name": "temperture 25"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 26,
+                    "temp_name": "temperture 26"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 27,
+                    "temp_name": "temperture 27"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 28,
+                    "temp_name": "temperture 28"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 29,
+                    "temp_name": "temperture 29"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 30,
+                    "temp_name": "temperture 30"
+                  }
+                ]
+              },
+              {
+                "mode": 4,
+                "mode_name": "mode dry",
+                "temp_list": [
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 17,
+                    "temp_name": "temperture 17"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 18,
+                    "temp_name": "temperture 18"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 19,
+                    "temp_name": "temperture 19"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 20,
+                    "temp_name": "temperture 20"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 21,
+                    "temp_name": "temperture 21"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 22,
+                    "temp_name": "temperture 22"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 23,
+                    "temp_name": "temperture 23"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 24,
+                    "temp_name": "temperture 24"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 25,
+                    "temp_name": "temperture 25"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 26,
+                    "temp_name": "temperture 26"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 27,
+                    "temp_name": "temperture 27"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 28,
+                    "temp_name": "temperture 28"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 29,
+                    "temp_name": "temperture 29"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 30,
+                    "temp_name": "temperture 30"
+                  }
+                ]
+              }
+            ],
+            "remote_index": 11867,
+            "single_air": false
+          },
+          "keys_v1": {
+            "brand_id": 22,
+            "category_id": 5,
+            "duplicate_power": false,
+            "key_list": [
+              {
+                "key": "F",
+                "key_id": 0,
+                "key_name": "fan speed",
+                "standard_key": true
+              },
+              {
+                "key": "M",
+                "key_id": 0,
+                "key_name": "mode",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOff",
+                "key_id": 0,
+                "key_name": "power off",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOn",
+                "key_id": 0,
+                "key_name": "power on",
+                "standard_key": true
+              },
+              {
+                "key": "T",
+                "key_id": 0,
+                "key_name": "temperature",
+                "standard_key": true
+              }
+            ],
+            "remote_index": 11867,
+            "single_air": false
+          },
+          "learning_codes": [],
+          "ac_status": {
+            "mode": "0",
+            "power": "0",
+            "temp": "27",
+            "wind": "0"
+          }
+        },
+        "1B: AC - Fn. Keys": {
+          "remote_id": "a346b41ac3ae7a2b78ul93",
+          "meta": {
+            "area_id": 0,
+            "brand_id": 999999,
+            "brand_name": "Toshiba",
+            "category_id": 13,
+            "operator_id": 0,
+            "remote_id": "a346b41ac3ae7a2b78ul93",
+            "remote_index": 1788282821,
+            "remote_name": "1B: AC - Fn. Keys"
+          },
+          "keys_v2": {
+            "brand_id": 999999,
+            "category_id": 13,
+            "duplicate_power": true,
+            "key_list": [
+              {
+                "key": "1788282713984",
+                "key_id": 1788282713,
+                "key_name": "Eco",
+                "standard_key": false
+              },
+              {
+                "key": "1788282724768",
+                "key_id": 1788282724,
+                "key_name": "Hi Power",
+                "standard_key": false
+              },
+              {
+                "key": "1788282754303",
+                "key_id": 1788282754,
+                "key_name": "Fix",
+                "standard_key": false
+              },
+              {
+                "key": "1788282765218",
+                "key_id": 1788282765,
+                "key_name": "Swing",
+                "standard_key": false
+              }
+            ],
+            "remote_index": 1788282821,
+            "single_air": false
+          },
+          "keys_v1": {
+            "brand_id": 999999,
+            "category_id": 13,
+            "duplicate_power": true,
+            "key_list": [
+              {
+                "key": "1788282713984",
+                "key_id": 1788282713,
+                "key_name": "Eco",
+                "standard_key": false
+              },
+              {
+                "key": "1788282724768",
+                "key_id": 1788282724,
+                "key_name": "Hi Power",
+                "standard_key": false
+              },
+              {
+                "key": "1788282754303",
+                "key_id": 1788282754,
+                "key_name": "Fix",
+                "standard_key": false
+              },
+              {
+                "key": "1788282765218",
+                "key_id": 1788282765,
+                "key_name": "Swing",
+                "standard_key": false
+              }
+            ],
+            "remote_index": 1788282821,
+            "single_air": false
+          },
+          "learning_codes": [
+            {
+              "code": "271127113d0239063d0239063d0239063d0239063d02ea013d02ea013d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d0239063d02ea013d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d0239063d0239063d0239063d0239063d0239063d0239063d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d0239063d02ea013d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d02ea013d0239063d02ea013d02ea013d023d023d023d023d02ea013d02011a271127113d0239063d0239063d0239063d0239063d02ea013d02ea013d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d0239063d02ea013d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d02ea013d0239063d0239063d0239063d0239063d0239063d0239063d0239063d0239063d02ea013d02ea013d02ea013d02ea013d02ea013d023d023d02ea013d02ea013d02ea013d0239063d0239063d02ea013d0239063d02ea013d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d023d0239063d023d023d023d02ea013d023d023d023d023d02ea013d023d023d023d023d02ea0139063d023d02ea0139063d023d02ea013d023d023d023d023d02ea013d023d023075",
+              "id": 1788282713,
+              "key": "1788282713984",
+              "key_name": "Eco",
+              "learn_id": 541802,
+              "remote_id": "a346b41ac3ae7a2b78ul93"
+            },
+            {
+              "code": "1811181121024806210248062102480621024806210221022102210221024806210221022102210221022102210221022102210221024806210248062102210221024806210221022102210221022102210221022102210221024806210221022102210221024806210248062102480621024806210248062102210221024806210248062102210221022102210221022102210221024806210221022102210221024806210248062102210221024806210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210248062102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102480621024806210221022102480621022102210248062102210221022102210248062102211a181118112102480621024806210248062102480621022102210221022102480621022102210221022102210221022102210221022102480621024806210221022102480621022102210221022102210221022102210221022102480621022102210221022102480621024806210248062102480621024806210221022102480621024806210221022102210221022102210221022102480621022102210221022102480621024806210221022102e8fd2102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102480621022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221022102210221024806210248062102210221024806210221022102480621022102210221022102480621023075",
+              "id": 1788282724,
+              "key": "1788282724768",
+              "key_name": "Hi Power",
+              "learn_id": 541803,
+              "remote_id": "a346b41ac3ae7a2b78ul93"
+            },
+            {
+              "code": "081108116d020d066d020d066d020d066d020d066d02cb016d02cb016d020d066d02cb016d02cb016d02cb016d02cb016d02cb016d020d066d020d066d02cb016d020d066d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d020d066d020d066d020d066d020d066d020d066d020d066d020d066d020d066d02cb016d02cb016d02cb016d020d066d02cb016d02cb016d02cb016d02cb016d020d066d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d02cb016d020d066d02cb016d02cb016d02cb016d02cb016d020d066d023075",
+              "id": 1788282754,
+              "key": "1788282754303",
+              "key_name": "Fix",
+              "learn_id": 541804,
+              "remote_id": "a346b41ac3ae7a2b78ul93"
+            },
+            {
+              "code": "25112511590216065902160659021606590216065902da015902da01590216065902da015902da015902da015902da015902da0159021606590216065902da01590216065902da015902da015902da015902da015902da015902da015902da0159021606590216065902160659021606590216065902160659021606590216065902da015902da015902da01590216065902da015902da015902da015902da01590216065902da015902da015902da015902da015902da01590216065902da015902da015902da015902da01590216065902da015902da01590216065902da01590216065902de1925112511590216065902160659021606590216065902da015902da01590216065902da015902da0159025902590259025902da0159021606590216065902590259021606590259025902da0159025902590259025902da015902da015902da0159021606590216065902160659021606590216065902160659021606590216065902da015902da015902da01590216065902da015902da015902da015902da01590216065902da015902da015902da015902da015902da01590216065902da015902da015902da015902da01590216065902da015902da01590216065902da015902160659023075",
+              "id": 1788282765,
+              "key": "1788282765218",
+              "key_name": "Swing",
+              "learn_id": 541805,
+              "remote_id": "a346b41ac3ae7a2b78ul93"
+            }
+          ]
+        },
+        "Fan Light": {
+          "remote_id": "a36fca7fd5bf69807fdeof",
+          "meta": {},
+          "keys_v2": {
+            "brand_id": 0,
+            "category_id": 14,
+            "duplicate_power": true,
+            "key_list": [
+              {
+                "key": "light_down",
+                "key_id": 324,
+                "key_name": "light-",
+                "standard_key": false
+              },
+              {
+                "key": "light_up",
+                "key_id": 323,
+                "key_name": "light+",
+                "standard_key": false
+              },
+              {
+                "key": "light_power",
+                "key_id": 321,
+                "key_name": "Reverse",
+                "standard_key": false
+              },
+              {
+                "key": "fan_power",
+                "key_id": 322,
+                "key_name": "fan_power",
+                "standard_key": false
+              },
+              {
+                "key": "circulating_wind",
+                "key_id": 335,
+                "key_name": "Sleep wind",
+                "standard_key": false
+              },
+              {
+                "key": "natural_wind",
+                "key_id": 334,
+                "key_name": "natural wind",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed6",
+                "key_id": 333,
+                "key_name": "fan_speed6",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed5",
+                "key_id": 332,
+                "key_name": "fan_speed5",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed4",
+                "key_id": 331,
+                "key_name": "fan_speed4",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed3",
+                "key_id": 330,
+                "key_name": "fan_speed3",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed2",
+                "key_id": 329,
+                "key_name": "fan_speed2",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed1",
+                "key_id": 328,
+                "key_name": "fan_speed1",
+                "standard_key": false
+              },
+              {
+                "key": "timed_4h",
+                "key_id": 327,
+                "key_name": "timed_4h",
+                "standard_key": false
+              },
+              {
+                "key": "timed_2h",
+                "key_id": 326,
+                "key_name": "timed_2h",
+                "standard_key": false
+              },
+              {
+                "key": "timed_1h",
+                "key_id": 325,
+                "key_name": "timed_1h",
+                "standard_key": false
+              },
+              {
+                "key": "power",
+                "key_id": 320,
+                "key_name": "power",
+                "standard_key": false
+              }
+            ],
+            "remote_index": 1782374241,
+            "single_air": false
+          },
+          "keys_v1": {
+            "brand_id": 0,
+            "category_id": 14,
+            "duplicate_power": true,
+            "key_list": [
+              {
+                "key": "power",
+                "key_id": 320,
+                "key_name": "power",
+                "standard_key": false
+              },
+              {
+                "key": "light_power",
+                "key_id": 321,
+                "key_name": "Reverse",
+                "standard_key": false
+              },
+              {
+                "key": "fan_power",
+                "key_id": 322,
+                "key_name": "fan_power",
+                "standard_key": false
+              },
+              {
+                "key": "light_up",
+                "key_id": 323,
+                "key_name": "light+",
+                "standard_key": false
+              },
+              {
+                "key": "light_down",
+                "key_id": 324,
+                "key_name": "light-",
+                "standard_key": false
+              },
+              {
+                "key": "timed_1h",
+                "key_id": 325,
+                "key_name": "timed_1h",
+                "standard_key": false
+              },
+              {
+                "key": "timed_2h",
+                "key_id": 326,
+                "key_name": "timed_2h",
+                "standard_key": false
+              },
+              {
+                "key": "timed_4h",
+                "key_id": 327,
+                "key_name": "timed_4h",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed1",
+                "key_id": 328,
+                "key_name": "fan_speed1",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed2",
+                "key_id": 329,
+                "key_name": "fan_speed2",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed3",
+                "key_id": 330,
+                "key_name": "fan_speed3",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed4",
+                "key_id": 331,
+                "key_name": "fan_speed4",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed5",
+                "key_id": 332,
+                "key_name": "fan_speed5",
+                "standard_key": false
+              },
+              {
+                "key": "fan_speed6",
+                "key_id": 333,
+                "key_name": "fan_speed6",
+                "standard_key": false
+              },
+              {
+                "key": "natural_wind",
+                "key_id": 334,
+                "key_name": "natural wind",
+                "standard_key": false
+              },
+              {
+                "key": "circulating_wind",
+                "key_id": 335,
+                "key_name": "Sleep wind",
+                "standard_key": false
+              }
+            ],
+            "remote_index": 1782374241,
+            "single_air": false
+          },
+          "learning_codes": [
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuMTgiLCJkYXRhMCI6InFpRUtBZnNDK3dJS0FRb0Ird0lLQWZzQ0NnSDdBdFlBK3dMN0FrTUJDZ0g3QXZzQ0NnRUtBZnNDK3dJS0Fmc0NDZ0g3QWtNQit3SUtBZnNDUXdFS0Fmc0NDZ0g3QWdvQit3SUtBZnNDK3dJS0FRb0Ird0lLQWZzQ0NnSDdBZ29CK3dMN0FrTUJDZ0g3QXRZQSt3TDdBZ29CK3dJS0FRb0Ird0w3QWdvQit3SUtBUW9CIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 324,
+              "key": "light_down",
+              "key_name": "light-",
+              "learn_id": 562114,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuMTgiLCJkYXRhMCI6InNTQUxBZndDL0FJTEFRc0IvQUlMQWZ3Q0N3SDhBZ3NCL0FMOEFrVUJDd0g4QXZ3Q0N3RkZBZndDL0FJTEFmd0NDd0g4QWdzQi9BSUxBZndDQ3dFTEFmd0NDd0g4QWdzQi9BSkZBZndDL0FJTEFRc0IvQUlMQWZ3Q0N3SDhBZ3NCL0FMOEFrVUJDd0g4QWdzQi9BSUxBZndDL0FKRkFRc0IvQUw4QWdzQkN3SDhBZ3NCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 323,
+              "key": "light_up",
+              "key_name": "light+",
+              "learn_id": 562113,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6IlVDQVBBZjBDL1FJUEFROEIvUUlQQWYwQ0R3SDlBZzhCL1FMOUFnOEJEd0g5QXYwQ0R3RVBBZjBDL1FJUEFmMENEd0g5QWc4Qi9RSVBBZjBDUEFFUEFmMENEd0g5QWc4Qi9RSVBBZjBDL1FJUEFROEIvUUlQQWYwQ0R3SDlBZzhCL1FMOUFnOEIvUUlQQVE4Qi9RSVBBZjBDL1FJUEFmMENEd0g5QWc4QlBBSDlBZzhCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 321,
+              "key": "light_power",
+              "key_name": "Reverse",
+              "learn_id": 435708,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTMiLCJkYXRhMCI6Ikt5RWRBZjRDL2dJZEFSMEIvZ0lkQWY0Qyt3RCtBdnNBL2dMK0FoMEJIUUgrQXY0Q0hRSDdBUDRDL2dJZEFmNENIUUgrQWgwQi9nSWRBZjRDSFFIN0FQNENIUUgrQWgwQi9nSWRBZjRDL2dMN0FCMEIvZ0lkQWY0Qy9nSWRBUjBCL2dJZEFmNEMrd0QrQXY0Q0hRRWRBZjRDK3dEK0FoMEIvZ0wrQWgwQit3RCtBaDBCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 322,
+              "key": "fan_power",
+              "key_name": "fan_power",
+              "learn_id": 435720,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6InhoOGRBZndDL0FJZEFSMEIvQUw3QVB3Qyt3RDhBaDBCL0FMOEF2c0FIUUg4QXZ3Q0hRSDdBUHdDL0FMN0FQd0Mrd0Q4QWgwQi9BSWRBZndDSFFIN0FQd0NIUUg4QXZzQS9BTDdBUHdDL0FJZEFmc0EvQUw3QVB3Q0hRSDhBdnNBL0FMOEFoMEIvQUlkQWZzQS9BTDhBaDBCL0FJZEFmd0NIUUg4QWgwQi9BSWRBZnNBIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 335,
+              "key": "circulating_wind",
+              "key_name": "Sleep wind",
+              "learn_id": 435719,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6InF5RWRBZjBDL1FJZEFSMEIvUUlkQWYwQ0hRSDlBaDBCL1FMOUFoMEJIUUg5QXYwQyt3QWRBZjBDL1FMN0FQMENIUUg5QWgwQi9RTDdBUDBDSFFFZEFmMENIUUg5QWgwQi9RSWRBZjBDL1FMN0FCMEIvUUlkQWYwQ0hRSDlBaDBCL1FMOUF2c0FIUUg5QXYwQyt3RDlBdnNBL1FJZEFmc0EvUUlkQWYwQy9RSWRBZnNBIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 334,
+              "key": "natural_wind",
+              "key_name": "natural wind",
+              "learn_id": 435718,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6Im95QVFBZndDL0FJUUFSQUIvQUlRQWZ3Q0VBSDhBaEFCL0FMOEFoQUJFQUg4QXZ3Q0VBRVFBZndDL0FJUUFmd0NFQUg4QWhBQi9BSVFBZndDRUFFUUFmd0NFQUg4QWhBQi9BSVFBZndDL0FJUUFSQUIvQUlRQWZ3Q0VBSDhBam9CL0FJUUFmd0MvQUlRQVJBQi9BTDhBaEFCRUFIOEF2d0NFQUg4QWhBQi9BSVFBUkFCSDhrUUFmd0NPZ0Z0QXAwQk9nRVFBWjBCYlFJNkFZUURzd1U2QWZ3Q09nRmxCSjBCOHdIR0FKMEJuUUg4QXAwQmhBTVFBWVFET2dHekJUb0Jzd1h6QVdVRVpRUTZBZk1CMlFzUUFmd0NiUUw4QWpvQlpRUVFBZndDT2dIR0FQTUJFQUdkQVowQk9nRnRBc1lBc1FlZEFmd0NuUUdkQVlRRGhBTVFBVG9CblFHRUEyVUUvQUtkQWZ3Q09nSDhBam9CL0FMOEFoQUJFQUg4QXZ3Q0VBRVFBZndDL0FJUUFmd0NFQUg4QWhBQi9BSVFBZndDRUFFUUFmd0NFQUg4QWhBQi9BSVFBZndDL0FJNkFSQUIvQUlRQWZ3Q0VBSDhBaEFCL0FJUUFmd0MvQUlRQVJBQi9BTDhBaEFCRUFIOEF2d0NFQUg4QWhBQi9BSVFBUkFCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 333,
+              "key": "fan_speed6",
+              "key_name": "fan_speed6",
+              "learn_id": 435717,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6Ill5QU5BZmNDOXdJTkFRMEI5d0lOQWZjQ0RRSDNBZzBCOXdMM0FnMEJEUUgzQXZjQ0RRRU5BZmNDOXdJTkFmY0NEUUgzQWcwQjl3SU5BZmNDUWdFTkFmY0NEUUgzQWcwQjl3SU5BZmNDOXdJTkFRMEI5d0lOQWZjQ0RRSDNBZzBCOXdJTkFmY0M5d0lOQVEwQjl3SU5BZmNDRFFIM0F2Y0NRZ0gzQWcwQkRRSDNBZzBCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 332,
+              "key": "fan_speed5",
+              "key_name": "fan_speed5",
+              "learn_id": 435716,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6ImlDQTRBZjRDL2dJUEFROEIvZ0lQQWY0Q0R3SCtBZzhCL2dMK0FnOEJEd0grQXY0Q09BRVBBZjRDL2dJUEFmNENPQUgrQWc4Qi9nSVBBZjRDRHdFUEFmNENEd0grQWc4Qi9nSVBBZjRDL2dJUEFROEIvZ0lQQWY0Q0R3SCtBZzhCL2dMK0FnOEJEd0grQWc4Qi9nSVBBZjRDL2dJUEFROEIvZ0wrQWc4QkR3SCtBZzhCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 331,
+              "key": "fan_speed4",
+              "key_name": "fan_speed4",
+              "learn_id": 435715,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6IjNpRWdBZmNDOXdJZ0FTQUI5d0lnQWZjQ0lBSDNBaUFCOXdMM0FpQUJJQUgzQXZjQ0lBRWdBZmNDOXdJZ0FmY0NJQUgzQXZnQTl3TDRBUGNDSUFFZ0FmY0NJQUgzQWlBQjl3SWdBZmNDOXdMNEFDQUI5d0lnQWZjQ0lBSDNBaUFCOXdJZ0FmY0M5d0w0QVBjQ0lBSDNBdmdBSUFIM0F2Y0MrQUFnQWZjQzl3SWdBZmdBIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 330,
+              "key": "fan_speed3",
+              "key_name": "fan_speed3",
+              "learn_id": 435714,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6ImpTRkRBZmNDOXdJT0FRNEI5d0pEQWZjQ0RnSDNBZzRCOXdMM0FnNEJEZ0gzQXZjQ0RnRU9BZmNDOXdJT0FmY0NEZ0gzQWc0Qjl3SU9BZmNDRGdFT0FmY0NEZ0gzQWc0Qjl3SU9BZmNDOXdJT0FRNEI5d0lPQWZjQ0RnSDNBZzRCOXdMM0FnNEJEZ0gzQWc0Qjl3TDNBZzRCOXdJT0FRNEI5d0wzQWc0Qjl3SU9BUTRCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 329,
+              "key": "fan_speed2",
+              "key_name": "fan_speed2",
+              "learn_id": 435713,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6Ind5RTRBZndDL0FJUUFSQUIvQUlRQWZ3Q0VBSDhBaEFCL0FMOEFoQUJFQUg4QXZ3Q0VBRVFBZndDL0FJUUFmd0NFQUg4QWpnQi9BSVFBZndDT0FFUUFmd0NFQUg4QWhBQi9BSVFBZndDL0FJUUFSQUIvQUlRQWZ3Q0VBSDhBaEFCL0FJUUFmd0NFQUg4QWhBQi9BTDhBaEFCRUFIOEFoQUIvQUw4QWhBQi9BSVFBUkFCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 328,
+              "key": "fan_speed1",
+              "key_name": "fan_speed1",
+              "learn_id": 435712,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6IjVoOFBBZjBDL1FJUEFUY0IvUUlQQWYwQ0R3SDlBamNCL1FMOUFnOEJEd0g5QXYwQ0R3RVBBZjBDL1FJUEFmMENEd0g5QWc4Qi9RSVBBZjBDRHdFUEFmMENOd0g5QWc4Qi9RSVBBZjBDL1FJUEFROEIvUUlQQWYwQy9RSVBBZjBDRHdFUEFmMENEd0g5QWc4Qi9RTDlBZzhCRHdIOUFnOEIvUUlQQWYwQ0R3SDlBamNCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 327,
+              "key": "timed_4h",
+              "key_name": "timed_4h",
+              "learn_id": 435711,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6IlBTRTNBZndDL0FJUEFROEIvQUlQQWZ3Q0R3SDhBamNCL0FMOEFnOEJEd0g4QXZ3Q0R3RVBBZndDL0FJUEFmd0NEd0g4QWc4Qi9BSVBBZndDRHdFUEFmd0NEd0g4QWpjQi9BSVBBZndDL0FJUEFROEIvQUlQQWZ3Qy9BSVBBZndDRHdFUEFmd0MvQUlQQVE4Qi9BTDhBZzhCRHdIOEF2d0NEd0VQQWZ3Q0R3SDhBZzhCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 326,
+              "key": "timed_2h",
+              "key_name": "timed_2h",
+              "learn_id": 435710,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6IkN5RVFBUWdEN0FJUUFSQUJDQU1RQVFnREVBSHNBamtCN0FMc0FoQUJFQUVJQSt3Q0VBRVFBUWdEQ0FNNUFRZ0RFQUVJQXhBQkNBTVFBUWdERUFFUUFld0NPUUhzQWhBQjdBSVFBUWdEQ0FNUUFSQUI3QUlRQVFnRENBTVFBZXdDRUFFUUFRZ0RDQU1RQVJBQkNBTVFBUWdERUFFSUErd0NFQUVRQVFnRDdBSTVBUkFCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 325,
+              "key": "timed_1h",
+              "key_name": "timed_1h",
+              "learn_id": 435709,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            },
+            {
+              "code": "{\"rf_type\":\"sub_2g\",\"mode\":0,\"key1\":{\"times\":6,\"intervals\":0,\"ver\":\"2\",\"delay\":0,\"code\":\"eyJudW0iOjEsInZlciI6IjIiLCJzdHVkeV9mZXEiOiI0MzMuNTUiLCJkYXRhMCI6IjdpQVFBZndDL0FJUUFSQUIvQUlRQWZ3Q0VBSDhBamdCL0FMOEFoQUJFQUg4QXZ3Q0VBRVFBZndDL0FJNEFmd0NFQUg4QWhBQi9BSVFBZndDRUFFUUFmd0NPQUg4QWhBQi9BSVFBZndDL0FJUUFSQUIvQUlRQWZ3Q0VBSDhBaEFCL0FJNEFmd0NFQUg4QXZ3Q0VBRTRBZndDRUFIOEFoQUIvQUk0QWZ3Q0VBSDhBaEFCIiwibHYiOlswXX0=\"},\"feq\":0,\"rate\":0,\"control\":\"rfstudy_send\"}",
+              "id": 320,
+              "key": "power",
+              "key_name": "power",
+              "learn_id": 435707,
+              "remote_id": "a36fca7fd5bf69807fdeof"
+            }
+          ]
+        }
+      }
+    },
+    "2B: Infrared": {
+      "device_id": "a3fa64c25c5abe30e0mykb",
+      "product_id": "p0rfwjeonfznjeqk",
+      "product_name": "Smart IR",
+      "remotes": {
+        "2B: AC - Fn. Keys": {
+          "remote_id": "a33ff1a1fd8a2297d31iok",
+          "meta": {
+            "area_id": 0,
+            "brand_id": 999999,
+            "brand_name": "Toshiba",
+            "category_id": 13,
+            "operator_id": 0,
+            "remote_id": "a33ff1a1fd8a2297d31iok",
+            "remote_index": 1788956734,
+            "remote_name": "2B: AC - Fn. Keys"
+          },
+          "keys_v2": {
+            "brand_id": 999999,
+            "category_id": 13,
+            "duplicate_power": true,
+            "key_list": [
+              {
+                "key": "1788959954225",
+                "key_id": 1788959954,
+                "key_name": "Eco",
+                "standard_key": false
+              },
+              {
+                "key": "1788959964259",
+                "key_id": 1788959964,
+                "key_name": "Hi Power",
+                "standard_key": false
+              },
+              {
+                "key": "1788963192580",
+                "key_id": 1788963192,
+                "key_name": "Fix",
+                "standard_key": false
+              },
+              {
+                "key": "1788963202847",
+                "key_id": 1788963202,
+                "key_name": "Swing",
+                "standard_key": false
+              }
+            ],
+            "remote_index": 1788956734,
+            "single_air": false
+          },
+          "keys_v1": {
+            "brand_id": 999999,
+            "category_id": 13,
+            "duplicate_power": true,
+            "key_list": [
+              {
+                "key": "1788959954225",
+                "key_id": 1788959954,
+                "key_name": "Eco",
+                "standard_key": false
+              },
+              {
+                "key": "1788959964259",
+                "key_id": 1788959964,
+                "key_name": "Hi Power",
+                "standard_key": false
+              },
+              {
+                "key": "1788963192580",
+                "key_id": 1788963192,
+                "key_name": "Fix",
+                "standard_key": false
+              },
+              {
+                "key": "1788963202847",
+                "key_id": 1788963202,
+                "key_name": "Swing",
+                "standard_key": false
+              }
+            ],
+            "remote_index": 1788956734,
+            "single_air": false
+          },
+          "learning_codes": [
+            {
+              "code": "1e111e1118027206180272061802720618027206180218021802180218027206180218021802180218021802180218021802180218027206180272061802180218027206180218021802180218021802180218021802180218027206180218021802180218027206180272061802720618027206180272061802180218027206180272061802180218021802180218021802180218027206180218021802180218027206180272061802180218027206180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180272061802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180272061802720618027206180218021802720618021802180272061802180218027206180272061802411a1e111e11180272061802720618027206180272061802180218021802180272061802180218021802180218021802180218021802180272061802720618021802180272061802180218021802180218021802180218021802180272061802180218021802180272061802720618027206180272061802720618021802180272061802720618021802180218021802180218021802180272061802180218021802180272061802720618021802180272061802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802720618021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802720618027206180272061802180218027206180218021802720618021802180272061802720618023075",
+              "id": 1788959954,
+              "key": "1788959954225",
+              "key_name": "Eco",
+              "learn_id": 552955,
+              "remote_id": "a33ff1a1fd8a2297d31iok"
+            },
+            {
+              "code": "1c111c11180272061802720618027206180272061802180218021802180272061802180218021802180218021802180218021802180272061802720618021802180272061802180218021802180218021802180218021802180272061802180218021802180272061802720618027206180272061802720618021802180272061802720618021802180218021802180218021802180272061802180218021802180272061802720618021802180272061802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802720618021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218027206180272061802180218027206180218021802720618021802180218021802720618025e1a1c111c11180272061802720618027206180272061802180218021802180272061802180218021802180218021802180218021802180272061802720618021802180272061802180218021802180218021802180218021802180272061802180218021802180272061802720618027206180272061802720618021802180272061802720618021802180218021802180218021802180272061802180218021802180272061802720618021802180272061802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802720618021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218021802180218027206180272061802180218027206180218021802720618021802180218021802720618023075",
+              "id": 1788959964,
+              "key": "1788959964259",
+              "key_name": "Hi Power",
+              "learn_id": 552956,
+              "remote_id": "a33ff1a1fd8a2297d31iok"
+            },
+            {
+              "code": "fb10fb10180270061802700618027006180270061802180218021802180270061802180218021802180218021802180218021802180270061802700618021802180270061802180218021802180218021802180218021802180218021802180218027006180270061802700618027006180270061802700618027006180270061802180218021802180218021802700618021802180218021802180218021802180270061802180218021802180218021802180218021802180218021802180218021802180218021802180218027006180218021802180218021802180218021802700618023075",
+              "id": 1788963192,
+              "key": "1788963192580",
+              "key_name": "Fix",
+              "learn_id": 552970,
+              "remote_id": "a33ff1a1fd8a2297d31iok"
+            },
+            {
+              "code": "0b110b11170271061702710617027106170271061702170217021702170271061702170217021702170217021702170217021702170271061702710617021702170271061702170217021702170217021702170217021702170217021702170217027106170271061702710617027106170271061702710617027106170271061702170217021702170217021702710617021702170217021702170217021702170271061702170217021702170217021702170217021702170271061702170217021702170217021702170217027106170217021702170217027106170217021702710617025c1a0b110b11170271061702710617027106170271061702170217021702170271061702170217021702170217021702170217021702170271061702710617021702170271061702170217021702170217021702170217021702170217021702170217027106170271061702710617027106170271061702710617027106170271061702170217021702170217021702710617021702170217021702170217021702170271061702170217021702170217021702170217021702170271061702170217021702170217021702170217027106170217021702170217027106170217021702710617023075",
+              "id": 1788963202,
+              "key": "1788963202847",
+              "key_name": "Swing",
+              "learn_id": 552971,
+              "remote_id": "a33ff1a1fd8a2297d31iok"
+            }
+          ]
+        },
+        "2B: AC - Remote Ctrl.": {
+          "remote_id": "a314fbba058cca7a6ekffs",
+          "meta": {
+            "area_id": 0,
+            "brand_id": 22,
+            "brand_name": "Toshiba",
+            "category_id": 5,
+            "operator_id": 0,
+            "remote_id": "a314fbba058cca7a6ekffs",
+            "remote_index": 11867,
+            "remote_name": "2B: AC - Remote Ctrl."
+          },
+          "keys_v2": {
+            "brand_id": 22,
+            "category_id": 5,
+            "duplicate_power": false,
+            "key_list": [
+              {
+                "key": "F",
+                "key_id": 0,
+                "key_name": "fan speed",
+                "standard_key": true
+              },
+              {
+                "key": "M",
+                "key_id": 0,
+                "key_name": "mode",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOff",
+                "key_id": 0,
+                "key_name": "power off",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOn",
+                "key_id": 0,
+                "key_name": "power on",
+                "standard_key": true
+              },
+              {
+                "key": "T",
+                "key_id": 0,
+                "key_name": "temperature",
+                "standard_key": true
+              }
+            ],
+            "key_range": [
+              {
+                "mode": 0,
+                "mode_name": "mode cool",
+                "temp_list": [
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 17,
+                    "temp_name": "temperture 17"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 18,
+                    "temp_name": "temperture 18"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 19,
+                    "temp_name": "temperture 19"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 20,
+                    "temp_name": "temperture 20"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 21,
+                    "temp_name": "temperture 21"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 22,
+                    "temp_name": "temperture 22"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 23,
+                    "temp_name": "temperture 23"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 24,
+                    "temp_name": "temperture 24"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 25,
+                    "temp_name": "temperture 25"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 26,
+                    "temp_name": "temperture 26"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 27,
+                    "temp_name": "temperture 27"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 28,
+                    "temp_name": "temperture 28"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 29,
+                    "temp_name": "temperture 29"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 30,
+                    "temp_name": "temperture 30"
+                  }
+                ]
+              },
+              {
+                "mode": 1,
+                "mode_name": "mode heat",
+                "temp_list": [
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 17,
+                    "temp_name": "temperture 17"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 18,
+                    "temp_name": "temperture 18"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 19,
+                    "temp_name": "temperture 19"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 20,
+                    "temp_name": "temperture 20"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 21,
+                    "temp_name": "temperture 21"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 22,
+                    "temp_name": "temperture 22"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 23,
+                    "temp_name": "temperture 23"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 24,
+                    "temp_name": "temperture 24"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 25,
+                    "temp_name": "temperture 25"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 26,
+                    "temp_name": "temperture 26"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 27,
+                    "temp_name": "temperture 27"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 28,
+                    "temp_name": "temperture 28"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 29,
+                    "temp_name": "temperture 29"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 30,
+                    "temp_name": "temperture 30"
+                  }
+                ]
+              },
+              {
+                "mode": 4,
+                "mode_name": "mode dry",
+                "temp_list": [
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 17,
+                    "temp_name": "temperture 17"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 18,
+                    "temp_name": "temperture 18"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 19,
+                    "temp_name": "temperture 19"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 20,
+                    "temp_name": "temperture 20"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 21,
+                    "temp_name": "temperture 21"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 22,
+                    "temp_name": "temperture 22"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 23,
+                    "temp_name": "temperture 23"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 24,
+                    "temp_name": "temperture 24"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 25,
+                    "temp_name": "temperture 25"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 26,
+                    "temp_name": "temperture 26"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 27,
+                    "temp_name": "temperture 27"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 28,
+                    "temp_name": "temperture 28"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 29,
+                    "temp_name": "temperture 29"
+                  },
+                  {
+                    "fan_list": [
+                      {
+                        "fan": 2,
+                        "fan_name": "speed middle"
+                      },
+                      {
+                        "fan": 0,
+                        "fan_name": "speed auto"
+                      },
+                      {
+                        "fan": 1,
+                        "fan_name": "speed low"
+                      },
+                      {
+                        "fan": 3,
+                        "fan_name": "speed high"
+                      }
+                    ],
+                    "temp": 30,
+                    "temp_name": "temperture 30"
+                  }
+                ]
+              }
+            ],
+            "remote_index": 11867,
+            "single_air": false
+          },
+          "keys_v1": {
+            "brand_id": 22,
+            "category_id": 5,
+            "duplicate_power": false,
+            "key_list": [
+              {
+                "key": "F",
+                "key_id": 0,
+                "key_name": "fan speed",
+                "standard_key": true
+              },
+              {
+                "key": "M",
+                "key_id": 0,
+                "key_name": "mode",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOff",
+                "key_id": 0,
+                "key_name": "power off",
+                "standard_key": true
+              },
+              {
+                "key": "PowerOn",
+                "key_id": 0,
+                "key_name": "power on",
+                "standard_key": true
+              },
+              {
+                "key": "T",
+                "key_id": 0,
+                "key_name": "temperature",
+                "standard_key": true
+              }
+            ],
+            "remote_index": 11867,
+            "single_air": false
+          },
+          "learning_codes": [],
+          "ac_status": {
+            "mode": "0",
+            "power": "1",
+            "temp": "27",
+            "wind": "0"
+          }
+        }
+      }
+    }
+  }
+}
