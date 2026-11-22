@@ -42,6 +42,20 @@
               "show_state": true,
               "show_icon": true,
               "color": "blue"
+            },
+            {
+              "type": "entity",
+              "entity": "sensor.ecm_savings_today",
+              "name": "Saved today",
+              "icon": "mdi:piggy-bank",
+              "show_name": true,
+              "show_state": true,
+              "show_icon": true,
+              "color": "green",
+              "tap_action": {
+                "action": "navigate",
+                "navigation_path": "/energy-cost"
+              }
             }
           ],
           "sections": [
@@ -152,6 +166,32 @@
                       "condition": "numeric_state",
                       "entity": "sensor.luxpower_inverter_battery_battery_soc",
                       "below": 31
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "input_boolean.grid_outage",
+                      "state_not": "on"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_amount_due",
+                  "name": "EVN invoice unpaid",
+                  "icon": "mdi:cash-clock",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.ecm_evn_payment_status",
+                      "state": "unpaid"
                     }
                   ]
                 },
@@ -182,6 +222,36 @@
                       "condition": "state",
                       "entity": "switch.mosquito_repellent",
                       "state": "off"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "input_boolean.grid_outage",
+                  "name": "Grid power outage: running on battery",
+                  "icon": "mdi:transmission-tower-off",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  },
+                  "hide_state": true,
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "input_boolean.grid_outage",
+                      "state": "on"
                     }
                   ]
                 },
@@ -478,36 +548,6 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "input_boolean.grid_outage",
-                  "name": "Grid power outage: running on battery",
-                  "icon": "mdi:transmission-tower-off",
-                  "color": "red",
-                  "hide_state": true,
-                  "grid_options": {
-                    "columns": 12
-                  },
-                  "tap_action": {
-                    "action": "none"
-                  },
-                  "icon_tap_action": {
-                    "action": "none"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  },
-                  "double_tap_action": {
-                    "action": "none"
-                  },
-                  "visibility": [
-                    {
-                      "condition": "state",
-                      "entity": "input_boolean.grid_outage",
-                      "state": "on"
-                    }
-                  ]
-                },
-                {
-                  "type": "tile",
                   "entity": "sensor.luxpower_inverter_battery_battery_soc",
                   "name": "All systems normal",
                   "icon": "mdi:check-circle",
@@ -562,8 +602,18 @@
                         },
                         {
                           "condition": "state",
+                          "entity": "sensor.ecm_evn_payment_status",
+                          "state_not": "unpaid"
+                        },
+                        {
+                          "condition": "state",
                           "entity": "switch.mosquito_repellent",
                           "state_not": "off"
+                        },
+                        {
+                          "condition": "state",
+                          "entity": "input_boolean.grid_outage",
+                          "state_not": "on"
                         },
                         {
                           "condition": "state",
@@ -614,13 +664,62 @@
                           "condition": "state",
                           "entity": "binary_sensor.mosquito_liquid_problem",
                           "state_not": "on"
-                        },
-                        {
-                          "condition": "state",
-                          "entity": "input_boolean.grid_outage",
-                          "state_not": "on"
                         }
                       ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_data_quality",
+                  "name": "Energy data needs checking",
+                  "icon": "mdi:database-alert",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
+                  },
+                  "visibility": [
+                    {
+                      "condition": "user",
+                      "users": [
+                        "3d0602e4c2514c10b975883aa25b394f"
+                      ]
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "sensor.ecm_data_quality",
+                      "state": "poor"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_reconciliation",
+                  "name": "EVN and our meter disagree",
+                  "icon": "mdi:scale-unbalanced",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
+                  },
+                  "visibility": [
+                    {
+                      "condition": "user",
+                      "users": [
+                        "3d0602e4c2514c10b975883aa25b394f"
+                      ]
+                    },
+                    {
+                      "condition": "state",
+                      "entity": "sensor.ecm_evn_reconciliation",
+                      "state": "deviation"
                     }
                   ]
                 }
@@ -716,7 +815,7 @@
                 {
                   "type": "tile",
                   "entity": "switch.grid_protector",
-                  "name": "On grid (battery low)",
+                  "name": "On grid",
                   "icon": "mdi:transmission-tower",
                   "color": "deep-orange",
                   "grid_options": {
@@ -804,15 +903,26 @@
                     "panels"
                   ],
                   "title": " ",
-                  "show_weather": false,
-                  "grid_options": {
-                    "columns": 12
+                  "pv_forecast": {
+                    "today": "sensor.house_39_pv_open_meteo_energy_production_today",
+                    "remaining": "sensor.house_39_pv_open_meteo_energy_production_today_remaining",
+                    "days": [
+                      "sensor.house_39_pv_open_meteo_energy_production_tomorrow",
+                      "sensor.house_39_pv_open_meteo_energy_production_d2",
+                      "sensor.house_39_pv_open_meteo_energy_production_d3",
+                      "sensor.house_39_pv_open_meteo_energy_production_d4"
+                    ],
+                    "hourly": true
                   },
                   "inverter_power_rating": 6.5,
                   "diorama_style": "classic",
                   "ev": {
                     "power": "sensor.sac_xe_power",
                     "name": "Bike charger"
+                  },
+                  "show_weather": false,
+                  "grid_options": {
+                    "columns": 12
                   }
                 }
               ]
@@ -932,6 +1042,18 @@
                   "color": "indigo",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
                   }
                 },
                 {
@@ -942,6 +1064,18 @@
                   "color": "indigo",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
                   }
                 },
                 {
@@ -952,6 +1086,18 @@
                   "color": "indigo",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "none"
+                  },
+                  "icon_tap_action": {
+                    "action": "none"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
                   }
                 },
                 {
@@ -1208,47 +1354,79 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "EVN bill",
+                  "heading": "Money",
                   "heading_style": "title",
-                  "icon": "mdi:receipt-text"
+                  "icon": "mdi:cash-multiple",
+                  "badges": []
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.EVN_CUSTOMER_ID_econ_monthly_new",
-                  "name": "Grid energy this bill period",
-                  "icon": "mdi:counter",
-                  "color": "deep-orange",
-                  "grid_options": {
-                    "columns": 9
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.EVN_CUSTOMER_ID_ecost_monthly_new",
-                  "name": "Bill so far",
-                  "icon": "mdi:cash",
-                  "color": "deep-orange",
-                  "grid_options": {
-                    "columns": 9
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.EVN_CUSTOMER_ID_payment_needed",
-                  "name": "Payment status",
-                  "icon": "mdi:check-decagram",
+                  "entity": "sensor.ecm_savings_today",
+                  "name": "Saved today",
+                  "icon": "mdi:piggy-bank",
                   "color": "green",
                   "grid_options": {
-                    "columns": 9
+                    "columns": 6
                   }
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.EVN_CUSTOMER_ID_to_date",
-                  "name": "EVN data as of",
-                  "icon": "mdi:calendar-sync",
+                  "entity": "sensor.ecm_savings_period",
+                  "name": "Saved this period",
+                  "icon": "mdi:piggy-bank-outline",
+                  "color": "green",
                   "grid_options": {
-                    "columns": 9
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_actual_bill_period",
+                  "name": "Bill so far (our meter)",
+                  "icon": "mdi:receipt-text",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_bill_period",
+                  "name": "EVN estimate",
+                  "icon": "mdi:receipt-text-check",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_payment_status",
+                  "name": "Last invoice",
+                  "icon": "mdi:check-decagram",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.ecm_evn_payment_status",
+                      "state": "unpaid"
+                    }
+                  ]
+                },
+                {
+                  "type": "button",
+                  "name": "Open Energy Cost",
+                  "icon": "mdi:cash-multiple",
+                  "show_state": false,
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
+                  },
+                  "grid_options": {
+                    "columns": 12,
+                    "rows": 1
                   }
                 }
               ]
@@ -1577,16 +1755,10 @@
                     "columns": 6
                   },
                   "tap_action": {
-                    "action": "toggle",
-                    "confirmation": {
-                      "text": "Switch grid fallback by hand? The battery automations may switch it back."
-                    }
+                    "action": "none"
                   },
                   "icon_tap_action": {
-                    "action": "toggle",
-                    "confirmation": {
-                      "text": "Switch grid fallback by hand? The battery automations may switch it back."
-                    }
+                    "action": "none"
                   },
                   "hold_action": {
                     "action": "none"
@@ -1605,16 +1777,10 @@
                     "columns": 6
                   },
                   "tap_action": {
-                    "action": "toggle",
-                    "confirmation": {
-                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
-                    }
+                    "action": "none"
                   },
                   "icon_tap_action": {
-                    "action": "toggle",
-                    "confirmation": {
-                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
-                    }
+                    "action": "none"
                   },
                   "hold_action": {
                     "action": "none"
@@ -1857,7 +2023,63 @@
                   "grid_options": {
                     "columns": "full"
                   },
-                  "content": "Grid fallback closes at **30%** and opens at **40%** (automations). The inverter's own limits below are a safety net under that."
+                  "content": "Automations close the grid fallback at **30%** battery or when the house draws more than **5.5 kW**, and open it again at **40%** once the load is under **4 kW**. The inverter's on-grid cut-off is also **30%**, so the battery stops there even if an automation fails."
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.grid_protector",
+                  "name": "Grid fallback (manual)",
+                  "icon": "mdi:transmission-tower",
+                  "color": "deep-orange",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "toggle",
+                    "confirmation": {
+                      "text": "Switch grid fallback by hand? The battery automations may switch it back."
+                    }
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle",
+                    "confirmation": {
+                      "text": "Switch grid fallback by hand? The battery automations may switch it back."
+                    }
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "switch.mosquito_repellent",
+                  "name": "Chest freezer plug",
+                  "icon": "mdi:fridge-industrial",
+                  "color": "light-blue",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "toggle",
+                    "confirmation": {
+                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
+                    }
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle",
+                    "confirmation": {
+                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
+                    }
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  },
+                  "double_tap_action": {
+                    "action": "none"
+                  }
                 },
                 {
                   "type": "tile",
@@ -2010,6 +2232,74 @@
               "cards": [
                 {
                   "type": "heading",
+                  "heading": "Energy data",
+                  "heading_style": "title",
+                  "icon": "mdi:database-check"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_data_quality",
+                  "name": "Data quality",
+                  "icon": "mdi:database-check",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "state_content": [
+                    "state",
+                    "reasons"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_reconciliation",
+                  "name": "EVN meter check",
+                  "icon": "mdi:scale-balance",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "state_content": [
+                    "state",
+                    "data_age_days"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_difference",
+                  "name": "EVN minus our meter",
+                  "icon": "mdi:scale-unbalanced",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_active_tariff",
+                  "name": "Tariff",
+                  "icon": "mdi:tag-text",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "state_content": [
+                    "state",
+                    "verified"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_meter_reading",
+                  "name": "EVN meter reading",
+                  "icon": "mdi:counter",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
                   "heading": "System",
                   "heading_style": "title",
                   "icon": "mdi:server"
@@ -2065,8 +2355,7 @@
                     "update.tuya_local_update",
                     "update.sonoff_lan_update",
                     "update.luxpower_inverter_modbus_update",
-                    "update.tuya_smart_ir_ac_update",
-                    "update.evn_vn_update"
+                    "update.tuya_smart_ir_ac_update"
                   ],
                   "grid_options": {
                     "columns": "full"
@@ -2077,7 +2366,7 @@
                   "grid_options": {
                     "columns": "full"
                   },
-                  "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · [Logs](/config/logs) · [Backups](/config/backup) · [Energy setup](/config/energy)"
+                  "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · [Logs](/config/logs) · [Backups](/config/backup) · [Energy setup](/config/energy) · [Energy Cost](/energy-cost) · [Energy Cost Manager](/config/integrations/integration/energy_cost_manager)"
                 }
               ]
             }
