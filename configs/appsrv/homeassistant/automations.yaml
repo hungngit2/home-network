@@ -77,13 +77,15 @@
   - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: Low Battery Warning
-      message: Battery is at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%. Grid fallback closes at 30%.
+      message: Battery is at {{ states('sensor.luxpower_inverter_battery_battery_soc')
+        }}%. Grid fallback closes at 30%.
     continue_on_error: true
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Low Battery Warning
-      message: Battery is at {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%. Grid fallback closes at 30%.
+      message: Battery is at {{ states('sensor.luxpower_inverter_battery_battery_soc')
+        }}%. Grid fallback closes at 30%.
   mode: single
 - id: alert_grid_protector_closed
   alias: 'Alert: Grid Protector Engaged'
@@ -97,13 +99,17 @@
   - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: Grid Fallback Active
-      message: House is now on grid power. Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of 6500 W.
+      message: House is now on grid power. Battery {{ states('sensor.luxpower_inverter_battery_battery_soc')
+        }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of
+        6500 W.
     continue_on_error: true
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Grid Fallback Active
-      message: House is now on grid power. Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of 6500 W.
+      message: House is now on grid power. Battery {{ states('sensor.luxpower_inverter_battery_battery_soc')
+        }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of
+        6500 W.
   mode: single
 - id: irrigation_pump_auto_shutoff
   alias: 'Garden: Irrigation Pump Auto Shut-off'
@@ -166,17 +172,20 @@
   - action: notify.mobile_app_hung_s_iphonese2
     data:
       title: Inverter Offline
-      message: No data from the LuxPower inverter for 10 minutes. Check the dongle and network.
+      message: No data from the LuxPower inverter for 10 minutes. Check the dongle
+        and network.
     continue_on_error: true
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Inverter Offline
-      message: No data from the LuxPower inverter for 10 minutes. Check the dongle and network.
+      message: No data from the LuxPower inverter for 10 minutes. Check the dongle
+        and network.
   mode: single
 - id: grid_assist_high_load_close
   alias: 'Solar Off-Grid: Close Grid Protector on high load'
-  description: 'Inverter is 6.5 kW: connect the grid when the home load stays above 5.5 kW so grid and inverter share it (Take Load Together).'
+  description: 'Inverter is 6.5 kW: connect the grid when the home load stays above
+    5.5 kW so grid and inverter share it (Take Load Together).'
   triggers:
   - trigger: numeric_state
     entity_id: sensor.luxpower_inverter_load_power
@@ -194,7 +203,8 @@
   mode: single
 - id: grid_assist_high_load_release
   alias: 'Solar Off-Grid: Open Grid Protector after high load'
-  description: Disconnect the grid again once the load has stayed below 4 kW for 5 minutes, but only if the battery is above the 40% fallback level.
+  description: Disconnect the grid again once the load has stayed below 4 kW for 5
+    minutes, but only if the battery is above the 40% fallback level.
   triggers:
   - trigger: numeric_state
     entity_id: sensor.luxpower_inverter_load_power
@@ -215,7 +225,8 @@
   mode: single
 - id: alert_grid_outage
   alias: 'Alert: Grid Power Outage'
-  description: 'EVN supply lost: the grid protector (supply side) reads under 150 V for 1 min, or is offline for 5 min (longer than an HA restart).'
+  description: 'EVN supply lost: the grid protector (supply side) reads under 150
+    V for 1 min, or is offline for 5 min (longer than an HA restart).'
   triggers:
   - trigger: numeric_state
     entity_id: sensor.grid_protector_voltage_a
@@ -239,16 +250,21 @@
     continue_on_error: true
     data:
       title: Grid power outage
-      message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'') }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'') }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
+      message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'')
+        }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'')
+        }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Grid power outage
-      message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'') }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'') }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
+      message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'')
+        }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'')
+        }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
   mode: single
 - id: alert_grid_restored
   alias: 'Alert: Grid Power Restored'
-  description: 'EVN supply back: the grid protector reads over 190 V for 2 minutes after an outage alert.'
+  description: 'EVN supply back: the grid protector reads over 190 V for 2 minutes
+    after an outage alert.'
   triggers:
   - trigger: numeric_state
     entity_id: sensor.grid_protector_voltage_a
@@ -267,10 +283,34 @@
     continue_on_error: true
     data:
       title: Grid power restored
-      message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0) }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
+      message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0)
+        }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Grid power restored
-      message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0) }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
+      message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0)
+        }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
   mode: single
+- id: kitchen_fan_speed_2_on_switch
+  alias: Kitchen fan to speed 2 when the switch turns on
+  description: Sends Fan speed 2 over local RF through the 1B hub, then once more
+    in case the first was missed. Replaces the slow Tuya cloud scene.
+  triggers:
+  - trigger: state
+    entity_id: switch.fan_switch
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - delay:
+      seconds: 2
+  - action: button.press
+    target:
+      entity_id: button.1b_fan_light_fan_speed_2
+  - delay:
+      seconds: 5
+  - action: button.press
+    target:
+      entity_id: button.1b_fan_light_fan_speed_2
+  mode: restart
