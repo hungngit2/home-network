@@ -11,6 +11,22 @@ BACKUP = "sensor.backup_last_successful_automatic_backup"
 ECM = "sensor.ecm_"
 NONE = {"action": "none"}
 MORE = {"action": "more-info"}
+PANEL = {"action": "navigate", "navigation_path": "/energy-cost"}
+def monthly(field):
+    return (f"return (entity.attributes.by_period || []).filter(p => p.{field} !== null).map(p => "
+            f"[new Date(p.start + 'T00:00:00').getTime(), p.{field}]);")
+
+
+THOUSANDS_JS = "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US'); }"
+
+
+def daily(field):
+    return (f"return (entity.attributes.daily || []).map(d => "
+            f"[new Date(d.date + 'T00:00:00').getTime(), d.{field}]);")
+
+
+OPEN_PANEL_JS = ("EVAL:function() { history.pushState(null, '', '/energy-cost'); "
+                 "window.dispatchEvent(new CustomEvent('location-changed')); }")
 COLORS = {"solar": "amber", "home": "blue", "grid": "deep-orange", "battery": "green"}
 
 doc = json.load(open(P))
@@ -183,15 +199,27 @@ hub.update({
 energy = {"title": "Energy", "path": "energy", "icon": "mdi:lightning-bolt", "type": "sections", "max_columns": 3, "sections": [
     {"type": "grid", "column_span": 3, "cards": [hub]},
     {"type": "grid", "column_span": 3, "cards": [
-        heading("Money", "mdi:cash-multiple", badges=[]),
-        tile(ECM + "savings_today", "Saved today", "mdi:piggy-bank", "green"),
-        tile(ECM + "savings_period", "Saved this period", "mdi:piggy-bank-outline", "green"),
-        tile(ECM + "actual_bill_period", "Bill so far (our meter)", "mdi:receipt-text", COLORS["grid"]),
-        tile(ECM + "evn_bill_period", "EVN estimate", "mdi:receipt-text-check", COLORS["grid"]),
-        tile(ECM + "evn_payment_status", "Last invoice", "mdi:check-decagram", None,
+        heading("Money", "mdi:cash-multiple", tap_action=PANEL),
+        tile(ECM + "savings_today", "Saved today", "mdi:piggy-bank", "green", tap_action=PANEL),
+        tile(ECM + "savings_period", "Saved this period", "mdi:piggy-bank-outline", "green", tap_action=PANEL),
+        tile(ECM + "actual_bill_period", "Bill so far", "mdi:receipt-text", COLORS["grid"], tap_action=PANEL),
+        tile(ECM + "projected_bill", "Expected bill", "mdi:chart-timeline-variant", COLORS["home"], tap_action=PANEL),
+        tile(ECM + "evn_payment_status", "Previous invoice", "mdi:check-decagram", "red", 12, tap_action=PANEL,
              visibility=[is_(ECM + "evn_payment_status", "unpaid")]),
-        {"type": "button", "name": "Open Energy Cost", "icon": "mdi:cash-multiple", "show_state": False,
-         "tap_action": {"action": "navigate", "navigation_path": "/energy-cost"}, "grid_options": {"columns": 12, "rows": 1}},
+        {"type": "custom:apexcharts-card", "grid_options": {"columns": 18},
+         "header": {"show": True, "title": "Cost per month this year", "show_states": False},
+         "graph_span": "1y", "span": {"start": "year"},
+         "apex_config": {"chart": {"height": 220, "events": {"click": OPEN_PANEL_JS}}, "legend": {"position": "top"},
+                         "tooltip": {"y": {"formatter": THOUSANDS_JS}}},
+         "yaxis": [{"min": 0, "decimals": 0, "apex_config": {"labels": {"formatter": THOUSANDS_JS}}}],
+         "series": [
+             {"entity": ECM + "savings_lifetime", "name": "Without solar", "type": "column", "color": "#9e9e9e",
+              "show": {"legend_value": False, "in_header": False}, "data_generator": monthly("no_solar_cost")},
+             {"entity": ECM + "savings_lifetime", "name": "With solar", "type": "column", "color": "#ff5722",
+              "show": {"legend_value": False, "in_header": False}, "data_generator": monthly("actual_cost")},
+             {"entity": ECM + "savings_lifetime", "name": "EVN bill", "type": "column", "color": "#1e88e5",
+              "show": {"legend_value": False, "in_header": False}, "data_generator": monthly("evn_cost")},
+         ]},
     ]},
 ]}
 
