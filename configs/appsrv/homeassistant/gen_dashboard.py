@@ -207,7 +207,7 @@ energy = {"title": "Energy", "path": "energy", "icon": "mdi:lightning-bolt", "ty
         tile(ECM + "evn_payment_status", "Previous invoice", "mdi:check-decagram", "red", 12, tap_action=PANEL,
              visibility=[is_(ECM + "evn_payment_status", "unpaid")]),
         {"type": "custom:apexcharts-card", "grid_options": {"columns": 18},
-         "header": {"show": True, "title": "Cost per month this year", "show_states": False},
+         "header": {"show": True, "title": "Cost per month this year (₫)", "show_states": False},
          "graph_span": "1y", "span": {"start": "year"},
          "apex_config": {"chart": {"height": 220, "events": {"click": OPEN_PANEL_JS}}, "legend": {"position": "top"},
                          "tooltip": {"y": {"formatter": THOUSANDS_JS}}},
