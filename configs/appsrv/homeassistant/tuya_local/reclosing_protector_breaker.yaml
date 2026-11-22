@@ -1,0 +1,177 @@
+name: Reclosing protector
+products:
+  - id: ajxxvizkghnasyxi
+    model: Smart Reclosing Protector
+entities:
+  - entity: switch
+    translation_key: breaker
+    dps:
+      - id: 101
+        type: boolean
+        name: switch
+  - entity: sensor
+    class: energy
+    dps:
+      - id: 107
+        type: integer
+        name: sensor
+        unit: kWh
+        class: total_increasing
+        mapping:
+          - scale: 10
+  - entity: sensor
+    class: voltage
+    category: diagnostic
+    dps:
+      - id: 108
+        type: integer
+        name: sensor
+        unit: V
+        class: measurement
+  - entity: sensor
+    class: current
+    category: diagnostic
+    dps:
+      - id: 106
+        type: integer
+        name: sensor
+        unit: A
+        class: measurement
+        mapping:
+          - scale: 10
+  - entity: sensor
+    name: Leakage
+    class: current
+    category: diagnostic
+    dps:
+      - id: 109
+        type: integer
+        name: sensor
+        unit: mA
+        class: measurement
+  - entity: binary_sensor
+    class: problem
+    category: diagnostic
+    dps:
+      - id: 26
+        type: bitfield
+        name: sensor
+        optional: true
+        mapping:
+          - dps_val: 0
+            value: false
+          - dps_val: null
+            value: false
+          - value: true
+      - id: 26
+        type: bitfield
+        name: fault_code
+        optional: true
+      - id: 26
+        type: bitfield
+        name: description
+        optional: true
+        mapping:
+          - dps_val: 0
+            value: ok
+          - dps_val: 1
+            value: short_circuit
+          - dps_val: 2
+            value: surge
+          - dps_val: 4
+            value: overload
+          - dps_val: 8
+            value: leakage_current
+          - dps_val: 16
+            value: temperature_difference
+          - dps_val: 32
+            value: fire
+          - dps_val: 64
+            value: high_power
+          - dps_val: 128
+            value: self_test
+          - dps_val: 256
+            value: over_current
+          - dps_val: 512
+            value: unbalanced
+          - dps_val: 1024
+            value: over_voltage
+          - dps_val: 2048
+            value: under_voltage
+          - dps_val: 4096
+            value: missing_phase
+          - dps_val: 8192
+            value: outage
+          - dps_val: 16384
+            value: magnetic_interference
+          - value: multiple
+  - entity: number
+    name: Leakage trip current
+    class: current
+    category: config
+    icon: "mdi:current-ac"
+    dps:
+      - id: 110
+        type: integer
+        name: value
+        unit: mA
+        range:
+          min: 10
+          max: 100
+  - entity: number
+    name: Overvoltage limit
+    class: voltage
+    category: config
+    dps:
+      - id: 114
+        type: integer
+        name: value
+        unit: V
+        range:
+          min: 150
+          max: 300
+  - entity: number
+    name: Undervoltage limit
+    class: voltage
+    category: config
+    dps:
+      - id: 115
+        type: integer
+        name: value
+        unit: V
+        range:
+          min: 80
+          max: 210
+  - entity: number
+    name: Overcurrent limit
+    class: current
+    category: config
+    dps:
+      - id: 116
+        type: integer
+        name: value
+        unit: A
+        range:
+          min: 1
+          max: 99
+  - entity: number
+    name: Start delay
+    class: duration
+    category: config
+    icon: "mdi:timer-outline"
+    dps:
+      - id: 117
+        type: integer
+        name: value
+        unit: s
+        range:
+          min: 1
+          max: 300
+  - entity: switch
+    name: Mute alarm
+    category: config
+    icon: "mdi:volume-off"
+    dps:
+      - id: 111
+        type: boolean
+        name: switch
