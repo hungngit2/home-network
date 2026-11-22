@@ -108,26 +108,6 @@ template:
             data:
               device: fan_light
               command: light_power
-      - name: "1B Fan Light Brightness up"
-        unique_id: 1b_fan_light_rf_brightness_up
-        icon: "mdi:brightness-7"
-        press:
-          - action: remote.send_command
-            target:
-              entity_id: remote.1b_infrared_rf
-            data:
-              device: fan_light
-              command: brightness_up
-      - name: "1B Fan Light Brightness down"
-        unique_id: 1b_fan_light_rf_brightness_down
-        icon: "mdi:brightness-5"
-        press:
-          - action: remote.send_command
-            target:
-              entity_id: remote.1b_infrared_rf
-            data:
-              device: fan_light
-              command: brightness_down
       - name: "1B Fan Light Power (all)"
         unique_id: 1b_fan_light_rf_power
         icon: "mdi:power"
