@@ -35,7 +35,8 @@ def preset_chip(text, icon, preset):
 
 
 def chips(*items):
-    return {"type": "custom:mushroom-chips-card", "alignment": "center", "chips": list(items)}
+    return {"type": "custom:mushroom-chips-card", "alignment": "center", "chips": list(items),
+            "grid_options": {"columns": 12}}
 
 
 def toggle_tile(entity, name, icon, color, **kw):
@@ -50,15 +51,9 @@ def available(entity):
 kitchen = {"type": "grid", "cards": [
     heading("Kitchen", "mdi:silverware-fork-knife"),
     {"type": "custom:mushroom-fan-card", "entity": "fan.kitchen_fan", "name": "Fan",
-     "secondary_info": "none", "icon_animation": True, "fill_container": True,
+     "secondary_info": "state", "icon_animation": True, "fill_container": True,
      "show_percentage_control": True, "show_direction_control": True, "collapsible_controls": False,
-     "tap_action": {"action": "toggle"}, "hold_action": MORE},
-    {"type": "custom:mushroom-template-card",
-     "primary": "{{ 'Speed ' ~ (states('input_number.kitchen_fan_speed') | int) if is_state('fan.kitchen_fan', 'on') else 'Off' }}",
-     "secondary": "{{ {'natural': 'Natural wind', 'sleep': 'Sleep wind'}.get(states('input_select.kitchen_fan_preset'), '') }}"
-                  "{{ ' · reverse' if is_state('input_boolean.kitchen_fan_reverse', 'on') else '' }}",
-     "icon": "mdi:speedometer", "icon_color": "{{ 'cyan' if is_state('fan.kitchen_fan', 'on') else 'grey' }}",
-     "tap_action": NONE, "visibility": [{"condition": "state", "entity": "fan.kitchen_fan", "state": "on"}]},
+     "tap_action": {"action": "toggle"}, "hold_action": MORE, "grid_options": {"columns": 12}},
     chips(preset_chip("Natural", "mdi:weather-windy", "natural"),
           preset_chip("Sleep", "mdi:weather-night", "sleep"),
           chip("Light", "mdi:lightbulb", "button.1b_fan_light_light_on_off"),

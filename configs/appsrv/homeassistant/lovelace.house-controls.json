@@ -21,7 +21,7 @@
               "type": "custom:mushroom-fan-card",
               "entity": "fan.kitchen_fan",
               "name": "Fan",
-              "secondary_info": "none",
+              "secondary_info": "state",
               "icon_animation": true,
               "fill_container": true,
               "show_percentage_control": true,
@@ -32,24 +32,10 @@
               },
               "hold_action": {
                 "action": "more-info"
-              }
-            },
-            {
-              "type": "custom:mushroom-template-card",
-              "primary": "{{ 'Speed ' ~ (states('input_number.kitchen_fan_speed') | int) if is_state('fan.kitchen_fan', 'on') else 'Off' }}",
-              "secondary": "{{ {'natural': 'Natural wind', 'sleep': 'Sleep wind'}.get(states('input_select.kitchen_fan_preset'), '') }}{{ ' · reverse' if is_state('input_boolean.kitchen_fan_reverse', 'on') else '' }}",
-              "icon": "mdi:speedometer",
-              "icon_color": "{{ 'cyan' if is_state('fan.kitchen_fan', 'on') else 'grey' }}",
-              "tap_action": {
-                "action": "none"
               },
-              "visibility": [
-                {
-                  "condition": "state",
-                  "entity": "fan.kitchen_fan",
-                  "state": "on"
-                }
-              ]
+              "grid_options": {
+                "columns": 12
+              }
             },
             {
               "type": "custom:mushroom-chips-card",
@@ -111,7 +97,10 @@
                     }
                   }
                 }
-              ]
+              ],
+              "grid_options": {
+                "columns": 12
+              }
             },
             {
               "type": "custom:mushroom-chips-card",
@@ -153,7 +142,10 @@
                     }
                   }
                 }
-              ]
+              ],
+              "grid_options": {
+                "columns": 12
+              }
             }
           ]
         },
@@ -232,7 +224,10 @@
                     }
                   }
                 }
-              ]
+              ],
+              "grid_options": {
+                "columns": 12
+              }
             }
           ]
         },
@@ -311,7 +306,10 @@
                     }
                   }
                 }
-              ]
+              ],
+              "grid_options": {
+                "columns": 12
+              }
             }
           ]
         },
