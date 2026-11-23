@@ -78,7 +78,7 @@ def slider(slug, off):
             "card": {"type": "custom:mushroom-number-card", "entity": f"number.{slug}_temperature",
                      "name": "Off · slide to cool" if off else "Temperature",
                      "icon": "mdi:thermometer-off" if off else "mdi:thermometer",
-                     "icon_color": "disabled" if off else "blue", "display_mode": "slider", "layout": "horizontal",
+                     "icon_color": "disabled" if off else "blue", "display_mode": "slider",
                      "primary_info": "name", "secondary_info": "state", "fill_container": True,
                      "tap_action": press(f"button.{slug}_power") if off else NONE, "card_mod": FLAT}}
 
@@ -87,7 +87,7 @@ kitchen = {"type": "grid", "cards": [
     heading("Kitchen", "mdi:silverware-fork-knife"),
     panel(
         {"type": "custom:mushroom-fan-card", "entity": "fan.kitchen_fan", "name": "Fan", "secondary_info": "state",
-         "layout": "horizontal", "fill_container": True, "icon_animation": True, "show_percentage_control": True,
+         "fill_container": True, "icon_animation": True, "show_percentage_control": True,
          "show_direction_control": True, "collapsible_controls": False, "tap_action": {"action": "toggle"},
          "hold_action": MORE, "card_mod": FLAT},
         row(key(when("fan.kitchen_fan", "on", "On", "Off"), "mdi:power", when("fan.kitchen_fan", "on", "green", "disabled"),
