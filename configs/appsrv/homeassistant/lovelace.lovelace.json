@@ -932,104 +932,6 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "Controls",
-                  "heading_style": "title",
-                  "icon": "mdi:gesture-tap-button"
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.sonoff_10014c209d_1",
-                  "name": "Front light",
-                  "icon": "mdi:outdoor-lamp",
-                  "color": "amber",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.sonoff_1000eff333",
-                  "name": "Irrigation",
-                  "icon": "mdi:sprinkler-variant",
-                  "color": "cyan",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.sac_xe",
-                  "name": "Bike charger",
-                  "icon": "mdi:bicycle-electric",
-                  "color": "green",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.mosquito_liquid",
-                  "name": "Mosquito repellent",
-                  "icon": "mdi:spray",
-                  "color": "purple",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.sonoff_10014c1f48_1",
-                  "name": "Water pump",
-                  "icon": "mdi:water-pump",
-                  "color": "blue",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "visibility": [
-                    {
-                      "condition": "state",
-                      "entity": "switch.sonoff_10014c1f48_1",
-                      "state_not": "unavailable"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "heading",
                   "heading": "Where power goes",
                   "heading_style": "title",
                   "icon": "mdi:meter-electric"
@@ -1357,7 +1259,10 @@
                   "heading": "Money",
                   "heading_style": "title",
                   "icon": "mdi:cash-multiple",
-                  "badges": []
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
+                  }
                 },
                 {
                   "type": "tile",
@@ -1367,6 +1272,10 @@
                   "color": "green",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
                   }
                 },
                 {
@@ -1377,35 +1286,52 @@
                   "color": "green",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
                   }
                 },
                 {
                   "type": "tile",
                   "entity": "sensor.ecm_actual_bill_period",
-                  "name": "Bill so far (our meter)",
+                  "name": "Bill so far",
                   "icon": "mdi:receipt-text",
                   "color": "deep-orange",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
                   }
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.ecm_evn_bill_period",
-                  "name": "EVN estimate",
-                  "icon": "mdi:receipt-text-check",
-                  "color": "deep-orange",
+                  "entity": "sensor.ecm_projected_bill",
+                  "name": "Expected bill",
+                  "icon": "mdi:chart-timeline-variant",
+                  "color": "blue",
                   "grid_options": {
                     "columns": 6
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
                   }
                 },
                 {
                   "type": "tile",
                   "entity": "sensor.ecm_evn_payment_status",
-                  "name": "Last invoice",
+                  "name": "Previous invoice",
                   "icon": "mdi:check-decagram",
+                  "color": "red",
                   "grid_options": {
-                    "columns": 6
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/energy-cost"
                   },
                   "visibility": [
                     {
@@ -1416,18 +1342,81 @@
                   ]
                 },
                 {
-                  "type": "button",
-                  "name": "Open Energy Cost",
-                  "icon": "mdi:cash-multiple",
-                  "show_state": false,
-                  "tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "/energy-cost"
-                  },
+                  "type": "custom:apexcharts-card",
                   "grid_options": {
-                    "columns": 12,
-                    "rows": 1
-                  }
+                    "columns": 18
+                  },
+                  "header": {
+                    "show": true,
+                    "title": "Cost per month this year (₫)",
+                    "show_states": false
+                  },
+                  "graph_span": "1y",
+                  "span": {
+                    "start": "year"
+                  },
+                  "apex_config": {
+                    "chart": {
+                      "height": 220,
+                      "events": {
+                        "click": "EVAL:function() { history.pushState(null, '', '/energy-cost'); window.dispatchEvent(new CustomEvent('location-changed')); }"
+                      }
+                    },
+                    "legend": {
+                      "position": "top"
+                    },
+                    "tooltip": {
+                      "y": {
+                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
+                      }
+                    }
+                  },
+                  "yaxis": [
+                    {
+                      "min": 0,
+                      "decimals": 0,
+                      "apex_config": {
+                        "labels": {
+                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
+                        }
+                      }
+                    }
+                  ],
+                  "series": [
+                    {
+                      "entity": "sensor.ecm_savings_lifetime",
+                      "name": "Without solar",
+                      "type": "column",
+                      "color": "#9e9e9e",
+                      "show": {
+                        "legend_value": false,
+                        "in_header": false
+                      },
+                      "data_generator": "return (entity.attributes.by_period || []).filter(p => p.no_solar_cost !== null).map(p => [new Date(p.start + 'T00:00:00').getTime(), p.no_solar_cost]);"
+                    },
+                    {
+                      "entity": "sensor.ecm_savings_lifetime",
+                      "name": "With solar",
+                      "type": "column",
+                      "color": "#ff5722",
+                      "show": {
+                        "legend_value": false,
+                        "in_header": false
+                      },
+                      "data_generator": "return (entity.attributes.by_period || []).filter(p => p.actual_cost !== null).map(p => [new Date(p.start + 'T00:00:00').getTime(), p.actual_cost]);"
+                    },
+                    {
+                      "entity": "sensor.ecm_savings_lifetime",
+                      "name": "EVN bill",
+                      "type": "column",
+                      "color": "#1e88e5",
+                      "show": {
+                        "legend_value": false,
+                        "in_header": false
+                      },
+                      "data_generator": "return (entity.attributes.by_period || []).filter(p => p.evn_cost !== null).map(p => [new Date(p.start + 'T00:00:00').getTime(), p.evn_cost]);"
+                    }
+                  ]
                 }
               ]
             }

@@ -1,0 +1,425 @@
+{
+  "title": "Controls",
+  "views": [
+    {
+      "title": "Controls",
+      "path": "controls",
+      "icon": "mdi:remote",
+      "type": "sections",
+      "max_columns": 3,
+      "sections": [
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Kitchen",
+              "heading_style": "title",
+              "icon": "mdi:silverware-fork-knife"
+            },
+            {
+              "type": "custom:mushroom-fan-card",
+              "entity": "fan.kitchen_fan",
+              "name": "Fan",
+              "secondary_info": "none",
+              "icon_animation": true,
+              "fill_container": true,
+              "show_percentage_control": true,
+              "show_direction_control": true,
+              "collapsible_controls": false,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "hold_action": {
+                "action": "more-info"
+              }
+            },
+            {
+              "type": "custom:mushroom-template-card",
+              "primary": "{{ 'Speed ' ~ (states('input_number.kitchen_fan_speed') | int) if is_state('fan.kitchen_fan', 'on') else 'Off' }}",
+              "secondary": "{{ {'natural': 'Natural wind', 'sleep': 'Sleep wind'}.get(states('input_select.kitchen_fan_preset'), '') }}{{ ' · reverse' if is_state('input_boolean.kitchen_fan_reverse', 'on') else '' }}",
+              "icon": "mdi:speedometer",
+              "icon_color": "{{ 'cyan' if is_state('fan.kitchen_fan', 'on') else 'grey' }}",
+              "tap_action": {
+                "action": "none"
+              },
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "fan.kitchen_fan",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "custom:mushroom-chips-card",
+              "alignment": "center",
+              "chips": [
+                {
+                  "type": "template",
+                  "content": "Natural",
+                  "icon": "mdi:weather-windy",
+                  "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', 'natural') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "fan.set_preset_mode",
+                    "target": {
+                      "entity_id": "fan.kitchen_fan"
+                    },
+                    "data": {
+                      "preset_mode": "natural"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Sleep",
+                  "icon": "mdi:weather-night",
+                  "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', 'sleep') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "fan.set_preset_mode",
+                    "target": {
+                      "entity_id": "fan.kitchen_fan"
+                    },
+                    "data": {
+                      "preset_mode": "sleep"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Light",
+                  "icon": "mdi:lightbulb",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_fan_light_light_on_off"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Off",
+                  "icon": "mdi:power",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_fan_light_power_off"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "custom:mushroom-chips-card",
+              "alignment": "center",
+              "chips": [
+                {
+                  "type": "template",
+                  "content": "1h",
+                  "icon": "mdi:timer-outline",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_fan_light_timer_1h"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "2h",
+                  "icon": "mdi:timer-outline",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_fan_light_timer_2h"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "4h",
+                  "icon": "mdi:timer-outline",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_fan_light_timer_4h"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Floor 1 air conditioner",
+              "heading_style": "title",
+              "icon": "mdi:home-floor-1"
+            },
+            {
+              "type": "thermostat",
+              "entity": "climate.1b_ac",
+              "features": [
+                {
+                  "type": "climate-hvac-modes",
+                  "style": "icons"
+                },
+                {
+                  "type": "climate-fan-modes",
+                  "style": "icons"
+                }
+              ]
+            },
+            {
+              "type": "custom:mushroom-chips-card",
+              "alignment": "center",
+              "chips": [
+                {
+                  "type": "template",
+                  "content": "Eco",
+                  "icon": "mdi:leaf",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_ac_keys_eco"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Hi power",
+                  "icon": "mdi:flash",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_ac_keys_hi_power"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Fix",
+                  "icon": "mdi:pin",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_ac_keys_fix"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Swing",
+                  "icon": "mdi:arrow-oscillating",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.1b_ac_keys_swing"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Floor 2 air conditioner",
+              "heading_style": "title",
+              "icon": "mdi:home-floor-2"
+            },
+            {
+              "type": "thermostat",
+              "entity": "climate.2b_ac",
+              "features": [
+                {
+                  "type": "climate-hvac-modes",
+                  "style": "icons"
+                },
+                {
+                  "type": "climate-fan-modes",
+                  "style": "icons"
+                }
+              ]
+            },
+            {
+              "type": "custom:mushroom-chips-card",
+              "alignment": "center",
+              "chips": [
+                {
+                  "type": "template",
+                  "content": "Eco",
+                  "icon": "mdi:leaf",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.2b_ac_keys_eco"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Hi power",
+                  "icon": "mdi:flash",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.2b_ac_keys_hi_power"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Fix",
+                  "icon": "mdi:pin",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.2b_ac_keys_fix"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Swing",
+                  "icon": "mdi:arrow-oscillating",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.2b_ac_keys_swing"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Outside",
+              "heading_style": "title",
+              "icon": "mdi:tree-outline"
+            },
+            {
+              "type": "tile",
+              "entity": "switch.sonoff_10014c209d_1",
+              "name": "Front light",
+              "icon": "mdi:outdoor-lamp",
+              "color": "amber",
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "more-info"
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.sonoff_1000eff333",
+              "name": "Irrigation",
+              "icon": "mdi:sprinkler-variant",
+              "color": "cyan",
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "more-info"
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.sonoff_10014c1f48_1",
+              "name": "Water pump",
+              "icon": "mdi:water-pump",
+              "color": "blue",
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "more-info"
+              },
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "switch.sonoff_10014c1f48_1",
+                  "state_not": "unavailable"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Plugs",
+              "heading_style": "title",
+              "icon": "mdi:power-socket-eu"
+            },
+            {
+              "type": "tile",
+              "entity": "switch.sac_xe",
+              "name": "Bike charger",
+              "icon": "mdi:bicycle-electric",
+              "color": "green",
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "more-info"
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.mosquito_liquid",
+              "name": "Mosquito repellent",
+              "icon": "mdi:spray",
+              "color": "purple",
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "more-info"
+              }
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "column_span": 3,
+          "cards": [
+            {
+              "type": "markdown",
+              "content": "Air conditioners and the fan use infrared or radio remotes, which cannot report back. They show the last command sent from Home Assistant, so a press on the wall remote is not seen."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

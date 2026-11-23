@@ -143,56 +143,6 @@ power_now = {"type": "grid", "cards": [
     forecast_hub,
 ]}
 
-controls = {"type": "grid", "cards": [heading("Controls", "mdi:gesture-tap-button")] + [
-    tile(e, n, i, c, 6, tap_action={"action": "toggle"}, icon_tap_action=MORE, **kw)
-    for e, n, i, c, kw in [
-        ("switch.sonoff_10014c209d_1", "Front light", "mdi:outdoor-lamp", "amber", {}),
-        ("switch.sonoff_1000eff333", "Irrigation", "mdi:sprinkler-variant", "cyan", {}),
-        ("switch.sac_xe", "Bike charger", "mdi:bicycle-electric", "green", {}),
-        ("switch.mosquito_liquid", "Mosquito repellent", "mdi:spray", "purple", {}),
-        ("switch.sonoff_10014c1f48_1", "Water pump", "mdi:water-pump", "blue",
-         {"visibility": [is_not("switch.sonoff_10014c1f48_1", "unavailable")]}),
-    ]]}
-
-def chip(text, icon, entity, active=None):
-    c = {"type": "template", "content": text, "icon": icon,
-         "tap_action": {"action": "perform-action", "perform_action": "button.press", "target": {"entity_id": entity}}}
-    if active:
-        c["icon_color"] = "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', '%s') else 'grey' }}" % active
-    return c
-
-
-def preset_chip(text, icon, preset):
-    return {"type": "template", "content": text, "icon": icon,
-            "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', '%s') else 'grey' }}" % preset,
-            "tap_action": {"action": "perform-action", "perform_action": "fan.set_preset_mode",
-                           "target": {"entity_id": "fan.kitchen_fan"}, "data": {"preset_mode": preset}}}
-
-
-kitchen_fan = {"type": "grid", "cards": [
-    heading("Kitchen fan", "mdi:fan"),
-    {"type": "custom:mushroom-fan-card", "entity": "fan.kitchen_fan", "name": "Fan",
-     "secondary_info": "none", "icon_animation": True, "fill_container": True,
-     "show_percentage_control": True, "show_direction_control": True, "collapsible_controls": False,
-     "tap_action": {"action": "toggle"}, "hold_action": MORE, "grid_options": {"columns": 12}},
-    {"type": "custom:mushroom-template-card", "primary": "{{ 'Speed ' ~ (states('input_number.kitchen_fan_speed') | int) if is_state('fan.kitchen_fan', 'on') else 'Off' }}",
-     "secondary": "{{ {'natural': 'Natural wind', 'sleep': 'Sleep wind'}.get(states('input_select.kitchen_fan_preset'), '') }}"
-                  "{{ ' · reverse' if is_state('input_boolean.kitchen_fan_reverse', 'on') else '' }}",
-     "icon": "mdi:speedometer", "icon_color": "{{ 'cyan' if is_state('fan.kitchen_fan', 'on') else 'grey' }}",
-     "tap_action": NONE, "grid_options": {"columns": 12}, "visibility": [is_("fan.kitchen_fan", "on")]},
-    {"type": "custom:mushroom-chips-card", "alignment": "center", "grid_options": {"columns": 12}, "chips": [
-        preset_chip("Natural", "mdi:weather-windy", "natural"),
-        preset_chip("Sleep", "mdi:weather-night", "sleep"),
-        chip("Light", "mdi:lightbulb", "button.1b_fan_light_light_on_off"),
-        chip("Off", "mdi:power", "button.1b_fan_light_power_off"),
-    ]},
-    {"type": "custom:mushroom-chips-card", "alignment": "center", "grid_options": {"columns": 12}, "chips": [
-        chip("1h", "mdi:timer-outline", "button.1b_fan_light_timer_1h"),
-        chip("2h", "mdi:timer-outline", "button.1b_fan_light_timer_2h"),
-        chip("4h", "mdi:timer-outline", "button.1b_fan_light_timer_4h"),
-    ]},
-]}
-
 usage = {"type": "grid", "cards": [
     heading("Where power goes", "mdi:meter-electric"),
     status("sensor.cb_ground_floor_power", "Ground floor", "mdi:home-floor-g", 6, "indigo"),
@@ -224,7 +174,7 @@ home = {"title": "Home", "path": "home", "icon": "mdi:home", "type": "sections",
              "show_name": True, "show_state": True, "show_icon": True, "color": "green",
              "tap_action": {"action": "navigate", "navigation_path": "/energy-cost"}},
         ],
-        "sections": [status_section, power_now, controls, kitchen_fan, usage, media]}
+        "sections": [status_section, power_now, usage, media]}
 
 hub.update({
     "title": "House 39",
