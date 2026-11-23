@@ -12,6 +12,7 @@ scene: !include scenes.yaml
 
 # Batch DB writes (default 5s) to cut flash wear; drop raw MQTT hex debug sensors from history
 recorder:
+  purge_keep_days: 30
   commit_interval: 30
   exclude:
     entity_globs:
