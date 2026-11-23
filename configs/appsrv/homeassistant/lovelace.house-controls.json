@@ -197,7 +197,7 @@
           "cards": [
             {
               "type": "heading",
-              "heading": "Floor 1 air conditioner",
+              "heading": "1B air conditioner",
               "heading_style": "title",
               "icon": "mdi:home-floor-1"
             },
@@ -215,13 +215,13 @@
                   "conditions": [
                     {
                       "condition": "state",
-                      "entity": "climate.floor_1_ac",
+                      "entity": "climate.1b_ac",
                       "state": "off"
                     }
                   ],
                   "card": {
                     "type": "custom:mushroom-number-card",
-                    "entity": "number.floor_1_ac_temperature",
+                    "entity": "number.1b_ac_temperature",
                     "name": "Off · slide to cool",
                     "icon": "mdi:thermometer-off",
                     "icon_color": "disabled",
@@ -233,7 +233,7 @@
                       "action": "perform-action",
                       "perform_action": "button.press",
                       "target": {
-                        "entity_id": "button.floor_1_ac_power"
+                        "entity_id": "button.1b_ac_power"
                       }
                     },
                     "card_mod": {
@@ -246,13 +246,13 @@
                   "conditions": [
                     {
                       "condition": "state",
-                      "entity": "climate.floor_1_ac",
+                      "entity": "climate.1b_ac",
                       "state_not": "off"
                     }
                   ],
                   "card": {
                     "type": "custom:mushroom-number-card",
-                    "entity": "number.floor_1_ac_temperature",
+                    "entity": "number.1b_ac_temperature",
                     "name": "Temperature",
                     "icon": "mdi:thermometer",
                     "icon_color": "blue",
@@ -275,14 +275,14 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "vertical",
                       "fill_container": true,
-                      "primary": "{{ {'off': 'Off'}.get(states('climate.floor_1_ac'), 'On') }}",
+                      "primary": "{{ {'off': 'Off'}.get(states('climate.1b_ac'), 'On') }}",
                       "icon": "mdi:power",
-                      "icon_color": "{{ 'disabled' if is_state('climate.floor_1_ac', 'off') else 'green' }}",
+                      "icon_color": "{{ 'disabled' if is_state('climate.1b_ac', 'off') else 'green' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.floor_1_ac_power"
+                          "entity_id": "button.1b_ac_power"
                         }
                       },
                       "card_mod": {
@@ -294,14 +294,14 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "vertical",
                       "fill_container": true,
-                      "primary": "{{ {'auto': 'Auto', 'cool': 'Cool', 'dry': 'Dry', 'fan_only': 'Fan only'}.get(states('climate.floor_1_ac'), '–') }}",
-                      "icon": "{{ {'auto': 'mdi:thermostat-auto', 'cool': 'mdi:snowflake', 'dry': 'mdi:water-percent', 'fan_only': 'mdi:fan'}.get(states('climate.floor_1_ac'), 'mdi:thermostat-auto') }}",
-                      "icon_color": "{{ {'auto': 'purple', 'cool': 'blue', 'dry': 'amber', 'fan_only': 'teal'}.get(states('climate.floor_1_ac'), 'disabled') }}",
+                      "primary": "{{ {'auto': 'Auto', 'cool': 'Cool', 'dry': 'Dry', 'fan_only': 'Fan only'}.get(states('climate.1b_ac'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:thermostat-auto', 'cool': 'mdi:snowflake', 'dry': 'mdi:water-percent', 'fan_only': 'mdi:fan'}.get(states('climate.1b_ac'), 'mdi:thermostat-auto') }}",
+                      "icon_color": "{{ {'auto': 'purple', 'cool': 'blue', 'dry': 'amber', 'fan_only': 'teal'}.get(states('climate.1b_ac'), 'disabled') }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.floor_1_ac_next_mode"
+                          "entity_id": "button.1b_ac_next_mode"
                         }
                       },
                       "card_mod": {
@@ -313,14 +313,14 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "vertical",
                       "fill_container": true,
-                      "primary": "{{ '–' if is_state('climate.floor_1_ac', 'off') else {'auto': 'Auto', 'low': 'Low', 'medium': 'Medium', 'high': 'High'}.get(state_attr('climate.floor_1_ac', 'fan_mode'), '–') }}",
-                      "icon": "{{ {'auto': 'mdi:fan-auto', 'low': 'mdi:fan-speed-1', 'medium': 'mdi:fan-speed-2', 'high': 'mdi:fan-speed-3'}.get(state_attr('climate.floor_1_ac', 'fan_mode'), 'mdi:fan') }}",
-                      "icon_color": "{{ 'disabled' if is_state('climate.floor_1_ac', 'off') else 'cyan' }}",
+                      "primary": "{{ '–' if is_state('climate.1b_ac', 'off') else {'auto': 'Auto', 'low': 'Low', 'medium': 'Medium', 'high': 'High'}.get(state_attr('climate.1b_ac', 'fan_mode'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:fan-auto', 'low': 'mdi:fan-speed-1', 'medium': 'mdi:fan-speed-2', 'high': 'mdi:fan-speed-3'}.get(state_attr('climate.1b_ac', 'fan_mode'), 'mdi:fan') }}",
+                      "icon_color": "{{ 'disabled' if is_state('climate.1b_ac', 'off') else 'cyan' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.floor_1_ac_next_fan"
+                          "entity_id": "button.1b_ac_next_fan"
                         }
                       },
                       "card_mod": {
@@ -339,12 +339,12 @@
                       "fill_container": true,
                       "primary": "Eco",
                       "icon": "mdi:leaf",
-                      "icon_color": "{{ 'green' if is_state('switch.floor_1_ac_eco', 'on') else 'disabled' }}",
+                      "icon_color": "{{ 'green' if is_state('switch.1b_ac_eco', 'on') else 'disabled' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "switch.toggle",
                         "target": {
-                          "entity_id": "switch.floor_1_ac_eco"
+                          "entity_id": "switch.1b_ac_eco"
                         }
                       },
                       "card_mod": {
@@ -357,12 +357,12 @@
                       "fill_container": true,
                       "primary": "Boost",
                       "icon": "mdi:flash",
-                      "icon_color": "{{ 'orange' if is_state('switch.floor_1_ac_boost', 'on') else 'disabled' }}",
+                      "icon_color": "{{ 'orange' if is_state('switch.1b_ac_boost', 'on') else 'disabled' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "switch.toggle",
                         "target": {
-                          "entity_id": "switch.floor_1_ac_boost"
+                          "entity_id": "switch.1b_ac_boost"
                         }
                       },
                       "card_mod": {
@@ -375,30 +375,12 @@
                       "fill_container": true,
                       "primary": "Swing",
                       "icon": "mdi:arrow-oscillating",
-                      "icon_color": "{{ 'blue' if is_state('switch.floor_1_ac_swing', 'on') else 'disabled' }}",
+                      "icon_color": "{{ 'blue' if is_state('switch.1b_ac_swing', 'on') else 'disabled' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "switch.toggle",
                         "target": {
-                          "entity_id": "switch.floor_1_ac_swing"
-                        }
-                      },
-                      "card_mod": {
-                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
-                      }
-                    },
-                    {
-                      "type": "custom:mushroom-template-card",
-                      "layout": "vertical",
-                      "fill_container": true,
-                      "primary": "Sync",
-                      "icon": "mdi:sync",
-                      "icon_color": "blue-grey",
-                      "tap_action": {
-                        "action": "perform-action",
-                        "perform_action": "button.press",
-                        "target": {
-                          "entity_id": "button.floor_1_ac_sync"
+                          "entity_id": "switch.1b_ac_swing"
                         }
                       },
                       "card_mod": {
@@ -416,7 +398,7 @@
           "cards": [
             {
               "type": "heading",
-              "heading": "Floor 2 air conditioner",
+              "heading": "2B air conditioner",
               "heading_style": "title",
               "icon": "mdi:home-floor-2"
             },
@@ -434,13 +416,13 @@
                   "conditions": [
                     {
                       "condition": "state",
-                      "entity": "climate.floor_2_ac",
+                      "entity": "climate.2b_ac",
                       "state": "off"
                     }
                   ],
                   "card": {
                     "type": "custom:mushroom-number-card",
-                    "entity": "number.floor_2_ac_temperature",
+                    "entity": "number.2b_ac_temperature",
                     "name": "Off · slide to cool",
                     "icon": "mdi:thermometer-off",
                     "icon_color": "disabled",
@@ -452,7 +434,7 @@
                       "action": "perform-action",
                       "perform_action": "button.press",
                       "target": {
-                        "entity_id": "button.floor_2_ac_power"
+                        "entity_id": "button.2b_ac_power"
                       }
                     },
                     "card_mod": {
@@ -465,13 +447,13 @@
                   "conditions": [
                     {
                       "condition": "state",
-                      "entity": "climate.floor_2_ac",
+                      "entity": "climate.2b_ac",
                       "state_not": "off"
                     }
                   ],
                   "card": {
                     "type": "custom:mushroom-number-card",
-                    "entity": "number.floor_2_ac_temperature",
+                    "entity": "number.2b_ac_temperature",
                     "name": "Temperature",
                     "icon": "mdi:thermometer",
                     "icon_color": "blue",
@@ -494,14 +476,14 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "vertical",
                       "fill_container": true,
-                      "primary": "{{ {'off': 'Off'}.get(states('climate.floor_2_ac'), 'On') }}",
+                      "primary": "{{ {'off': 'Off'}.get(states('climate.2b_ac'), 'On') }}",
                       "icon": "mdi:power",
-                      "icon_color": "{{ 'disabled' if is_state('climate.floor_2_ac', 'off') else 'green' }}",
+                      "icon_color": "{{ 'disabled' if is_state('climate.2b_ac', 'off') else 'green' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.floor_2_ac_power"
+                          "entity_id": "button.2b_ac_power"
                         }
                       },
                       "card_mod": {
@@ -513,14 +495,14 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "vertical",
                       "fill_container": true,
-                      "primary": "{{ {'auto': 'Auto', 'cool': 'Cool', 'dry': 'Dry', 'fan_only': 'Fan only'}.get(states('climate.floor_2_ac'), '–') }}",
-                      "icon": "{{ {'auto': 'mdi:thermostat-auto', 'cool': 'mdi:snowflake', 'dry': 'mdi:water-percent', 'fan_only': 'mdi:fan'}.get(states('climate.floor_2_ac'), 'mdi:thermostat-auto') }}",
-                      "icon_color": "{{ {'auto': 'purple', 'cool': 'blue', 'dry': 'amber', 'fan_only': 'teal'}.get(states('climate.floor_2_ac'), 'disabled') }}",
+                      "primary": "{{ {'auto': 'Auto', 'cool': 'Cool', 'dry': 'Dry', 'fan_only': 'Fan only'}.get(states('climate.2b_ac'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:thermostat-auto', 'cool': 'mdi:snowflake', 'dry': 'mdi:water-percent', 'fan_only': 'mdi:fan'}.get(states('climate.2b_ac'), 'mdi:thermostat-auto') }}",
+                      "icon_color": "{{ {'auto': 'purple', 'cool': 'blue', 'dry': 'amber', 'fan_only': 'teal'}.get(states('climate.2b_ac'), 'disabled') }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.floor_2_ac_next_mode"
+                          "entity_id": "button.2b_ac_next_mode"
                         }
                       },
                       "card_mod": {
@@ -532,14 +514,14 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "vertical",
                       "fill_container": true,
-                      "primary": "{{ '–' if is_state('climate.floor_2_ac', 'off') else {'auto': 'Auto', 'low': 'Low', 'medium': 'Medium', 'high': 'High'}.get(state_attr('climate.floor_2_ac', 'fan_mode'), '–') }}",
-                      "icon": "{{ {'auto': 'mdi:fan-auto', 'low': 'mdi:fan-speed-1', 'medium': 'mdi:fan-speed-2', 'high': 'mdi:fan-speed-3'}.get(state_attr('climate.floor_2_ac', 'fan_mode'), 'mdi:fan') }}",
-                      "icon_color": "{{ 'disabled' if is_state('climate.floor_2_ac', 'off') else 'cyan' }}",
+                      "primary": "{{ '–' if is_state('climate.2b_ac', 'off') else {'auto': 'Auto', 'low': 'Low', 'medium': 'Medium', 'high': 'High'}.get(state_attr('climate.2b_ac', 'fan_mode'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:fan-auto', 'low': 'mdi:fan-speed-1', 'medium': 'mdi:fan-speed-2', 'high': 'mdi:fan-speed-3'}.get(state_attr('climate.2b_ac', 'fan_mode'), 'mdi:fan') }}",
+                      "icon_color": "{{ 'disabled' if is_state('climate.2b_ac', 'off') else 'cyan' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.floor_2_ac_next_fan"
+                          "entity_id": "button.2b_ac_next_fan"
                         }
                       },
                       "card_mod": {
@@ -558,12 +540,12 @@
                       "fill_container": true,
                       "primary": "Eco",
                       "icon": "mdi:leaf",
-                      "icon_color": "{{ 'green' if is_state('switch.floor_2_ac_eco', 'on') else 'disabled' }}",
+                      "icon_color": "{{ 'green' if is_state('switch.2b_ac_eco', 'on') else 'disabled' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "switch.toggle",
                         "target": {
-                          "entity_id": "switch.floor_2_ac_eco"
+                          "entity_id": "switch.2b_ac_eco"
                         }
                       },
                       "card_mod": {
@@ -576,12 +558,12 @@
                       "fill_container": true,
                       "primary": "Boost",
                       "icon": "mdi:flash",
-                      "icon_color": "{{ 'orange' if is_state('switch.floor_2_ac_boost', 'on') else 'disabled' }}",
+                      "icon_color": "{{ 'orange' if is_state('switch.2b_ac_boost', 'on') else 'disabled' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "switch.toggle",
                         "target": {
-                          "entity_id": "switch.floor_2_ac_boost"
+                          "entity_id": "switch.2b_ac_boost"
                         }
                       },
                       "card_mod": {
@@ -594,30 +576,12 @@
                       "fill_container": true,
                       "primary": "Swing",
                       "icon": "mdi:arrow-oscillating",
-                      "icon_color": "{{ 'blue' if is_state('switch.floor_2_ac_swing', 'on') else 'disabled' }}",
+                      "icon_color": "{{ 'blue' if is_state('switch.2b_ac_swing', 'on') else 'disabled' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "switch.toggle",
                         "target": {
-                          "entity_id": "switch.floor_2_ac_swing"
-                        }
-                      },
-                      "card_mod": {
-                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
-                      }
-                    },
-                    {
-                      "type": "custom:mushroom-template-card",
-                      "layout": "vertical",
-                      "fill_container": true,
-                      "primary": "Sync",
-                      "icon": "mdi:sync",
-                      "icon_color": "blue-grey",
-                      "tap_action": {
-                        "action": "perform-action",
-                        "perform_action": "button.press",
-                        "target": {
-                          "entity_id": "button.floor_2_ac_sync"
+                          "entity_id": "switch.2b_ac_swing"
                         }
                       },
                       "card_mod": {

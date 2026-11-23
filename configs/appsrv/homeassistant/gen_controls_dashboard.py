@@ -131,14 +131,13 @@ def aircon(floor, icon, slug):
                      "target": {"entity_id": f"switch.{slug}_boost"}}),
                 key("Swing", "mdi:arrow-oscillating", when(f"switch.{slug}_swing", "on", "blue", "disabled"),
                     {"action": "perform-action", "perform_action": "switch.toggle",
-                     "target": {"entity_id": f"switch.{slug}_swing"}}),
-                key("Sync", "mdi:sync", "blue-grey", press(f"button.{slug}_sync"))),
+                     "target": {"entity_id": f"switch.{slug}_swing"}})),
         ),
     ]}
 
 
-floor1 = aircon("Floor 1", "mdi:home-floor-1", "floor_1_ac")
-floor2 = aircon("Floor 2", "mdi:home-floor-2", "floor_2_ac")
+floor1 = aircon("1B", "mdi:home-floor-1", "1b_ac")
+floor2 = aircon("2B", "mdi:home-floor-2", "2b_ac")
 
 outside = {"type": "grid", "cards": [
     heading("Outside", "mdi:tree-outline"),
