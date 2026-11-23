@@ -24,7 +24,7 @@ class RfFanLightConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_REMOTE): selector.EntitySelector(selector.EntitySelectorConfig(domain="remote")),
                 vol.Required(CONF_DEVICE, default="fan_light"): str,
                 vol.Optional(CONF_POWER_SWITCH): selector.EntitySelector(selector.EntitySelectorConfig(domain="switch")),
-                vol.Required(CONF_DEFAULT_SPEED, default=3): selector.NumberSelector(
+                vol.Required(CONF_DEFAULT_SPEED, default=2): selector.NumberSelector(
                     selector.NumberSelectorConfig(min=1, max=6, step=1, mode=selector.NumberSelectorMode.BOX)),
             }
         )

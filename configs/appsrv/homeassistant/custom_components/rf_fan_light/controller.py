@@ -1,19 +1,17 @@
 """State and RF commands for one ceiling fan with a light.
 
 The fan's RF remote only has keys (no state), so the last command sent is the state. It is kept in a
-Store so a restart does not forget it. An optional wall switch cuts the fan's power; when it turns on
-the fan boots in an unknown state, so the controller sends the wanted speed again.
+Store so a restart does not forget it. An optional wall switch cuts the fan's power; the integration only
+notes when it goes off. Sending the speed after it comes back on is left to an automation.
 """
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any, Callable
 
 from .const import PRESETS, SPEED_COUNT, TIMERS
 
 NONE = "none"
-RESEND_DELAYS = (2, 5)
 
 
 class FanController:
@@ -31,7 +29,6 @@ class FanController:
         self.running = False
         self.next_speed = default_speed
         self._listeners: list[Callable[[], None]] = []
-        self._boot_task: asyncio.Task | None = None
 
     async def async_load(self) -> None:
         data = await self._store.async_load() or {}
@@ -92,6 +89,7 @@ class FanController:
             return
         await self._send_speed(speed)
         self.speed, self.preset, self.running = speed, None, True
+        self.next_speed = self.default_speed
         self._changed()
 
     async def async_turn_off(self) -> None:
@@ -138,22 +136,6 @@ class FanController:
         await self._send("light_power")
 
     def power_switch_changed(self, old: str | None, new: str | None) -> None:
-        """Called when the wall switch changes state."""
-        if new == "on" and old == "off":
-            if self._boot_task:
-                self._boot_task.cancel()
-            self._boot_task = self.hass.async_create_task(self._boot())
-        elif new == "off" and old == "on":
-            if self._boot_task:
-                self._boot_task.cancel()
+        if new == "off" and old == "on":
             self.running, self.timer, self.preset = False, NONE, None
             self._changed()
-
-    async def _boot(self) -> None:
-        speed = self.next_speed
-        self.next_speed = self.default_speed
-        self.speed, self.preset, self.running = speed, None, True
-        self._changed()
-        for delay in RESEND_DELAYS:
-            await asyncio.sleep(delay)
-            await self._send_speed(speed)

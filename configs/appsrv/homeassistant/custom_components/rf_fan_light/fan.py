@@ -61,7 +61,8 @@ class RfFan(FanEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {"timer": self._controller.timer if self._controller.is_on else "none",
-                "wall_switch_on": self._controller.powered}
+                "wall_switch_on": self._controller.powered,
+                "next_speed": self._controller.next_speed}
 
     async def async_turn_on(self, percentage: int | None = None, preset_mode: str | None = None, **kwargs: Any) -> None:
         if preset_mode:
@@ -88,4 +89,4 @@ class RfFan(FanEntity):
     def _speed(percentage: int | None) -> int | None:
         if not percentage:
             return None
-        return max(1, -(-percentage * SPEED_COUNT // 100))
+        return min(SPEED_COUNT, max(1, round(percentage * SPEED_COUNT / 100)))

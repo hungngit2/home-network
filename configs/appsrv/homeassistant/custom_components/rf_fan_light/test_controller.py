@@ -58,9 +58,6 @@ def make(switch="on"):
 
 
 async def main():
-    import rf_fan_light.controller as c
-    c.RESEND_DELAYS = (0, 0)
-
     hass, f = make("on")
     await f.async_turn_on()
     assert hass.sent == ["fan_speed3"] and f.percentage == 50 and f.is_on, (hass.sent, f.percentage)
@@ -89,9 +86,8 @@ async def main():
     hass, f = make("off")
     await f.async_turn_on(5)
     assert hass.switch_turned_on and f.next_speed == 5 and hass.sent == [], "wall switch off: only switch on, no RF yet"
-    f.power_switch_changed("off", "on")
-    await f._boot_task
-    assert hass.sent == ["fan_speed5", "fan_speed5"] and f.speed == 5 and f.is_on
+    await f.async_turn_on(f.next_speed)
+    assert hass.sent == ["fan_speed5"] and f.speed == 5 and f.is_on
     assert f.next_speed == 3, "next switch-on goes back to the default speed"
 
     hass.switch = "off"

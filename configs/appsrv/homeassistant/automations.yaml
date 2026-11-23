@@ -292,3 +292,31 @@
       message: EVN power is back ({{ states('sensor.grid_protector_voltage_a') | int(0)
         }} V). Battery {{ states('sensor.luxpower_inverter_battery_battery_soc') }}%.
   mode: single
+- id: kitchen_fan_speed_on_switch
+  alias: Kitchen fan speed when the switch turns on
+  description: The fan boots in an unknown state when its wall switch turns on, so send the speed
+    (default 2) over local RF through the 1B hub, then once more in case the first was missed.
+  triggers:
+  - trigger: state
+    entity_id: switch.fan_switch
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - variables:
+      percentage: '{{ ((state_attr(''fan.kitchen_fan'', ''next_speed'') | int(2)) * 100 / 6) | round(0) }}'
+  - delay:
+      seconds: 2
+  - action: fan.turn_on
+    target:
+      entity_id: fan.kitchen_fan
+    data:
+      percentage: '{{ percentage }}'
+  - delay:
+      seconds: 5
+  - action: fan.turn_on
+    target:
+      entity_id: fan.kitchen_fan
+    data:
+      percentage: '{{ percentage }}'
+  mode: restart
