@@ -85,7 +85,10 @@ def aircon(floor, icon, entity, slug):
         {"type": "custom:mushroom-chips-card", "alignment": "center", "grid_options": {"columns": 12}, "chips": [
             flag_chip(f"switch.{slug}_eco", "Eco", "mdi:leaf", "green"),
             flag_chip(f"switch.{slug}_boost", "Boost", "mdi:flash", "orange"),
-            flag_chip(f"switch.{slug}_swing", "Swing", "mdi:arrow-oscillating", "blue")]},
+            flag_chip(f"switch.{slug}_swing", "Swing", "mdi:arrow-oscillating", "blue"),
+            {"type": "template", "content": "Sync", "icon": "mdi:sync", "icon_color": "grey",
+             "tap_action": {"action": "perform-action", "perform_action": "button.press",
+                            "target": {"entity_id": f"button.{slug}_sync"}}}]},
     ]}
 
 

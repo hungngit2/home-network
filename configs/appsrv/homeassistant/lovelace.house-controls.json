@@ -241,6 +241,19 @@
                       "entity_id": "switch.floor_1_ac_swing"
                     }
                   }
+                },
+                {
+                  "type": "template",
+                  "content": "Sync",
+                  "icon": "mdi:sync",
+                  "icon_color": "grey",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.floor_1_ac_sync"
+                    }
+                  }
                 }
               ]
             }
@@ -336,6 +349,19 @@
                     "perform_action": "homeassistant.toggle",
                     "target": {
                       "entity_id": "switch.floor_2_ac_swing"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Sync",
+                  "icon": "mdi:sync",
+                  "icon_color": "grey",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "button.press",
+                    "target": {
+                      "entity_id": "button.floor_2_ac_sync"
                     }
                   }
                 }
