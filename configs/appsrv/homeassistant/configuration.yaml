@@ -253,6 +253,30 @@ template:
               entity_id: input_select.kitchen_fan_timer
             data:
               option: "{{ next }}"
+      - name: "Kitchen Fan Wind"
+        unique_id: kitchen_fan_wind_cycle
+        icon: "mdi:weather-windy"
+        press:
+          - variables:
+              next: >-
+                {{ {'none': 'natural', 'natural': 'sleep', 'sleep': 'none'}.get(states('input_select.kitchen_fan_preset'), 'natural') }}
+              speed: "{{ [1, states('input_number.kitchen_fan_speed') | int(3)] | max }}"
+          - if: "{{ next == 'none' }}"
+            then:
+              - action: button.press
+                target:
+                  entity_id: "button.1b_fan_light_fan_speed_{{ speed }}"
+              - action: input_select.select_option
+                target:
+                  entity_id: input_select.kitchen_fan_preset
+                data:
+                  option: "none"
+            else:
+              - action: fan.set_preset_mode
+                target:
+                  entity_id: fan.kitchen_fan
+                data:
+                  preset_mode: "{{ next }}"
   - fan:
       - name: "Kitchen Fan"
         unique_id: kitchen_fan_rf

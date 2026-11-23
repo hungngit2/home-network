@@ -83,35 +83,63 @@ def when(entity, state, yes, no):
     return "{{ '%s' if is_state('%s', '%s') else '%s' }}" % (yes, entity, state, no)
 
 
-def slider(slug, off):
-    return {"type": "conditional",
-            "conditions": [{"condition": "state", "entity": f"climate.{slug}", "state": "off"}] if off else
-            [{"condition": "state", "entity": f"climate.{slug}", "state_not": "off"}],
-            "card": {"type": "custom:mushroom-number-card", "entity": f"number.{slug}_temperature",
-                     "name": "Off · slide to cool" if off else "Temperature",
-                     "icon": "mdi:thermometer-off" if off else "mdi:thermometer",
-                     "icon_color": "disabled" if off else "blue", "display_mode": "slider",
-                     "primary_info": "name", "secondary_info": "state", "fill_container": True,
-                     "tap_action": press(f"button.{slug}_power") if off else NONE, "card_mod": OVERLAY}}
+TEMP_WORDS = [  # state, name shown on the bar, icon, colour
+    ("off", "Off · slide to start cooling", "mdi:thermometer-off", "disabled"),
+    ("cool", "Cooling to", "mdi:snowflake", "blue"),
+    ("dry", "Drying room at", "mdi:water-percent", "amber"),
+    ("fan_only", "Fan only · set to", "mdi:fan", "teal"),
+    ("auto", "Auto · set to", "mdi:thermostat-auto", "purple"),
+]
+
+
+def temperature_sliders(slug):
+    return [{"type": "conditional",
+             "conditions": [{"condition": "state", "entity": f"climate.{slug}", "state": mode}],
+             "card": {"type": "custom:mushroom-number-card", "entity": f"number.{slug}_temperature", "name": name,
+                      "icon": icon, "icon_color": color, "display_mode": "slider", "primary_info": "name",
+                      "secondary_info": "state", "fill_container": True,
+                      "tap_action": press(f"button.{slug}_power") if mode == "off" else NONE, "card_mod": OVERLAY}}
+            for mode, name, icon, color in TEMP_WORDS]
+
+
+FAN_WORDS = [  # fan percentage attribute (or off), friendly text on the bar
+    (None, "Fan off · slide to start"),
+    ("17", "Speed 1 · gentle breeze"),
+    ("33", "Speed 2 · light"),
+    ("50", "Speed 3 · medium"),
+    ("67", "Speed 4 · strong"),
+    ("83", "Speed 5 · very strong"),
+    ("100", "Speed 6 · maximum"),
+]
+
+
+def fan_sliders():
+    cards = []
+    for percentage, name in FAN_WORDS:
+        condition = ({"condition": "state", "entity": "fan.kitchen_fan", "state": "off"} if percentage is None else
+                     {"condition": "state", "entity": "fan.kitchen_fan", "attribute": "percentage", "state": percentage})
+        cards.append({"type": "conditional", "conditions": [condition],
+                      "card": {"type": "custom:mushroom-fan-card", "entity": "fan.kitchen_fan", "name": name,
+                               "secondary_info": "none", "fill_container": True, "icon_animation": True,
+                               "show_percentage_control": True, "show_direction_control": True,
+                               "collapsible_controls": False, "tap_action": {"action": "toggle"},
+                               "hold_action": MORE, "card_mod": OVERLAY}})
+    return cards
 
 
 kitchen = {"type": "grid", "cards": [
     heading("Kitchen", "mdi:silverware-fork-knife"),
     panel(
-        {"type": "custom:mushroom-fan-card", "entity": "fan.kitchen_fan", "name": "Fan", "secondary_info": "state",
-         "fill_container": True, "icon_animation": True, "show_percentage_control": True,
-         "show_direction_control": True, "collapsible_controls": False, "tap_action": {"action": "toggle"},
-         "hold_action": MORE, "card_mod": OVERLAY},
+        *fan_sliders(),
         row(key(when("fan.kitchen_fan", "on", "On", "Off"), "mdi:power", when("fan.kitchen_fan", "on", "green", "disabled"),
                 {"action": "toggle"}, "Power", "fan.kitchen_fan"),
-            key("Natural", "mdi:weather-windy", when("input_select.kitchen_fan_preset", "natural", "cyan", "disabled"),
-                {"action": "perform-action", "perform_action": "fan.set_preset_mode",
-                 "target": {"entity_id": "fan.kitchen_fan"}, "data": {"preset_mode": "natural"}}, "Preset"),
-            key("Sleep", "mdi:weather-night", when("input_select.kitchen_fan_preset", "sleep", "indigo", "disabled"),
-                {"action": "perform-action", "perform_action": "fan.set_preset_mode",
-                 "target": {"entity_id": "fan.kitchen_fan"}, "data": {"preset_mode": "sleep"}}, "Preset")),
-        row(key("Light", "mdi:lightbulb", "blue-grey", press("button.1b_fan_light_light_on_off")),
-            key("{{ 'Timer' if is_state('input_select.kitchen_fan_timer', 'none') else "
+            key(pick({"natural": "Natural", "sleep": "Sleep"}, "states('input_select.kitchen_fan_preset')", "Wind"),
+                pick({"natural": "mdi:weather-windy", "sleep": "mdi:weather-night"},
+                     "states('input_select.kitchen_fan_preset')", "mdi:weather-windy"),
+                pick({"natural": "cyan", "sleep": "indigo"}, "states('input_select.kitchen_fan_preset')", "blue-grey"),
+                press("button.kitchen_fan_wind")),
+            key("Light", "mdi:lightbulb", "blue-grey", press("button.1b_fan_light_light_on_off"))),
+        row(key("{{ 'Timer' if is_state('input_select.kitchen_fan_timer', 'none') else "
                 "'Timer ' ~ states('input_select.kitchen_fan_timer') }}", "mdi:timer-outline",
                 when("input_select.kitchen_fan_timer", "none", "blue-grey", "cyan"),
                 press("button.kitchen_fan_timer"))),
@@ -124,8 +152,7 @@ def aircon(floor, icon, slug):
     return {"type": "grid", "cards": [
         heading(f"{floor} air conditioner", icon),
         panel(
-            slider(slug, off=True),
-            slider(slug, off=False),
+            *temperature_sliders(slug),
             row(key(pick({"off": "Off"}, f"states('{cl}')", "On"), "mdi:power", when(cl, "off", "disabled", "green"),
                     press(f"button.{slug}_power"), "Power"),
                 key(pick({"auto": "Auto", "cool": "Cool", "dry": "Dry", "fan_only": "Fan only"}, f"states('{cl}')", "–"),

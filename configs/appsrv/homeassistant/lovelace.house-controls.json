@@ -27,23 +27,219 @@
               },
               "cards": [
                 {
-                  "type": "custom:mushroom-fan-card",
-                  "entity": "fan.kitchen_fan",
-                  "name": "Fan",
-                  "secondary_info": "state",
-                  "fill_container": true,
-                  "icon_animation": true,
-                  "show_percentage_control": true,
-                  "show_direction_control": true,
-                  "collapsible_controls": false,
-                  "tap_action": {
-                    "action": "toggle"
-                  },
-                  "hold_action": {
-                    "action": "more-info"
-                  },
-                  "card_mod": {
-                    "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "state": "off"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Fan off · slide to start",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "attribute": "percentage",
+                      "state": "17"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Speed 1 · gentle breeze",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "attribute": "percentage",
+                      "state": "33"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Speed 2 · light",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "attribute": "percentage",
+                      "state": "50"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Speed 3 · medium",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "attribute": "percentage",
+                      "state": "67"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Speed 4 · strong",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "attribute": "percentage",
+                      "state": "83"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Speed 5 · very strong",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "fan.kitchen_fan",
+                      "attribute": "percentage",
+                      "state": "100"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-fan-card",
+                    "entity": "fan.kitchen_fan",
+                    "name": "Speed 6 · maximum",
+                    "secondary_info": "none",
+                    "fill_container": true,
+                    "icon_animation": true,
+                    "show_percentage_control": true,
+                    "show_direction_control": true,
+                    "collapsible_controls": false,
+                    "tap_action": {
+                      "action": "toggle"
+                    },
+                    "hold_action": {
+                      "action": "more-info"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
                   }
                 },
                 {
@@ -68,49 +264,20 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "horizontal",
                       "fill_container": true,
-                      "primary": "Natural",
-                      "icon": "mdi:weather-windy",
-                      "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', 'natural') else 'disabled' }}",
+                      "primary": "{{ {'natural': 'Natural', 'sleep': 'Sleep'}.get(states('input_select.kitchen_fan_preset'), 'Wind') }}",
+                      "icon": "{{ {'natural': 'mdi:weather-windy', 'sleep': 'mdi:weather-night'}.get(states('input_select.kitchen_fan_preset'), 'mdi:weather-windy') }}",
+                      "icon_color": "{{ {'natural': 'cyan', 'sleep': 'indigo'}.get(states('input_select.kitchen_fan_preset'), 'blue-grey') }}",
                       "tap_action": {
                         "action": "perform-action",
-                        "perform_action": "fan.set_preset_mode",
+                        "perform_action": "button.press",
                         "target": {
-                          "entity_id": "fan.kitchen_fan"
-                        },
-                        "data": {
-                          "preset_mode": "natural"
+                          "entity_id": "button.kitchen_fan_wind"
                         }
                       },
                       "card_mod": {
                         "style": "ha-card {\n  background: none; border: none; box-shadow: none; border-radius: 0;\n  --icon-size: 28px; --icon-symbol-size: 18px; --spacing: 6px;\n  --card-primary-font-size: 11px; --card-primary-line-height: 14px;\n}"
                       }
                     },
-                    {
-                      "type": "custom:mushroom-template-card",
-                      "layout": "horizontal",
-                      "fill_container": true,
-                      "primary": "Sleep",
-                      "icon": "mdi:weather-night",
-                      "icon_color": "{{ 'indigo' if is_state('input_select.kitchen_fan_preset', 'sleep') else 'disabled' }}",
-                      "tap_action": {
-                        "action": "perform-action",
-                        "perform_action": "fan.set_preset_mode",
-                        "target": {
-                          "entity_id": "fan.kitchen_fan"
-                        },
-                        "data": {
-                          "preset_mode": "sleep"
-                        }
-                      },
-                      "card_mod": {
-                        "style": "ha-card {\n  background: none; border: none; box-shadow: none; border-radius: 0;\n  --icon-size: 28px; --icon-symbol-size: 18px; --spacing: 6px;\n  --card-primary-font-size: 11px; --card-primary-line-height: 14px;\n}"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "horizontal-stack",
-                  "cards": [
                     {
                       "type": "custom:mushroom-template-card",
                       "layout": "horizontal",
@@ -128,7 +295,12 @@
                       "card_mod": {
                         "style": "ha-card {\n  background: none; border: none; box-shadow: none; border-radius: 0;\n  --icon-size: 28px; --icon-symbol-size: 18px; --spacing: 6px;\n  --card-primary-font-size: 11px; --card-primary-line-height: 14px;\n}"
                       }
-                    },
+                    }
+                  ]
+                },
+                {
+                  "type": "horizontal-stack",
+                  "cards": [
                     {
                       "type": "custom:mushroom-template-card",
                       "layout": "horizontal",
@@ -183,7 +355,7 @@
                   "card": {
                     "type": "custom:mushroom-number-card",
                     "entity": "number.1b_ac_temperature",
-                    "name": "Off · slide to cool",
+                    "name": "Off · slide to start cooling",
                     "icon": "mdi:thermometer-off",
                     "icon_color": "disabled",
                     "display_mode": "slider",
@@ -208,15 +380,96 @@
                     {
                       "condition": "state",
                       "entity": "climate.1b_ac",
-                      "state_not": "off"
+                      "state": "cool"
                     }
                   ],
                   "card": {
                     "type": "custom:mushroom-number-card",
                     "entity": "number.1b_ac_temperature",
-                    "name": "Temperature",
-                    "icon": "mdi:thermometer",
+                    "name": "Cooling to",
+                    "icon": "mdi:snowflake",
                     "icon_color": "blue",
+                    "display_mode": "slider",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.1b_ac",
+                      "state": "dry"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.1b_ac_temperature",
+                    "name": "Drying room at",
+                    "icon": "mdi:water-percent",
+                    "icon_color": "amber",
+                    "display_mode": "slider",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.1b_ac",
+                      "state": "fan_only"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.1b_ac_temperature",
+                    "name": "Fan only · set to",
+                    "icon": "mdi:fan",
+                    "icon_color": "teal",
+                    "display_mode": "slider",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.1b_ac",
+                      "state": "auto"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.1b_ac_temperature",
+                    "name": "Auto · set to",
+                    "icon": "mdi:thermostat-auto",
+                    "icon_color": "purple",
                     "display_mode": "slider",
                     "primary_info": "name",
                     "secondary_info": "state",
@@ -381,7 +634,7 @@
                   "card": {
                     "type": "custom:mushroom-number-card",
                     "entity": "number.2b_ac_temperature",
-                    "name": "Off · slide to cool",
+                    "name": "Off · slide to start cooling",
                     "icon": "mdi:thermometer-off",
                     "icon_color": "disabled",
                     "display_mode": "slider",
@@ -406,15 +659,96 @@
                     {
                       "condition": "state",
                       "entity": "climate.2b_ac",
-                      "state_not": "off"
+                      "state": "cool"
                     }
                   ],
                   "card": {
                     "type": "custom:mushroom-number-card",
                     "entity": "number.2b_ac_temperature",
-                    "name": "Temperature",
-                    "icon": "mdi:thermometer",
+                    "name": "Cooling to",
+                    "icon": "mdi:snowflake",
                     "icon_color": "blue",
+                    "display_mode": "slider",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.2b_ac",
+                      "state": "dry"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.2b_ac_temperature",
+                    "name": "Drying room at",
+                    "icon": "mdi:water-percent",
+                    "icon_color": "amber",
+                    "display_mode": "slider",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.2b_ac",
+                      "state": "fan_only"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.2b_ac_temperature",
+                    "name": "Fan only · set to",
+                    "icon": "mdi:fan",
+                    "icon_color": "teal",
+                    "display_mode": "slider",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }\n.actions { margin-top: 8px; }\nmushroom-state-item {\n  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);\n  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;\n  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;\n  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;\n}\nmushroom-shape-icon { display: none; }"
+                    }
+                  }
+                },
+                {
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.2b_ac",
+                      "state": "auto"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.2b_ac_temperature",
+                    "name": "Auto · set to",
+                    "icon": "mdi:thermostat-auto",
+                    "icon_color": "purple",
                     "display_mode": "slider",
                     "primary_info": "name",
                     "secondary_info": "state",
