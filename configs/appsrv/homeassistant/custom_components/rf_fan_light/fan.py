@@ -5,7 +5,7 @@ from typing import Any
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
@@ -36,7 +36,11 @@ class RfFan(FanEntity):
         self.async_on_remove(self._controller.add_listener(self.async_write_ha_state))
         if self._controller.power_switch:
             self.async_on_remove(async_track_state_change_event(
-                self.hass, [self._controller.power_switch], lambda _event: self.async_write_ha_state()))
+                self.hass, [self._controller.power_switch], self._switch_changed))
+
+    @callback
+    def _switch_changed(self, _event: Event) -> None:
+        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
