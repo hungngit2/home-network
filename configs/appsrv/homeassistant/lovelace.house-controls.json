@@ -172,9 +172,6 @@
               },
               "features": [
                 {
-                  "type": "target-temperature"
-                },
-                {
                   "type": "climate-hvac-modes",
                   "style": "icons"
                 },
@@ -184,6 +181,20 @@
                 }
               ],
               "features_position": "bottom"
+            },
+            {
+              "type": "custom:mushroom-number-card",
+              "entity": "number.floor_1_ac_temperature",
+              "name": "Temperature",
+              "icon": "mdi:thermometer",
+              "display_mode": "slider",
+              "primary_info": "name",
+              "secondary_info": "state",
+              "icon_color": "blue",
+              "fill_container": true,
+              "grid_options": {
+                "columns": 12
+              }
             },
             {
               "type": "custom:mushroom-chips-card",
@@ -258,9 +269,6 @@
               },
               "features": [
                 {
-                  "type": "target-temperature"
-                },
-                {
                   "type": "climate-hvac-modes",
                   "style": "icons"
                 },
@@ -270,6 +278,20 @@
                 }
               ],
               "features_position": "bottom"
+            },
+            {
+              "type": "custom:mushroom-number-card",
+              "entity": "number.floor_2_ac_temperature",
+              "name": "Temperature",
+              "icon": "mdi:thermometer",
+              "display_mode": "slider",
+              "primary_info": "name",
+              "secondary_info": "state",
+              "icon_color": "blue",
+              "fill_container": true,
+              "grid_options": {
+                "columns": 12
+              }
             },
             {
               "type": "custom:mushroom-chips-card",

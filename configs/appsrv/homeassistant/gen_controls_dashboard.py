@@ -76,9 +76,12 @@ def aircon(floor, icon, entity, slug):
         heading(f"{floor} air conditioner", icon),
         {"type": "tile", "entity": entity, "name": f"{floor} AC", "icon": "mdi:air-conditioner",
          "state_content": ["hvac_action", "current_temperature"], "grid_options": {"columns": 12},
-         "features": [{"type": "target-temperature"}, {"type": "climate-hvac-modes", "style": "icons"},
+         "features": [{"type": "climate-hvac-modes", "style": "icons"},
                       {"type": "climate-fan-modes", "style": "icons"}],
          "features_position": "bottom"},
+        {"type": "custom:mushroom-number-card", "entity": f"number.{slug}_temperature", "name": "Temperature",
+         "icon": "mdi:thermometer", "display_mode": "slider", "primary_info": "name", "secondary_info": "state",
+         "icon_color": "blue", "fill_container": True, "grid_options": {"columns": 12}},
         {"type": "custom:mushroom-chips-card", "alignment": "center", "grid_options": {"columns": 12}, "chips": [
             flag_chip(f"switch.{slug}_eco", "Eco", "mdi:leaf", "green"),
             flag_chip(f"switch.{slug}_boost", "Boost", "mdi:flash", "orange"),
