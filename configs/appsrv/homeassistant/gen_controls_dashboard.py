@@ -133,15 +133,15 @@ kitchen = {"type": "grid", "cards": [
         *fan_sliders(),
         row(key(when("fan.kitchen_fan", "on", "On", "Off"), "mdi:power", when("fan.kitchen_fan", "on", "green", "disabled"),
                 {"action": "toggle"}, "Power", "fan.kitchen_fan"),
-            key(pick({"natural": "Natural", "sleep": "Sleep"}, "states('input_select.kitchen_fan_preset')", "Wind"),
+            key(pick({"natural": "Natural", "sleep": "Sleep"}, "state_attr('fan.kitchen_fan', 'preset_mode')", "Wind"),
                 pick({"natural": "mdi:weather-windy", "sleep": "mdi:weather-night"},
-                     "states('input_select.kitchen_fan_preset')", "mdi:weather-windy"),
-                pick({"natural": "cyan", "sleep": "indigo"}, "states('input_select.kitchen_fan_preset')", "blue-grey"),
+                     "state_attr('fan.kitchen_fan', 'preset_mode')", "mdi:weather-windy"),
+                pick({"natural": "cyan", "sleep": "indigo"}, "state_attr('fan.kitchen_fan', 'preset_mode')", "blue-grey"),
                 press("button.kitchen_fan_wind")),
-            key("Light", "mdi:lightbulb", "blue-grey", press("button.1b_fan_light_light_on_off"))),
-        row(key("{{ 'Timer' if is_state('input_select.kitchen_fan_timer', 'none') else "
-                "'Timer ' ~ states('input_select.kitchen_fan_timer') }}", "mdi:timer-outline",
-                when("input_select.kitchen_fan_timer", "none", "blue-grey", "cyan"),
+            key("Light", "mdi:lightbulb", "blue-grey", press("button.kitchen_fan_light"))),
+        row(key("{{ 'Timer' if state_attr('fan.kitchen_fan', 'timer') in ('none', None) else "
+                "'Timer ' ~ state_attr('fan.kitchen_fan', 'timer') }}", "mdi:timer-outline",
+                "{{ 'blue-grey' if state_attr('fan.kitchen_fan', 'timer') in ('none', None) else 'cyan' }}",
                 press("button.kitchen_fan_timer"))),
     ),
 ]}

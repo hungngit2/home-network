@@ -1,0 +1,13 @@
+{
+  "domain": "rf_fan_light",
+  "name": "RF Fan Light (local)",
+  "codeowners": ["@hungngit2"],
+  "config_flow": true,
+  "dependencies": ["remote"],
+  "documentation": "https://github.com/hungngit2/home-network",
+  "integration_type": "device",
+  "iot_class": "assumed_state",
+  "issue_tracker": "https://github.com/hungngit2/home-network/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

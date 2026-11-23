@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "RF fan with light",
+        "description": "Choose the hub remote that holds the fan's learned RF codes (device name and commands fan_speed1 to fan_speed6, power, natural_wind, sleep_wind, fan_power, timer_1h, timer_2h, timer_4h, light_power).",
+        "data": {
+          "name": "Name",
+          "remote": "Hub remote",
+          "device": "Device name the codes were learned under",
+          "power_switch": "Wall switch that powers the fan (optional)",
+          "default_speed": "Speed to use when turning on"
+        }
+      }
+    },
+    "abort": {"already_configured": "This fan is already set up."}
+  }
+}

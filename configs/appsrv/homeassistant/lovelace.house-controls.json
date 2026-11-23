@@ -264,9 +264,9 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "horizontal",
                       "fill_container": true,
-                      "primary": "{{ {'natural': 'Natural', 'sleep': 'Sleep'}.get(states('input_select.kitchen_fan_preset'), 'Wind') }}",
-                      "icon": "{{ {'natural': 'mdi:weather-windy', 'sleep': 'mdi:weather-night'}.get(states('input_select.kitchen_fan_preset'), 'mdi:weather-windy') }}",
-                      "icon_color": "{{ {'natural': 'cyan', 'sleep': 'indigo'}.get(states('input_select.kitchen_fan_preset'), 'blue-grey') }}",
+                      "primary": "{{ {'natural': 'Natural', 'sleep': 'Sleep'}.get(state_attr('fan.kitchen_fan', 'preset_mode'), 'Wind') }}",
+                      "icon": "{{ {'natural': 'mdi:weather-windy', 'sleep': 'mdi:weather-night'}.get(state_attr('fan.kitchen_fan', 'preset_mode'), 'mdi:weather-windy') }}",
+                      "icon_color": "{{ {'natural': 'cyan', 'sleep': 'indigo'}.get(state_attr('fan.kitchen_fan', 'preset_mode'), 'blue-grey') }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
@@ -289,7 +289,7 @@
                         "action": "perform-action",
                         "perform_action": "button.press",
                         "target": {
-                          "entity_id": "button.1b_fan_light_light_on_off"
+                          "entity_id": "button.kitchen_fan_light"
                         }
                       },
                       "card_mod": {
@@ -305,9 +305,9 @@
                       "type": "custom:mushroom-template-card",
                       "layout": "horizontal",
                       "fill_container": true,
-                      "primary": "{{ 'Timer' if is_state('input_select.kitchen_fan_timer', 'none') else 'Timer ' ~ states('input_select.kitchen_fan_timer') }}",
+                      "primary": "{{ 'Timer' if state_attr('fan.kitchen_fan', 'timer') in ('none', None) else 'Timer ' ~ state_attr('fan.kitchen_fan', 'timer') }}",
                       "icon": "mdi:timer-outline",
-                      "icon_color": "{{ 'blue-grey' if is_state('input_select.kitchen_fan_timer', 'none') else 'cyan' }}",
+                      "icon_color": "{{ 'blue-grey' if state_attr('fan.kitchen_fan', 'timer') in ('none', None) else 'cyan' }}",
                       "tap_action": {
                         "action": "perform-action",
                         "perform_action": "button.press",
