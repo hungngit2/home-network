@@ -319,8 +319,7 @@ settings = {"title": "Settings", "path": "settings", "icon": "mdi:cog", "type": 
         {"type": "entity-filter", "state_filter": ["on"], "show_empty": False,
          "card": {"type": "entities", "title": "Updates available"},
          "entities": ["update.hacs_update", "update.tuya_local_update", "update.sonoff_lan_update",
-                      "update.luxpower_inverter_modbus_update",
-                      "update.tuya_smart_ir_ac_update"],
+                      "update.luxpower_inverter_modbus_update"],
          "grid_options": {"columns": "full"}},
         {"type": "markdown", "grid_options": {"columns": "full"},
          "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · "

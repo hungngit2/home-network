@@ -6,11 +6,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-PLATFORMS = [Platform.CLIMATE]
+PLATFORMS = [Platform.CLIMATE, Platform.SWITCH]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # The toggles look their climate entity up in the registry, so it has to exist first.
+    await hass.config_entries.async_forward_entry_setups(entry, [Platform.CLIMATE])
+    await hass.config_entries.async_forward_entry_setups(entry, [Platform.SWITCH])
     return True
 
 

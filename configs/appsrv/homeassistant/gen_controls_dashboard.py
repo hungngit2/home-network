@@ -64,19 +64,26 @@ kitchen = {"type": "grid", "cards": [
 ]}
 
 
-def aircon(floor, icon, entity):
+def toggle(entity, name, icon, color):
+    return {"type": "tile", "entity": entity, "name": name, "icon": icon, "color": color, "vertical": True,
+            "tap_action": {"action": "toggle"}, "icon_tap_action": {"action": "toggle"},
+            "grid_options": {"columns": 4}}
+
+
+def aircon(floor, icon, entity, slug):
     return {"type": "grid", "cards": [
         heading(f"{floor} air conditioner", icon),
         {"type": "thermostat", "entity": entity,
          "features": [{"type": "climate-hvac-modes", "style": "icons"},
-                      {"type": "climate-fan-modes", "style": "icons"},
-                      {"type": "climate-preset-modes", "style": "dropdown", "preset_modes": ["none", "eco", "boost"]},
-                      {"type": "climate-swing-modes", "style": "dropdown", "swing_modes": ["off", "on"]}]},
+                      {"type": "climate-fan-modes", "style": "icons"}]},
+        toggle(f"switch.{slug}_eco", "Eco", "mdi:leaf", "green"),
+        toggle(f"switch.{slug}_boost", "Boost", "mdi:flash", "orange"),
+        toggle(f"switch.{slug}_swing", "Swing", "mdi:arrow-oscillating", "blue"),
     ]}
 
 
-floor1 = aircon("Floor 1", "mdi:home-floor-1", "climate.floor_1_ac")
-floor2 = aircon("Floor 2", "mdi:home-floor-2", "climate.floor_2_ac")
+floor1 = aircon("Floor 1", "mdi:home-floor-1", "climate.floor_1_ac", "floor_1_ac")
+floor2 = aircon("Floor 2", "mdi:home-floor-2", "climate.floor_2_ac", "floor_2_ac")
 
 outside = {"type": "grid", "cards": [
     heading("Outside", "mdi:tree-outline"),

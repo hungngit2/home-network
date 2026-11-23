@@ -169,25 +169,59 @@
                 {
                   "type": "climate-fan-modes",
                   "style": "icons"
-                },
-                {
-                  "type": "climate-preset-modes",
-                  "style": "dropdown",
-                  "preset_modes": [
-                    "none",
-                    "eco",
-                    "boost"
-                  ]
-                },
-                {
-                  "type": "climate-swing-modes",
-                  "style": "dropdown",
-                  "swing_modes": [
-                    "off",
-                    "on"
-                  ]
                 }
               ]
+            },
+            {
+              "type": "tile",
+              "entity": "switch.floor_1_ac_eco",
+              "name": "Eco",
+              "icon": "mdi:leaf",
+              "color": "green",
+              "vertical": true,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "toggle"
+              },
+              "grid_options": {
+                "columns": 4
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.floor_1_ac_boost",
+              "name": "Boost",
+              "icon": "mdi:flash",
+              "color": "orange",
+              "vertical": true,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "toggle"
+              },
+              "grid_options": {
+                "columns": 4
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.floor_1_ac_swing",
+              "name": "Swing",
+              "icon": "mdi:arrow-oscillating",
+              "color": "blue",
+              "vertical": true,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "toggle"
+              },
+              "grid_options": {
+                "columns": 4
+              }
             }
           ]
         },
@@ -211,25 +245,59 @@
                 {
                   "type": "climate-fan-modes",
                   "style": "icons"
-                },
-                {
-                  "type": "climate-preset-modes",
-                  "style": "dropdown",
-                  "preset_modes": [
-                    "none",
-                    "eco",
-                    "boost"
-                  ]
-                },
-                {
-                  "type": "climate-swing-modes",
-                  "style": "dropdown",
-                  "swing_modes": [
-                    "off",
-                    "on"
-                  ]
                 }
               ]
+            },
+            {
+              "type": "tile",
+              "entity": "switch.floor_2_ac_eco",
+              "name": "Eco",
+              "icon": "mdi:leaf",
+              "color": "green",
+              "vertical": true,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "toggle"
+              },
+              "grid_options": {
+                "columns": 4
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.floor_2_ac_boost",
+              "name": "Boost",
+              "icon": "mdi:flash",
+              "color": "orange",
+              "vertical": true,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "toggle"
+              },
+              "grid_options": {
+                "columns": 4
+              }
+            },
+            {
+              "type": "tile",
+              "entity": "switch.floor_2_ac_swing",
+              "name": "Swing",
+              "icon": "mdi:arrow-oscillating",
+              "color": "blue",
+              "vertical": true,
+              "tap_action": {
+                "action": "toggle"
+              },
+              "icon_tap_action": {
+                "action": "toggle"
+              },
+              "grid_options": {
+                "columns": 4
+              }
             }
           ]
         },
