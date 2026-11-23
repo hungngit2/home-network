@@ -23,7 +23,9 @@ PRESET_FLAGS = {"none": None, "eco": FLAG_ECO, "boost": FLAG_BOOST}
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
-    async_add_entities([ToshibaIrClimate(entry)])
+    entity = ToshibaIrClimate(entry)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entity
+    async_add_entities([entity])
 
 
 class ToshibaIrClimate(ClimateEntity, RestoreEntity):
@@ -122,6 +124,9 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
                 self._last_mode = self._attr_hvac_mode
         if (temp := kwargs.get(ATTR_TEMPERATURE)) is not None:
             self._attr_target_temperature = max(MIN_TEMP, min(MAX_TEMP, round(temp)))
+            if self._attr_hvac_mode == HVACMode.OFF:
+                # Like the real remote: choosing a temperature switches the unit on in cool.
+                self._attr_hvac_mode = self._last_mode = HVACMode.COOL
         if self._attr_hvac_mode != HVACMode.OFF:
             await self._send_state()
         self.async_write_ha_state()

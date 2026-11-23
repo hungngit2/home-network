@@ -18,134 +18,178 @@
               "icon": "mdi:silverware-fork-knife"
             },
             {
-              "type": "custom:mushroom-fan-card",
-              "entity": "fan.kitchen_fan",
-              "name": "Fan",
-              "secondary_info": "state",
-              "icon_animation": true,
-              "fill_container": true,
-              "show_percentage_control": true,
-              "show_direction_control": true,
-              "collapsible_controls": false,
-              "tap_action": {
-                "action": "toggle"
+              "type": "vertical-stack",
+              "grid_options": {
+                "columns": 12
               },
-              "hold_action": {
-                "action": "more-info"
+              "card_mod": {
+                "style": ":host {\n  --vertical-stack-card-gap: 0px;\n  --horizontal-stack-card-gap: 0px;\n  display: block; overflow: hidden;\n  background: var(--ha-card-background, var(--card-background-color));\n  border: var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color));\n  border-radius: var(--ha-card-border-radius, 12px);\n  box-shadow: var(--ha-card-box-shadow, none);\n}"
               },
-              "grid_options": {
-                "columns": 12
-              }
-            },
-            {
-              "type": "custom:mushroom-chips-card",
-              "alignment": "center",
-              "chips": [
+              "cards": [
                 {
-                  "type": "template",
-                  "content": "Natural",
-                  "icon": "mdi:weather-windy",
-                  "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', 'natural') else 'grey' }}",
+                  "type": "custom:mushroom-fan-card",
+                  "entity": "fan.kitchen_fan",
+                  "name": "Fan",
+                  "secondary_info": "state",
+                  "layout": "horizontal",
+                  "fill_container": true,
+                  "icon_animation": true,
+                  "show_percentage_control": true,
+                  "show_direction_control": true,
+                  "collapsible_controls": false,
                   "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "fan.set_preset_mode",
-                    "target": {
-                      "entity_id": "fan.kitchen_fan"
+                    "action": "toggle"
+                  },
+                  "hold_action": {
+                    "action": "more-info"
+                  },
+                  "card_mod": {
+                    "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                  }
+                },
+                {
+                  "type": "horizontal-stack",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ 'On' if is_state('fan.kitchen_fan', 'on') else 'Off' }}",
+                      "icon": "mdi:power",
+                      "icon_color": "{{ 'green' if is_state('fan.kitchen_fan', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "toggle"
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Power",
+                      "entity": "fan.kitchen_fan"
                     },
-                    "data": {
-                      "preset_mode": "natural"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Sleep",
-                  "icon": "mdi:weather-night",
-                  "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', 'sleep') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "fan.set_preset_mode",
-                    "target": {
-                      "entity_id": "fan.kitchen_fan"
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Natural",
+                      "icon": "mdi:weather-windy",
+                      "icon_color": "{{ 'cyan' if is_state('input_select.kitchen_fan_preset', 'natural') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "fan.set_preset_mode",
+                        "target": {
+                          "entity_id": "fan.kitchen_fan"
+                        },
+                        "data": {
+                          "preset_mode": "natural"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Preset"
                     },
-                    "data": {
-                      "preset_mode": "sleep"
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Sleep",
+                      "icon": "mdi:weather-night",
+                      "icon_color": "{{ 'indigo' if is_state('input_select.kitchen_fan_preset', 'sleep') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "fan.set_preset_mode",
+                        "target": {
+                          "entity_id": "fan.kitchen_fan"
+                        },
+                        "data": {
+                          "preset_mode": "sleep"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Preset"
                     }
-                  }
+                  ]
                 },
                 {
-                  "type": "template",
-                  "content": "Light",
-                  "icon": "mdi:lightbulb",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_fan_light_light_on_off"
+                  "type": "horizontal-stack",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Light",
+                      "icon": "mdi:lightbulb",
+                      "icon_color": "blue-grey",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.1b_fan_light_light_on_off"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "1h",
+                      "icon": "mdi:timer-outline",
+                      "icon_color": "blue-grey",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.1b_fan_light_timer_1h"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "2h",
+                      "icon": "mdi:timer-outline",
+                      "icon_color": "blue-grey",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.1b_fan_light_timer_2h"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "4h",
+                      "icon": "mdi:timer-outline",
+                      "icon_color": "blue-grey",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.1b_fan_light_timer_4h"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
                     }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Off",
-                  "icon": "mdi:power",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_fan_light_power_off"
-                    }
-                  }
+                  ]
                 }
-              ],
-              "grid_options": {
-                "columns": 12
-              }
-            },
-            {
-              "type": "custom:mushroom-chips-card",
-              "alignment": "center",
-              "chips": [
-                {
-                  "type": "template",
-                  "content": "1h",
-                  "icon": "mdi:timer-outline",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_fan_light_timer_1h"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "2h",
-                  "icon": "mdi:timer-outline",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_fan_light_timer_2h"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "4h",
-                  "icon": "mdi:timer-outline",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_fan_light_timer_4h"
-                    }
-                  }
-                }
-              ],
-              "grid_options": {
-                "columns": 12
-              }
+              ]
             }
           ]
         },
@@ -159,101 +203,212 @@
               "icon": "mdi:home-floor-1"
             },
             {
-              "type": "tile",
-              "entity": "climate.floor_1_ac",
-              "name": "Floor 1 AC",
-              "icon": "mdi:air-conditioner",
-              "state_content": [
-                "hvac_action",
-                "current_temperature"
-              ],
+              "type": "vertical-stack",
               "grid_options": {
                 "columns": 12
               },
-              "features": [
-                {
-                  "type": "climate-hvac-modes",
-                  "style": "icons"
-                },
-                {
-                  "type": "climate-fan-modes",
-                  "style": "icons"
-                }
-              ],
-              "features_position": "bottom"
-            },
-            {
-              "type": "custom:mushroom-number-card",
-              "entity": "number.floor_1_ac_temperature",
-              "name": "Temperature",
-              "icon": "mdi:thermometer",
-              "display_mode": "slider",
-              "primary_info": "name",
-              "secondary_info": "state",
-              "icon_color": "blue",
-              "fill_container": true,
-              "grid_options": {
-                "columns": 12
-              }
-            },
-            {
-              "type": "custom:mushroom-chips-card",
-              "alignment": "center",
-              "grid_options": {
-                "columns": 12
+              "card_mod": {
+                "style": ":host {\n  --vertical-stack-card-gap: 0px;\n  --horizontal-stack-card-gap: 0px;\n  display: block; overflow: hidden;\n  background: var(--ha-card-background, var(--card-background-color));\n  border: var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color));\n  border-radius: var(--ha-card-border-radius, 12px);\n  box-shadow: var(--ha-card-box-shadow, none);\n}"
               },
-              "chips": [
+              "cards": [
                 {
-                  "type": "template",
-                  "content": "Eco",
-                  "icon": "mdi:leaf",
-                  "icon_color": "{{ 'green' if is_state('switch.floor_1_ac_eco', 'on') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "homeassistant.toggle",
-                    "target": {
-                      "entity_id": "switch.floor_1_ac_eco"
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.floor_1_ac",
+                      "state": "off"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.floor_1_ac_temperature",
+                    "name": "Off · slide to cool",
+                    "icon": "mdi:thermometer-off",
+                    "icon_color": "disabled",
+                    "display_mode": "slider",
+                    "layout": "horizontal",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "perform-action",
+                      "perform_action": "button.press",
+                      "target": {
+                        "entity_id": "button.floor_1_ac_power"
+                      }
+                    },
+                    "card_mod": {
+                      "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
                     }
                   }
                 },
                 {
-                  "type": "template",
-                  "content": "Boost",
-                  "icon": "mdi:flash",
-                  "icon_color": "{{ 'orange' if is_state('switch.floor_1_ac_boost', 'on') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "homeassistant.toggle",
-                    "target": {
-                      "entity_id": "switch.floor_1_ac_boost"
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.floor_1_ac",
+                      "state_not": "off"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.floor_1_ac_temperature",
+                    "name": "Temperature",
+                    "icon": "mdi:thermometer",
+                    "icon_color": "blue",
+                    "display_mode": "slider",
+                    "layout": "horizontal",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
                     }
                   }
                 },
                 {
-                  "type": "template",
-                  "content": "Swing",
-                  "icon": "mdi:arrow-oscillating",
-                  "icon_color": "{{ 'blue' if is_state('switch.floor_1_ac_swing', 'on') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "homeassistant.toggle",
-                    "target": {
-                      "entity_id": "switch.floor_1_ac_swing"
+                  "type": "horizontal-stack",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ {'off': 'Off'}.get(states('climate.floor_1_ac'), 'On') }}",
+                      "icon": "mdi:power",
+                      "icon_color": "{{ 'disabled' if is_state('climate.floor_1_ac', 'off') else 'green' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_1_ac_power"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Power"
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ {'auto': 'Auto', 'cool': 'Cool', 'dry': 'Dry', 'fan_only': 'Fan only'}.get(states('climate.floor_1_ac'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:thermostat-auto', 'cool': 'mdi:snowflake', 'dry': 'mdi:water-percent', 'fan_only': 'mdi:fan'}.get(states('climate.floor_1_ac'), 'mdi:thermostat-auto') }}",
+                      "icon_color": "{{ {'auto': 'purple', 'cool': 'blue', 'dry': 'amber', 'fan_only': 'teal'}.get(states('climate.floor_1_ac'), 'disabled') }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_1_ac_next_mode"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Mode"
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ '–' if is_state('climate.floor_1_ac', 'off') else {'auto': 'Auto', 'low': 'Low', 'medium': 'Medium', 'high': 'High'}.get(state_attr('climate.floor_1_ac', 'fan_mode'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:fan-auto', 'low': 'mdi:fan-speed-1', 'medium': 'mdi:fan-speed-2', 'high': 'mdi:fan-speed-3'}.get(state_attr('climate.floor_1_ac', 'fan_mode'), 'mdi:fan') }}",
+                      "icon_color": "{{ 'disabled' if is_state('climate.floor_1_ac', 'off') else 'cyan' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_1_ac_next_fan"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Fan"
                     }
-                  }
+                  ]
                 },
                 {
-                  "type": "template",
-                  "content": "Sync",
-                  "icon": "mdi:sync",
-                  "icon_color": "grey",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.floor_1_ac_sync"
+                  "type": "horizontal-stack",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Eco",
+                      "icon": "mdi:leaf",
+                      "icon_color": "{{ 'green' if is_state('switch.floor_1_ac_eco', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "switch.toggle",
+                        "target": {
+                          "entity_id": "switch.floor_1_ac_eco"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Boost",
+                      "icon": "mdi:flash",
+                      "icon_color": "{{ 'orange' if is_state('switch.floor_1_ac_boost', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "switch.toggle",
+                        "target": {
+                          "entity_id": "switch.floor_1_ac_boost"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Swing",
+                      "icon": "mdi:arrow-oscillating",
+                      "icon_color": "{{ 'blue' if is_state('switch.floor_1_ac_swing', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "switch.toggle",
+                        "target": {
+                          "entity_id": "switch.floor_1_ac_swing"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Sync",
+                      "icon": "mdi:sync",
+                      "icon_color": "blue-grey",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_1_ac_sync"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
                     }
-                  }
+                  ]
                 }
               ]
             }
@@ -269,101 +424,212 @@
               "icon": "mdi:home-floor-2"
             },
             {
-              "type": "tile",
-              "entity": "climate.floor_2_ac",
-              "name": "Floor 2 AC",
-              "icon": "mdi:air-conditioner",
-              "state_content": [
-                "hvac_action",
-                "current_temperature"
-              ],
+              "type": "vertical-stack",
               "grid_options": {
                 "columns": 12
               },
-              "features": [
-                {
-                  "type": "climate-hvac-modes",
-                  "style": "icons"
-                },
-                {
-                  "type": "climate-fan-modes",
-                  "style": "icons"
-                }
-              ],
-              "features_position": "bottom"
-            },
-            {
-              "type": "custom:mushroom-number-card",
-              "entity": "number.floor_2_ac_temperature",
-              "name": "Temperature",
-              "icon": "mdi:thermometer",
-              "display_mode": "slider",
-              "primary_info": "name",
-              "secondary_info": "state",
-              "icon_color": "blue",
-              "fill_container": true,
-              "grid_options": {
-                "columns": 12
-              }
-            },
-            {
-              "type": "custom:mushroom-chips-card",
-              "alignment": "center",
-              "grid_options": {
-                "columns": 12
+              "card_mod": {
+                "style": ":host {\n  --vertical-stack-card-gap: 0px;\n  --horizontal-stack-card-gap: 0px;\n  display: block; overflow: hidden;\n  background: var(--ha-card-background, var(--card-background-color));\n  border: var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color));\n  border-radius: var(--ha-card-border-radius, 12px);\n  box-shadow: var(--ha-card-box-shadow, none);\n}"
               },
-              "chips": [
+              "cards": [
                 {
-                  "type": "template",
-                  "content": "Eco",
-                  "icon": "mdi:leaf",
-                  "icon_color": "{{ 'green' if is_state('switch.floor_2_ac_eco', 'on') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "homeassistant.toggle",
-                    "target": {
-                      "entity_id": "switch.floor_2_ac_eco"
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.floor_2_ac",
+                      "state": "off"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.floor_2_ac_temperature",
+                    "name": "Off · slide to cool",
+                    "icon": "mdi:thermometer-off",
+                    "icon_color": "disabled",
+                    "display_mode": "slider",
+                    "layout": "horizontal",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "perform-action",
+                      "perform_action": "button.press",
+                      "target": {
+                        "entity_id": "button.floor_2_ac_power"
+                      }
+                    },
+                    "card_mod": {
+                      "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
                     }
                   }
                 },
                 {
-                  "type": "template",
-                  "content": "Boost",
-                  "icon": "mdi:flash",
-                  "icon_color": "{{ 'orange' if is_state('switch.floor_2_ac_boost', 'on') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "homeassistant.toggle",
-                    "target": {
-                      "entity_id": "switch.floor_2_ac_boost"
+                  "type": "conditional",
+                  "conditions": [
+                    {
+                      "condition": "state",
+                      "entity": "climate.floor_2_ac",
+                      "state_not": "off"
+                    }
+                  ],
+                  "card": {
+                    "type": "custom:mushroom-number-card",
+                    "entity": "number.floor_2_ac_temperature",
+                    "name": "Temperature",
+                    "icon": "mdi:thermometer",
+                    "icon_color": "blue",
+                    "display_mode": "slider",
+                    "layout": "horizontal",
+                    "primary_info": "name",
+                    "secondary_info": "state",
+                    "fill_container": true,
+                    "tap_action": {
+                      "action": "none"
+                    },
+                    "card_mod": {
+                      "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
                     }
                   }
                 },
                 {
-                  "type": "template",
-                  "content": "Swing",
-                  "icon": "mdi:arrow-oscillating",
-                  "icon_color": "{{ 'blue' if is_state('switch.floor_2_ac_swing', 'on') else 'grey' }}",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "homeassistant.toggle",
-                    "target": {
-                      "entity_id": "switch.floor_2_ac_swing"
+                  "type": "horizontal-stack",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ {'off': 'Off'}.get(states('climate.floor_2_ac'), 'On') }}",
+                      "icon": "mdi:power",
+                      "icon_color": "{{ 'disabled' if is_state('climate.floor_2_ac', 'off') else 'green' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_2_ac_power"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Power"
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ {'auto': 'Auto', 'cool': 'Cool', 'dry': 'Dry', 'fan_only': 'Fan only'}.get(states('climate.floor_2_ac'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:thermostat-auto', 'cool': 'mdi:snowflake', 'dry': 'mdi:water-percent', 'fan_only': 'mdi:fan'}.get(states('climate.floor_2_ac'), 'mdi:thermostat-auto') }}",
+                      "icon_color": "{{ {'auto': 'purple', 'cool': 'blue', 'dry': 'amber', 'fan_only': 'teal'}.get(states('climate.floor_2_ac'), 'disabled') }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_2_ac_next_mode"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Mode"
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "{{ '–' if is_state('climate.floor_2_ac', 'off') else {'auto': 'Auto', 'low': 'Low', 'medium': 'Medium', 'high': 'High'}.get(state_attr('climate.floor_2_ac', 'fan_mode'), '–') }}",
+                      "icon": "{{ {'auto': 'mdi:fan-auto', 'low': 'mdi:fan-speed-1', 'medium': 'mdi:fan-speed-2', 'high': 'mdi:fan-speed-3'}.get(state_attr('climate.floor_2_ac', 'fan_mode'), 'mdi:fan') }}",
+                      "icon_color": "{{ 'disabled' if is_state('climate.floor_2_ac', 'off') else 'cyan' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_2_ac_next_fan"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      },
+                      "secondary": "Fan"
                     }
-                  }
+                  ]
                 },
                 {
-                  "type": "template",
-                  "content": "Sync",
-                  "icon": "mdi:sync",
-                  "icon_color": "grey",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.floor_2_ac_sync"
+                  "type": "horizontal-stack",
+                  "cards": [
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Eco",
+                      "icon": "mdi:leaf",
+                      "icon_color": "{{ 'green' if is_state('switch.floor_2_ac_eco', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "switch.toggle",
+                        "target": {
+                          "entity_id": "switch.floor_2_ac_eco"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Boost",
+                      "icon": "mdi:flash",
+                      "icon_color": "{{ 'orange' if is_state('switch.floor_2_ac_boost', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "switch.toggle",
+                        "target": {
+                          "entity_id": "switch.floor_2_ac_boost"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Swing",
+                      "icon": "mdi:arrow-oscillating",
+                      "icon_color": "{{ 'blue' if is_state('switch.floor_2_ac_swing', 'on') else 'disabled' }}",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "switch.toggle",
+                        "target": {
+                          "entity_id": "switch.floor_2_ac_swing"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
+                    },
+                    {
+                      "type": "custom:mushroom-template-card",
+                      "layout": "vertical",
+                      "fill_container": true,
+                      "primary": "Sync",
+                      "icon": "mdi:sync",
+                      "icon_color": "blue-grey",
+                      "tap_action": {
+                        "action": "perform-action",
+                        "perform_action": "button.press",
+                        "target": {
+                          "entity_id": "button.floor_2_ac_sync"
+                        }
+                      },
+                      "card_mod": {
+                        "style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"
+                      }
                     }
-                  }
+                  ]
                 }
               ]
             }
