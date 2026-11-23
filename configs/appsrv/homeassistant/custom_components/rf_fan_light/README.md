@@ -16,7 +16,7 @@ fan, and the speed to use when turning on. The codes must exist under these comm
 - `fan.<name>`: on/off, 6 speeds, natural and sleep presets, direction. Attribute `timer` shows the timer.
 - Buttons Light, Wind (cycles natural, sleep, normal) and Timer (cycles 1h, 2h, 4h).
 - With a wall switch: the integration notes when it goes off. The automation "Kitchen fan speed when the
-  switch turns on" sends the speed after the fan boots (after 2 s and again after 5 s), using the fan's
+  switch turns on" sends the speed 2 s after the fan boots, using the fan's
   `next_speed` attribute (2 unless you turned the fan on from the card while the switch was off).
   Turning the fan on while the switch is off turns the switch on first.
 - There is no key to cancel wind or the timer. Leaving wind resends the speed; the timer only clears on power off.
