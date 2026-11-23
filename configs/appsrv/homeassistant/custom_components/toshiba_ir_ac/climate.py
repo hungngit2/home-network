@@ -33,7 +33,7 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
     _attr_name = None
     _attr_assumed_state = True
     _attr_should_poll = False
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp = MIN_TEMP
     _attr_max_temp = MAX_TEMP
     _attr_target_temperature_step = 1
@@ -57,7 +57,7 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
         self._attr_device_info = {"identifiers": {(DOMAIN, entry.entry_id)}, "name": entry.data[CONF_NAME],
                                   "manufacturer": "Toshiba", "model": "IR air conditioner"}
         self._attr_hvac_mode = HVACMode.OFF
-        self._attr_target_temperature = 26
+        self._attr_native_target_temperature = 26
         self._attr_fan_mode = "auto"
         self._attr_preset_mode = "none"
         self._attr_swing_mode = "off"
@@ -72,7 +72,7 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
                 self._last_mode = self._attr_hvac_mode
         attrs = last.attributes
         if (temp := attrs.get(ATTR_TEMPERATURE)) is not None:
-            self._attr_target_temperature = int(temp)
+            self._attr_native_target_temperature = int(temp)
         if attrs.get("fan_mode") in FAN_TO_SPEED:
             self._attr_fan_mode = attrs["fan_mode"]
         if attrs.get("preset_mode") in PRESET_FLAGS:
@@ -81,7 +81,7 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
             self._attr_swing_mode = attrs["swing_mode"]
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         if not self._sensor or (state := self.hass.states.get(self._sensor)) is None:
             return None
         if state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
@@ -100,7 +100,7 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
         mode = "off" if self._attr_hvac_mode == HVACMode.OFF else HVAC_TO_MODE[self._attr_hvac_mode]
         fan = "auto" if mode == "off" else FAN_TO_SPEED[self._attr_fan_mode]
         flags = None if mode == "off" else PRESET_FLAGS[self._attr_preset_mode]
-        await self._send(state_bytes(int(self._attr_target_temperature), mode, fan, flags))
+        await self._send(state_bytes(int(self._attr_native_target_temperature), mode, fan, flags))
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         self._attr_hvac_mode = hvac_mode
@@ -123,7 +123,7 @@ class ToshibaIrClimate(ClimateEntity, RestoreEntity):
             if self._attr_hvac_mode != HVACMode.OFF:
                 self._last_mode = self._attr_hvac_mode
         if (temp := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            self._attr_target_temperature = max(MIN_TEMP, min(MAX_TEMP, round(temp)))
+            self._attr_native_target_temperature = max(MIN_TEMP, min(MAX_TEMP, round(temp)))
             if self._attr_hvac_mode == HVACMode.OFF:
                 # Like the real remote: choosing a temperature switches the unit on in cool.
                 self._attr_hvac_mode = self._last_mode = HVACMode.COOL
