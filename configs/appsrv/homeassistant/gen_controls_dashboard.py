@@ -64,21 +64,25 @@ kitchen = {"type": "grid", "cards": [
 ]}
 
 
-def toggle(entity, name, icon, color):
-    return {"type": "tile", "entity": entity, "name": name, "icon": icon, "color": color, "vertical": True,
-            "tap_action": {"action": "toggle"}, "icon_tap_action": {"action": "toggle"},
-            "grid_options": {"columns": 4}}
+def flag_chip(entity, text, icon, color):
+    return {"type": "template", "content": text, "icon": icon,
+            "icon_color": "{{ '%s' if is_state('%s', 'on') else 'grey' }}" % (color, entity),
+            "tap_action": {"action": "perform-action", "perform_action": "homeassistant.toggle",
+                           "target": {"entity_id": entity}}}
 
 
 def aircon(floor, icon, entity, slug):
     return {"type": "grid", "cards": [
         heading(f"{floor} air conditioner", icon),
-        {"type": "thermostat", "entity": entity,
-         "features": [{"type": "climate-hvac-modes", "style": "icons"},
-                      {"type": "climate-fan-modes", "style": "icons"}]},
-        toggle(f"switch.{slug}_eco", "Eco", "mdi:leaf", "green"),
-        toggle(f"switch.{slug}_boost", "Boost", "mdi:flash", "orange"),
-        toggle(f"switch.{slug}_swing", "Swing", "mdi:arrow-oscillating", "blue"),
+        {"type": "tile", "entity": entity, "name": f"{floor} AC", "icon": "mdi:air-conditioner",
+         "state_content": ["hvac_action", "current_temperature"], "grid_options": {"columns": 12},
+         "features": [{"type": "target-temperature"}, {"type": "climate-hvac-modes", "style": "icons"},
+                      {"type": "climate-fan-modes", "style": "icons"}],
+         "features_position": "bottom"},
+        {"type": "custom:mushroom-chips-card", "alignment": "center", "grid_options": {"columns": 12}, "chips": [
+            flag_chip(f"switch.{slug}_eco", "Eco", "mdi:leaf", "green"),
+            flag_chip(f"switch.{slug}_boost", "Boost", "mdi:flash", "orange"),
+            flag_chip(f"switch.{slug}_swing", "Swing", "mdi:arrow-oscillating", "blue")]},
     ]}
 
 

@@ -159,9 +159,21 @@
               "icon": "mdi:home-floor-1"
             },
             {
-              "type": "thermostat",
+              "type": "tile",
               "entity": "climate.floor_1_ac",
+              "name": "Floor 1 AC",
+              "icon": "mdi:air-conditioner",
+              "state_content": [
+                "hvac_action",
+                "current_temperature"
+              ],
+              "grid_options": {
+                "columns": 12
+              },
               "features": [
+                {
+                  "type": "target-temperature"
+                },
                 {
                   "type": "climate-hvac-modes",
                   "style": "icons"
@@ -170,58 +182,56 @@
                   "type": "climate-fan-modes",
                   "style": "icons"
                 }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "custom:mushroom-chips-card",
+              "alignment": "center",
+              "grid_options": {
+                "columns": 12
+              },
+              "chips": [
+                {
+                  "type": "template",
+                  "content": "Eco",
+                  "icon": "mdi:leaf",
+                  "icon_color": "{{ 'green' if is_state('switch.floor_1_ac_eco', 'on') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "homeassistant.toggle",
+                    "target": {
+                      "entity_id": "switch.floor_1_ac_eco"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Boost",
+                  "icon": "mdi:flash",
+                  "icon_color": "{{ 'orange' if is_state('switch.floor_1_ac_boost', 'on') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "homeassistant.toggle",
+                    "target": {
+                      "entity_id": "switch.floor_1_ac_boost"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Swing",
+                  "icon": "mdi:arrow-oscillating",
+                  "icon_color": "{{ 'blue' if is_state('switch.floor_1_ac_swing', 'on') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "homeassistant.toggle",
+                    "target": {
+                      "entity_id": "switch.floor_1_ac_swing"
+                    }
+                  }
+                }
               ]
-            },
-            {
-              "type": "tile",
-              "entity": "switch.floor_1_ac_eco",
-              "name": "Eco",
-              "icon": "mdi:leaf",
-              "color": "green",
-              "vertical": true,
-              "tap_action": {
-                "action": "toggle"
-              },
-              "icon_tap_action": {
-                "action": "toggle"
-              },
-              "grid_options": {
-                "columns": 4
-              }
-            },
-            {
-              "type": "tile",
-              "entity": "switch.floor_1_ac_boost",
-              "name": "Boost",
-              "icon": "mdi:flash",
-              "color": "orange",
-              "vertical": true,
-              "tap_action": {
-                "action": "toggle"
-              },
-              "icon_tap_action": {
-                "action": "toggle"
-              },
-              "grid_options": {
-                "columns": 4
-              }
-            },
-            {
-              "type": "tile",
-              "entity": "switch.floor_1_ac_swing",
-              "name": "Swing",
-              "icon": "mdi:arrow-oscillating",
-              "color": "blue",
-              "vertical": true,
-              "tap_action": {
-                "action": "toggle"
-              },
-              "icon_tap_action": {
-                "action": "toggle"
-              },
-              "grid_options": {
-                "columns": 4
-              }
             }
           ]
         },
@@ -235,9 +245,21 @@
               "icon": "mdi:home-floor-2"
             },
             {
-              "type": "thermostat",
+              "type": "tile",
               "entity": "climate.floor_2_ac",
+              "name": "Floor 2 AC",
+              "icon": "mdi:air-conditioner",
+              "state_content": [
+                "hvac_action",
+                "current_temperature"
+              ],
+              "grid_options": {
+                "columns": 12
+              },
               "features": [
+                {
+                  "type": "target-temperature"
+                },
                 {
                   "type": "climate-hvac-modes",
                   "style": "icons"
@@ -246,58 +268,56 @@
                   "type": "climate-fan-modes",
                   "style": "icons"
                 }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "custom:mushroom-chips-card",
+              "alignment": "center",
+              "grid_options": {
+                "columns": 12
+              },
+              "chips": [
+                {
+                  "type": "template",
+                  "content": "Eco",
+                  "icon": "mdi:leaf",
+                  "icon_color": "{{ 'green' if is_state('switch.floor_2_ac_eco', 'on') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "homeassistant.toggle",
+                    "target": {
+                      "entity_id": "switch.floor_2_ac_eco"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Boost",
+                  "icon": "mdi:flash",
+                  "icon_color": "{{ 'orange' if is_state('switch.floor_2_ac_boost', 'on') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "homeassistant.toggle",
+                    "target": {
+                      "entity_id": "switch.floor_2_ac_boost"
+                    }
+                  }
+                },
+                {
+                  "type": "template",
+                  "content": "Swing",
+                  "icon": "mdi:arrow-oscillating",
+                  "icon_color": "{{ 'blue' if is_state('switch.floor_2_ac_swing', 'on') else 'grey' }}",
+                  "tap_action": {
+                    "action": "perform-action",
+                    "perform_action": "homeassistant.toggle",
+                    "target": {
+                      "entity_id": "switch.floor_2_ac_swing"
+                    }
+                  }
+                }
               ]
-            },
-            {
-              "type": "tile",
-              "entity": "switch.floor_2_ac_eco",
-              "name": "Eco",
-              "icon": "mdi:leaf",
-              "color": "green",
-              "vertical": true,
-              "tap_action": {
-                "action": "toggle"
-              },
-              "icon_tap_action": {
-                "action": "toggle"
-              },
-              "grid_options": {
-                "columns": 4
-              }
-            },
-            {
-              "type": "tile",
-              "entity": "switch.floor_2_ac_boost",
-              "name": "Boost",
-              "icon": "mdi:flash",
-              "color": "orange",
-              "vertical": true,
-              "tap_action": {
-                "action": "toggle"
-              },
-              "icon_tap_action": {
-                "action": "toggle"
-              },
-              "grid_options": {
-                "columns": 4
-              }
-            },
-            {
-              "type": "tile",
-              "entity": "switch.floor_2_ac_swing",
-              "name": "Swing",
-              "icon": "mdi:arrow-oscillating",
-              "color": "blue",
-              "vertical": true,
-              "tap_action": {
-                "action": "toggle"
-              },
-              "icon_tap_action": {
-                "action": "toggle"
-              },
-              "grid_options": {
-                "columns": 4
-              }
             }
           ]
         },
