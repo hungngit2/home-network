@@ -238,6 +238,21 @@ template:
             data:
               device: fan_light
               command: timer_4h
+      - name: "Kitchen Fan Timer"
+        unique_id: kitchen_fan_timer_cycle
+        icon: "mdi:timer-outline"
+        press:
+          - variables:
+              next: >-
+                {{ {'none': '1h', '1h': '2h', '2h': '4h', '4h': '1h'}.get(states('input_select.kitchen_fan_timer'), '1h') }}
+          - action: button.press
+            target:
+              entity_id: "button.1b_fan_light_timer_{{ next }}"
+          - action: input_select.select_option
+            target:
+              entity_id: input_select.kitchen_fan_timer
+            data:
+              option: "{{ next }}"
   - fan:
       - name: "Kitchen Fan"
         unique_id: kitchen_fan_rf
@@ -288,6 +303,11 @@ template:
           - action: input_boolean.turn_off
             target:
               entity_id: input_boolean.kitchen_fan_running
+          - action: input_select.select_option
+            target:
+              entity_id: input_select.kitchen_fan_timer
+            data:
+              option: "none"
         set_percentage:
           - variables:
               speed: "{{ ((percentage | int(0)) * 6 / 100) | round(0, 'ceil') | int }}"
@@ -300,6 +320,11 @@ template:
                   - action: input_boolean.turn_off
                     target:
                       entity_id: input_boolean.kitchen_fan_running
+                  - action: input_select.select_option
+                    target:
+                      entity_id: input_select.kitchen_fan_timer
+                    data:
+                      option: "none"
               - conditions: "{{ is_state('switch.fan_switch', 'off') }}"
                 sequence:
                   - action: input_number.set_value
@@ -372,6 +397,14 @@ input_select:
       - natural
       - sleep
     icon: mdi:weather-windy
+  kitchen_fan_timer:
+    name: Kitchen fan timer
+    options:
+      - "none"
+      - 1h
+      - 2h
+      - 4h
+    icon: mdi:timer-outline
 
 input_boolean:
   kitchen_fan_running:

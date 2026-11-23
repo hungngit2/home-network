@@ -35,6 +35,15 @@ KEY = {"style": """ha-card {
   --icon-size: 28px; --icon-symbol-size: 18px; --spacing: 6px;
   --card-primary-font-size: 11px; --card-primary-line-height: 14px;
 }"""}
+OVERLAY = {"style": """ha-card { position: relative; background: none; border: none; box-shadow: none; border-radius: 0; }
+.actions { margin-top: 8px; }
+mushroom-state-item {
+  position: absolute; top: 8px; left: calc(var(--spacing, 10px) + 14px);
+  height: var(--control-height, 42px); display: flex; align-items: center; z-index: 2; pointer-events: none;
+  --icon-size: 0px; --icon-symbol-size: 0px; --card-primary-font-size: 13px; --card-secondary-font-size: 10px;
+  --card-primary-line-height: 15px; --card-secondary-line-height: 12px;
+}
+mushroom-shape-icon { display: none; }"""}
 SURFACE = {"style": """:host {
   --vertical-stack-card-gap: 0px;
   --horizontal-stack-card-gap: 0px;
@@ -83,7 +92,7 @@ def slider(slug, off):
                      "icon": "mdi:thermometer-off" if off else "mdi:thermometer",
                      "icon_color": "disabled" if off else "blue", "display_mode": "slider",
                      "primary_info": "name", "secondary_info": "state", "fill_container": True,
-                     "tap_action": press(f"button.{slug}_power") if off else NONE, "card_mod": FLAT}}
+                     "tap_action": press(f"button.{slug}_power") if off else NONE, "card_mod": OVERLAY}}
 
 
 kitchen = {"type": "grid", "cards": [
@@ -92,7 +101,7 @@ kitchen = {"type": "grid", "cards": [
         {"type": "custom:mushroom-fan-card", "entity": "fan.kitchen_fan", "name": "Fan", "secondary_info": "state",
          "fill_container": True, "icon_animation": True, "show_percentage_control": True,
          "show_direction_control": True, "collapsible_controls": False, "tap_action": {"action": "toggle"},
-         "hold_action": MORE, "card_mod": FLAT},
+         "hold_action": MORE, "card_mod": OVERLAY},
         row(key(when("fan.kitchen_fan", "on", "On", "Off"), "mdi:power", when("fan.kitchen_fan", "on", "green", "disabled"),
                 {"action": "toggle"}, "Power", "fan.kitchen_fan"),
             key("Natural", "mdi:weather-windy", when("input_select.kitchen_fan_preset", "natural", "cyan", "disabled"),
@@ -102,7 +111,10 @@ kitchen = {"type": "grid", "cards": [
                 {"action": "perform-action", "perform_action": "fan.set_preset_mode",
                  "target": {"entity_id": "fan.kitchen_fan"}, "data": {"preset_mode": "sleep"}}, "Preset")),
         row(key("Light", "mdi:lightbulb", "blue-grey", press("button.1b_fan_light_light_on_off")),
-            *[key(h, "mdi:timer-outline", "blue-grey", press(f"button.1b_fan_light_timer_{h}")) for h in ("1h", "2h", "4h")]),
+            key("{{ 'Timer' if is_state('input_select.kitchen_fan_timer', 'none') else "
+                "'Timer ' ~ states('input_select.kitchen_fan_timer') }}", "mdi:timer-outline",
+                when("input_select.kitchen_fan_timer", "none", "blue-grey", "cyan"),
+                press("button.kitchen_fan_timer"))),
     ),
 ]}
 
