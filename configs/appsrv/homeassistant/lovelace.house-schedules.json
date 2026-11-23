@@ -1,0 +1,52 @@
+{
+  "title": "Schedules",
+  "views": [
+    {
+      "title": "Schedules",
+      "path": "schedules",
+      "icon": "mdi:calendar-clock",
+      "type": "sections",
+      "max_columns": 2,
+      "sections": [
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Schedules",
+              "heading_style": "title",
+              "icon": "mdi:calendar-clock"
+            },
+            {
+              "type": "custom:scheduler-card",
+              "title": "Schedules",
+              "include": [
+                "switch.sonoff_1000eff333",
+                "switch.sonoff_10014c209d_1",
+                "switch.sonoff_10014c1f48_1",
+                "switch.sac_xe",
+                "switch.mosquito_liquid"
+              ],
+              "discover_existing": false,
+              "display_options": {
+                "primary_info": [
+                  "name",
+                  "default"
+                ],
+                "secondary_info": [
+                  "relative-time",
+                  "additional-tasks"
+                ],
+                "icon": "action"
+              },
+              "sort_by": [
+                "relative-time",
+                "title"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
