@@ -30,6 +30,11 @@ def available(entity):
 
 
 FLAT = {"style": "ha-card { background: none; border: none; box-shadow: none; border-radius: 0; }"}
+KEY = {"style": """ha-card {
+  background: none; border: none; box-shadow: none; border-radius: 0;
+  --icon-size: 28px; --icon-symbol-size: 18px; --spacing: 6px;
+  --card-primary-font-size: 11px; --card-primary-line-height: 14px;
+}"""}
 SURFACE = {"style": """:host {
   --vertical-stack-card-gap: 0px;
   --horizontal-stack-card-gap: 0px;
@@ -52,10 +57,8 @@ def row(*cards):
 
 def key(primary, icon, color, tap, secondary=None, entity=None):
     """A remote-style button: icon on top, label under it."""
-    c = {"type": "custom:mushroom-template-card", "layout": "vertical", "fill_container": True,
-         "primary": primary, "icon": icon, "icon_color": color, "tap_action": tap, "card_mod": FLAT}
-    if secondary:
-        c["secondary"] = secondary
+    c = {"type": "custom:mushroom-template-card", "layout": "horizontal", "fill_container": True,
+         "primary": primary, "icon": icon, "icon_color": color, "tap_action": tap, "card_mod": KEY}
     if entity:
         c["entity"] = entity
     return c
