@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Toshiba IR air conditioner",
+        "description": "Choose the Tuya IR hub's remote entity that points at this air conditioner.",
+        "data": {
+          "name": "Name",
+          "remote": "IR hub remote",
+          "temperature_sensor": "Room temperature sensor (optional)"
+        }
+      }
+    },
+    "abort": {"already_configured": "This remote is already used by an air conditioner."}
+  }
+}

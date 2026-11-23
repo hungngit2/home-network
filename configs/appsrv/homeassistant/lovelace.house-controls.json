@@ -160,7 +160,7 @@
             },
             {
               "type": "thermostat",
-              "entity": "climate.1b_ac",
+              "entity": "climate.floor_1_ac",
               "features": [
                 {
                   "type": "climate-hvac-modes",
@@ -169,65 +169,25 @@
                 {
                   "type": "climate-fan-modes",
                   "style": "icons"
+                },
+                {
+                  "type": "climate-preset-modes",
+                  "style": "dropdown",
+                  "preset_modes": [
+                    "none",
+                    "eco",
+                    "boost"
+                  ]
+                },
+                {
+                  "type": "climate-swing-modes",
+                  "style": "dropdown",
+                  "swing_modes": [
+                    "off",
+                    "on"
+                  ]
                 }
               ]
-            },
-            {
-              "type": "custom:mushroom-chips-card",
-              "alignment": "center",
-              "chips": [
-                {
-                  "type": "template",
-                  "content": "Eco",
-                  "icon": "mdi:leaf",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_ac_keys_eco"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Hi power",
-                  "icon": "mdi:flash",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_ac_keys_hi_power"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Fix",
-                  "icon": "mdi:pin",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_ac_keys_fix"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Swing",
-                  "icon": "mdi:arrow-oscillating",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.1b_ac_keys_swing"
-                    }
-                  }
-                }
-              ],
-              "grid_options": {
-                "columns": 12
-              }
             }
           ]
         },
@@ -242,7 +202,7 @@
             },
             {
               "type": "thermostat",
-              "entity": "climate.2b_ac",
+              "entity": "climate.floor_2_ac",
               "features": [
                 {
                   "type": "climate-hvac-modes",
@@ -251,65 +211,25 @@
                 {
                   "type": "climate-fan-modes",
                   "style": "icons"
+                },
+                {
+                  "type": "climate-preset-modes",
+                  "style": "dropdown",
+                  "preset_modes": [
+                    "none",
+                    "eco",
+                    "boost"
+                  ]
+                },
+                {
+                  "type": "climate-swing-modes",
+                  "style": "dropdown",
+                  "swing_modes": [
+                    "off",
+                    "on"
+                  ]
                 }
               ]
-            },
-            {
-              "type": "custom:mushroom-chips-card",
-              "alignment": "center",
-              "chips": [
-                {
-                  "type": "template",
-                  "content": "Eco",
-                  "icon": "mdi:leaf",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.2b_ac_keys_eco"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Hi power",
-                  "icon": "mdi:flash",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.2b_ac_keys_hi_power"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Fix",
-                  "icon": "mdi:pin",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.2b_ac_keys_fix"
-                    }
-                  }
-                },
-                {
-                  "type": "template",
-                  "content": "Swing",
-                  "icon": "mdi:arrow-oscillating",
-                  "tap_action": {
-                    "action": "perform-action",
-                    "perform_action": "button.press",
-                    "target": {
-                      "entity_id": "button.2b_ac_keys_swing"
-                    }
-                  }
-                }
-              ],
-              "grid_options": {
-                "columns": 12
-              }
             }
           ]
         },
