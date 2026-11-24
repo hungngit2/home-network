@@ -1,0 +1,55 @@
+{
+  "valves": [
+    {
+      "entity_id": "switch.sonoff_1000eff333",
+      "label": "Irrigation Pump",
+      "default_duration_min": 5,
+      "enabled": true,
+      "soak_run_min": 0,
+      "soak_pause_min": 0,
+      "moisture_entity": "",
+      "moisture_attribute": "",
+      "moisture_threshold": null,
+      "rain_exempt": false,
+      "rain_delay_until": 0,
+      "flow_rate_lpm": null,
+      "water_total_l": 0.0,
+      "avg_lpm": null,
+      "flow_runs": 0
+    }
+  ],
+  "schedules": [
+    {
+      "id": "623615b303e9",
+      "valve_entity_id": "switch.sonoff_1000eff333",
+      "cycle_id": "",
+      "name": "Morning watering",
+      "days_mask": 127,
+      "repeat": "weekdays",
+      "interval_days": 0,
+      "start_date": "",
+      "time_hhmm": "05:00",
+      "time_mode": "clock",
+      "sun_offset_min": 0,
+      "duration_min": 5,
+      "enabled": true,
+      "conditions": []
+    },
+    {
+      "id": "d7dd12632595",
+      "valve_entity_id": "switch.sonoff_1000eff333",
+      "cycle_id": "",
+      "name": "",
+      "days_mask": 127,
+      "repeat": "weekdays",
+      "interval_days": 0,
+      "start_date": "",
+      "time_hhmm": "14:00",
+      "time_mode": "clock",
+      "sun_offset_min": 0,
+      "duration_min": 2,
+      "enabled": true,
+      "conditions": []
+    }
+  ]
+}

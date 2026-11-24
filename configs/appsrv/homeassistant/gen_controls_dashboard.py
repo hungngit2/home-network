@@ -128,7 +128,7 @@ def fan_sliders():
 
 
 kitchen = {"type": "grid", "cards": [
-    heading("Kitchen", "mdi:silverware-fork-knife"),
+    heading("Kitchen: Fan Light", "mdi:silverware-fork-knife"),
     panel(
         *fan_sliders(),
         row(key(when("fan.kitchen_fan", "on", "On", "Off"), "mdi:power", when("fan.kitchen_fan", "on", "green", "disabled"),
@@ -150,7 +150,7 @@ kitchen = {"type": "grid", "cards": [
 def aircon(floor, icon, slug):
     cl = f"climate.{slug}"
     return {"type": "grid", "cards": [
-        heading(f"{floor} air conditioner", icon),
+        heading(f"{floor}: Air Conditioner", icon),
         panel(
             *temperature_sliders(slug),
             row(key(pick({"off": "Off"}, f"states('{cl}')", "On"), "mdi:power", when(cl, "off", "disabled", "green"),

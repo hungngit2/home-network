@@ -13,7 +13,7 @@
           "cards": [
             {
               "type": "heading",
-              "heading": "Kitchen",
+              "heading": "Kitchen: Fan Light",
               "heading_style": "title",
               "icon": "mdi:silverware-fork-knife"
             },
@@ -330,7 +330,7 @@
           "cards": [
             {
               "type": "heading",
-              "heading": "1B air conditioner",
+              "heading": "1B: Air Conditioner",
               "heading_style": "title",
               "icon": "mdi:home-floor-1"
             },
@@ -609,7 +609,7 @@
           "cards": [
             {
               "type": "heading",
-              "heading": "2B air conditioner",
+              "heading": "2B: Air Conditioner",
               "heading_style": "title",
               "icon": "mdi:home-floor-2"
             },

@@ -294,8 +294,9 @@
   mode: single
 - id: kitchen_fan_speed_on_switch
   alias: Kitchen fan speed when the switch turns on
-  description: The fan boots in an unknown state when its wall switch turns on, so send the speed
-    (default 2) over local RF through the 1B hub.
+  description: The fan boots in an unknown state when its wall switch turns on, so
+    send the speed (default 2) over local RF through the 1B hub, then once more in
+    case the first was missed.
   triggers:
   - trigger: state
     entity_id: switch.fan_switch
@@ -304,7 +305,8 @@
   conditions: []
   actions:
   - variables:
-      percentage: '{{ ((state_attr(''fan.kitchen_fan'', ''next_speed'') | int(2)) * 100 / 6) | round(0) }}'
+      percentage: '{{ ((state_attr(''fan.kitchen_fan'', ''next_speed'') | int(2))
+        * 100 / 6) | round(0) }}'
   - delay:
       seconds: 2
   - action: fan.turn_on
