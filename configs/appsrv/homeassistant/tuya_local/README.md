@@ -24,3 +24,13 @@ config entries, lives outside this public repo because it contains device IDs an
 
 The ACs use Tuya's Toshiba code library (no learned codes); the Fn Keys and fan light codes are learned
 and can be replayed by any IR/RF blaster that accepts raw codes.
+
+## Meter/Protector energy (house meter for Energy Cost Manager)
+
+A Tuya Local update on 2026-11-23 reset `sensor.meter_protector_energy` (profile `smartplugv2_energyv3`, DP 17) to
+0/1 Wh deltas, which made the Energy Cost Manager read the house as ~0 and "savings today" negative.
+The Tuya Local sensor is now `sensor.meter_protector_energy_raw` (disabled). `sensor.meter_protector_energy` is an
+Integration helper (Settings, Devices & services, Helpers) that integrates `sensor.meter_protector_power`
+(trapezoidal, Wh, max sub interval 1 min), so Tuya Local updates cannot break it. It starts at 0 Wh.
+To rebuild it: add helper "Integral" named "Meter/Protector Energy", source the power sensor, unit prefix none,
+time unit hours; if it is named `sensor.<area>_meter_protector_energy`, rename the entity id.
