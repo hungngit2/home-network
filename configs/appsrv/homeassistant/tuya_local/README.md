@@ -34,3 +34,9 @@ Integration helper (Settings, Devices & services, Helpers) that integrates `sens
 (trapezoidal, Wh, max sub interval 1 min), so Tuya Local updates cannot break it. It starts at 0 Wh.
 To rebuild it: add helper "Integral" named "Meter/Protector Energy", source the power sensor, unit prefix none,
 time unit hours; if it is named `sensor.<area>_meter_protector_energy`, rename the entity id.
+
+The same update broke the energy sensors of the other Tuya Local devices on the `smartplugv2_energy*` profiles
+(CB - Ground Floor, Floor 1, Floor 2, refrigerator, chest freezer, liquid mosquito repellent). Each was replaced the same way:
+the Tuya Local sensor is `<name>_raw` (disabled) and an Integration helper of the matching power sensor keeps the old
+entity id, so the template kWh sensors used by the Energy dashboard did not change. After a Tuya Local update, compare
+`state_class`/`device_class` and the size of the energy sensors with their values before the update.
