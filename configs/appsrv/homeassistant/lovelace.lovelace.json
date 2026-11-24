@@ -1363,7 +1363,8 @@
                       }
                     },
                     "legend": {
-                      "position": "top"
+                      "position": "bottom",
+                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' · ' + Math.round(s).toLocaleString('en-US') + ' ₫'; }"
                     },
                     "tooltip": {
                       "y": {

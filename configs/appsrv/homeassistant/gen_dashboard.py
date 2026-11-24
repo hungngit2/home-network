@@ -25,6 +25,12 @@ def daily(field):
             f"[new Date(d.date + 'T00:00:00').getTime(), d.{field}]);")
 
 
+# Legend entries with the total of each series for the current year, e.g. "Without solar · 1,151,671 ₫"
+LEGEND_TOTALS_JS = ("EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; "
+                    "var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { "
+                    "var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); "
+                    "if (v != null && new Date(x).getFullYear() === y) s += v; }); "
+                    "return name + ' · ' + Math.round(s).toLocaleString('en-US') + ' ₫'; }")
 OPEN_PANEL_JS = ("EVAL:function() { history.pushState(null, '', '/energy-cost'); "
                  "window.dispatchEvent(new CustomEvent('location-changed')); }")
 COLORS = {"solar": "amber", "home": "blue", "grid": "deep-orange", "battery": "green"}
@@ -198,7 +204,7 @@ energy = {"title": "Energy", "path": "energy", "icon": "mdi:lightning-bolt", "ty
         {"type": "custom:apexcharts-card", "grid_options": {"columns": 18},
          "header": {"show": True, "title": "Cost per month this year (₫)", "show_states": False},
          "graph_span": "1y", "span": {"start": "year"},
-         "apex_config": {"chart": {"height": 220, "events": {"click": OPEN_PANEL_JS}}, "legend": {"position": "top"},
+         "apex_config": {"chart": {"height": 220, "events": {"click": OPEN_PANEL_JS}}, "legend": {"position": "bottom", "formatter": LEGEND_TOTALS_JS},
                          "tooltip": {"y": {"formatter": THOUSANDS_JS}}},
          "yaxis": [{"min": 0, "decimals": 0, "apex_config": {"labels": {"formatter": THOUSANDS_JS}}}],
          "series": [
