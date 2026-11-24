@@ -951,7 +951,7 @@
             },
             {
               "type": "tile",
-              "entity": "switch.sac_xe",
+              "entity": "switch.bike_charger",
               "name": "Bike charger",
               "icon": "mdi:bicycle-electric",
               "color": "green",

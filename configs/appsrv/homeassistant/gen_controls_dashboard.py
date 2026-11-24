@@ -191,7 +191,7 @@ outside = {"type": "grid", "cards": [
 
 plugs = {"type": "grid", "cards": [
     heading("Plugs", "mdi:power-socket-eu"),
-    toggle_tile("switch.sac_xe", "Bike charger", "mdi:bicycle-electric", "green"),
+    toggle_tile("switch.bike_charger", "Bike charger", "mdi:bicycle-electric", "green"),
     toggle_tile("switch.mosquito_liquid", "Mosquito repellent", "mdi:spray", "purple"),
 ]}
 

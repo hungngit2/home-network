@@ -67,8 +67,8 @@ template:
         unit_of_measurement: "kWh"
         device_class: energy
         state_class: total_increasing
-        state: "{{ (states('sensor.sac_xe_energy') | float(0)) / 1000 }}"
-        availability: "{{ has_value('sensor.sac_xe_energy') }}"
+        state: "{{ (states('sensor.bike_charger_energy') | float(0)) / 1000 }}"
+        availability: "{{ has_value('sensor.bike_charger_energy') }}"
       - name: "Mosquito Liquid Energy kWh"
         unique_id: mosquito_liquid_energy_kwh
         unit_of_measurement: "kWh"

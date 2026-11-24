@@ -78,7 +78,7 @@ PROBLEMS = [
     ("grid_protector", "Grid protector reports a problem"),
     ("refrigerator", "Fridge plug reports a problem"),
     ("mosquito_repellent", "Freezer plug reports a problem"),
-    ("sac_xe", "Bike charger reports a problem"),
+    ("bike_charger", "Bike charger reports a problem"),
     ("mosquito_liquid", "Mosquito repellent plug reports a problem"),
 ]
 FAULT_OK = ["No Faults", "unknown", "unavailable"]
@@ -150,7 +150,7 @@ usage = {"type": "grid", "cards": [
     status("sensor.cb_floor_2_power", "Floor 2", "mdi:home-floor-2", 6, "indigo"),
     tile("sensor.refrigerator_power", "Fridge", "mdi:fridge-outline", "light-blue"),
     tile("sensor.mosquito_repellent_power", "Chest freezer", "mdi:fridge-industrial-outline", "light-blue"),
-    tile("sensor.sac_xe_power", "Bike charger", "mdi:bicycle-electric", "light-blue"),
+    tile("sensor.bike_charger_power", "Bike charger", "mdi:bicycle-electric", "light-blue"),
 ]}
 
 MEDIA_ON = [{"condition": "state", "entity": "media_player.mibox3", "state_not": ["unavailable", "off"]}]

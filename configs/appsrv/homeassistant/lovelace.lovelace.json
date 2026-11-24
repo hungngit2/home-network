@@ -490,7 +490,7 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "binary_sensor.sac_xe_problem",
+                  "entity": "binary_sensor.bike_charger_problem",
                   "name": "Bike charger reports a problem",
                   "icon": "mdi:alert-circle",
                   "color": "red",
@@ -512,7 +512,7 @@
                   "visibility": [
                     {
                       "condition": "state",
-                      "entity": "binary_sensor.sac_xe_problem",
+                      "entity": "binary_sensor.bike_charger_problem",
                       "state": "on"
                     }
                   ]
@@ -657,7 +657,7 @@
                         },
                         {
                           "condition": "state",
-                          "entity": "binary_sensor.sac_xe_problem",
+                          "entity": "binary_sensor.bike_charger_problem",
                           "state_not": "on"
                         },
                         {
@@ -917,7 +917,7 @@
                   "inverter_power_rating": 6.5,
                   "diorama_style": "classic",
                   "ev": {
-                    "power": "sensor.sac_xe_power",
+                    "power": "sensor.bike_charger_power",
                     "name": "Bike charger"
                   },
                   "show_weather": false,
@@ -1024,7 +1024,7 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.sac_xe_power",
+                  "entity": "sensor.bike_charger_power",
                   "name": "Bike charger",
                   "icon": "mdi:bicycle-electric",
                   "color": "light-blue",
@@ -1244,7 +1244,7 @@
                   "inverter_power_rating": 6.5,
                   "diorama_style": "classic",
                   "ev": {
-                    "power": "sensor.sac_xe_power",
+                    "power": "sensor.bike_charger_power",
                     "name": "Bike charger"
                   }
                 }
