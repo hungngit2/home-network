@@ -2040,7 +2040,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/alert_grid_power_outage"
+                        "navigation_path": "/config/automation/edit/alert_grid_outage"
                       }
                     },
                     {
@@ -2049,7 +2049,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/alert_grid_power_restored"
+                        "navigation_path": "/config/automation/edit/alert_grid_restored"
                       }
                     },
                     {
@@ -2058,7 +2058,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/alert_grid_protector_engaged"
+                        "navigation_path": "/config/automation/edit/alert_grid_protector_closed"
                       }
                     },
                     {
@@ -2067,7 +2067,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/alert_inverter_fault_or_warning"
+                        "navigation_path": "/config/automation/edit/alert_inverter_fault"
                       }
                     },
                     {
@@ -2094,7 +2094,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/solar_off_grid_close_grid_protector_at_30_soc"
+                        "navigation_path": "/config/automation/edit/luxpower_offgrid_close_grid_protector_30pct"
                       }
                     },
                     {
@@ -2103,7 +2103,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/solar_off_grid_open_grid_protector_at_40_soc"
+                        "navigation_path": "/config/automation/edit/luxpower_offgrid_open_grid_protector_40pct"
                       }
                     },
                     {
@@ -2112,7 +2112,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/solar_off_grid_close_grid_protector_on_high_load"
+                        "navigation_path": "/config/automation/edit/grid_assist_high_load_close"
                       }
                     },
                     {
@@ -2121,7 +2121,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/solar_off_grid_open_grid_protector_after_high_load"
+                        "navigation_path": "/config/automation/edit/grid_assist_high_load_release"
                       }
                     },
                     {
@@ -2130,7 +2130,7 @@
                       "secondary_info": "last-triggered",
                       "tap_action": {
                         "action": "navigate",
-                        "navigation_path": "/config/automation/edit/bike_overcharge_cutoff"
+                        "navigation_path": "/config/automation/edit/1781580392967"
                       }
                     }
                   ]
