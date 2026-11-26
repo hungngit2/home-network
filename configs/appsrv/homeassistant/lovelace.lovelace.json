@@ -1459,12 +1459,43 @@
                   "type": "custom:apexcharts-card",
                   "header": {
                     "show": true,
-                    "title": "Battery Performance (SoC & Power)",
+                    "title": "Battery Performance & Power (24h)",
                     "show_states": true
                   },
                   "graph_span": "24h",
                   "span": {
                     "start": "day"
+                  },
+                  "apex_config": {
+                    "chart": {
+                      "height": 280,
+                      "type": "line"
+                    },
+                    "stroke": {
+                      "width": [
+                        3,
+                        2,
+                        2
+                      ]
+                    },
+                    "tooltip": {
+                      "shared": true
+                    },
+                    "yaxis": [
+                      {
+                        "title": {
+                          "text": "SoC (%) / Voltage (V)"
+                        },
+                        "min": 0,
+                        "max": 100
+                      },
+                      {
+                        "opposite": true,
+                        "title": {
+                          "text": "Power (W)"
+                        }
+                      }
+                    ]
                   },
                   "series": [
                     {
@@ -1475,32 +1506,19 @@
                       "unit": "%"
                     },
                     {
+                      "entity": "sensor.luxpower_inverter_battery_battery_voltage",
+                      "name": "Voltage",
+                      "type": "line",
+                      "color": "#FF9800",
+                      "unit": "V"
+                    },
+                    {
                       "entity": "sensor.luxpower_inverter_battery_battery_flow",
                       "name": "Power",
                       "type": "area",
                       "color": "#4CAF50",
-                      "unit": "W"
-                    }
-                  ]
-                },
-                {
-                  "type": "custom:apexcharts-card",
-                  "header": {
-                    "show": true,
-                    "title": "Overnight Discharge Energy",
-                    "show_states": true
-                  },
-                  "graph_span": "7d",
-                  "span": {
-                    "start": "day"
-                  },
-                  "series": [
-                    {
-                      "entity": "sensor.luxpower_inverter_discharge_energy_today",
-                      "name": "Discharge Energy",
-                      "type": "column",
-                      "color": "#E91E63",
-                      "unit": "kWh"
+                      "unit": "W",
+                      "yaxis_id": "y2"
                     }
                   ]
                 },
