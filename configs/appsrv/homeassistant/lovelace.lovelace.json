@@ -2032,20 +2032,109 @@
                 },
                 {
                   "type": "entities",
-                  "title": "Safety Automations Toggle",
+                  "title": "Safety Automations & Status",
                   "entities": [
                     "automation.alert_grid_power_outage",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_grid_power_outage",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.alert_grid_power_restored",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_grid_power_restored",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.alert_grid_protector_engaged",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_grid_protector_engaged",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.alert_inverter_fault_or_warning",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_inverter_fault_or_warning",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.alert_inverter_offline",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_inverter_offline",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.alert_low_battery_soc",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_low_battery_soc",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.solar_off_grid_close_grid_protector_at_30_soc",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_close_grid_protector_at_30_soc",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.solar_off_grid_open_grid_protector_at_40_soc",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_open_grid_protector_at_40_soc",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.solar_off_grid_close_grid_protector_on_high_load",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_close_grid_protector_on_high_load",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
                     "automation.solar_off_grid_open_grid_protector_after_high_load",
-                    "automation.bike_overcharge_cutoff"
-                  ]
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_open_grid_protector_after_high_load",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    },
+                    "automation.bike_overcharge_cutoff",
+                    {
+                      "type": "attribute",
+                      "entity": "automation.bike_overcharge_cutoff",
+                      "attribute": "last_triggered",
+                      "name": "Last triggered",
+                      "icon": "mdi:history",
+                      "time_format": "relative"
+                    }
+                  ],
+                  "show_header_toggle": false
                 },
                 {
                   "type": "entities",
