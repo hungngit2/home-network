@@ -919,7 +919,7 @@
                     "pv2_current": "sensor.luxpower_inverter_pv_pv2_current"
                   },
                   "co2_factor": 0.68,
-                  "currency": "₫",
+                  "currency": "\u20ab",
                   "pv_capacity": 5.145,
                   "colors": {
                     "solar": "#ffc107",
@@ -1221,7 +1221,7 @@
                   "wide": true,
                   "show_insights": true,
                   "co2_factor": 0.68,
-                  "currency": "₫",
+                  "currency": "\u20ab",
                   "periods": [
                     "today",
                     "3d",
@@ -1362,7 +1362,7 @@
                   },
                   "header": {
                     "show": true,
-                    "title": "Cost per month this year (₫)",
+                    "title": "Cost per month this year (\u20ab)",
                     "show_states": false
                   },
                   "graph_span": "1y",
@@ -1375,11 +1375,11 @@
                     },
                     "legend": {
                       "position": "bottom",
-                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' · ' + Math.round(s).toLocaleString('en-US') + ' ₫'; }"
+                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' \u00b7 ' + Math.round(s).toLocaleString('en-US') + ' \u20ab'; }"
                     },
                     "tooltip": {
                       "y": {
-                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
+                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' \u20ab'; }"
                       }
                     }
                   },
@@ -1389,7 +1389,7 @@
                       "decimals": 0,
                       "apex_config": {
                         "labels": {
-                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
+                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' \u20ab'; }"
                         }
                       }
                     }
@@ -1545,7 +1545,7 @@
                 {
                   "type": "tile",
                   "entity": "sensor.luxpower_inverter_battery_bms_battery_current",
-                  "name": "Current (−: out)",
+                  "name": "Current (\u2212: out)",
                   "icon": "mdi:current-dc",
                   "grid_options": {
                     "columns": 6
@@ -2052,92 +2052,59 @@
                   "show_header_toggle": false,
                   "entities": [
                     {
-                      "type": "attribute",
                       "entity": "automation.alert_grid_power_outage",
-                      "attribute": "last_triggered",
                       "name": "Alert: grid outage",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.alert_grid_power_restored",
-                      "attribute": "last_triggered",
                       "name": "Alert: grid restored",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.alert_grid_protector_engaged",
-                      "attribute": "last_triggered",
                       "name": "Alert: grid fallback engaged",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.alert_inverter_fault_or_warning",
-                      "attribute": "last_triggered",
                       "name": "Alert: inverter fault / warning",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.alert_inverter_offline",
-                      "attribute": "last_triggered",
                       "name": "Alert: inverter offline",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.alert_low_battery_soc",
-                      "attribute": "last_triggered",
                       "name": "Alert: low battery",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.solar_off_grid_close_grid_protector_at_30_soc",
-                      "attribute": "last_triggered",
                       "name": "Grid fallback: close at 30%",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.solar_off_grid_open_grid_protector_at_40_soc",
-                      "attribute": "last_triggered",
                       "name": "Grid fallback: open at 40%",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.solar_off_grid_close_grid_protector_on_high_load",
-                      "attribute": "last_triggered",
                       "name": "Grid fallback: close on high load",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.solar_off_grid_open_grid_protector_after_high_load",
-                      "attribute": "last_triggered",
                       "name": "Grid fallback: open after high load",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     },
                     {
-                      "type": "attribute",
                       "entity": "automation.bike_overcharge_cutoff",
-                      "attribute": "last_triggered",
                       "name": "Bike charger cut-off",
-                      "format": "relative",
-                      "icon": "mdi:history"
+                      "secondary_info": "last-triggered"
                     }
                   ]
                 },
