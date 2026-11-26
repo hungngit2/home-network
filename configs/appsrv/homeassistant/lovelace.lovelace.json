@@ -1484,6 +1484,27 @@
                   ]
                 },
                 {
+                  "type": "custom:apexcharts-card",
+                  "header": {
+                    "show": true,
+                    "title": "Overnight Discharge Energy",
+                    "show_states": true
+                  },
+                  "graph_span": "7d",
+                  "span": {
+                    "start": "day"
+                  },
+                  "series": [
+                    {
+                      "entity": "sensor.luxpower_inverter_discharge_energy_today",
+                      "name": "Discharge Energy",
+                      "type": "column",
+                      "color": "#E91E63",
+                      "unit": "kWh"
+                    }
+                  ]
+                },
+                {
                   "type": "heading",
                   "heading": "Details",
                   "heading_style": "subtitle"
