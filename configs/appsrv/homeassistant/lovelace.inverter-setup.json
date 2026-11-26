@@ -1,0 +1,4417 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.inverter_setup",
+  "data": {
+    "config": {
+      "title": "Luxpower SNA PRO 6.5kW",
+      "views": [
+        {
+          "title": "Luxpower SNA PRO 6.5kW",
+          "path": "inverter",
+          "icon": "mdi:solar-power",
+          "type": "sections",
+          "max_columns": 3,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:inverter-wizard-card",
+                  "title": "Inverter setup",
+                  "rated_kwh": 16.08,
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "input_boolean.inverter_advanced",
+                  "name": "Show advanced settings",
+                  "icon": "mdi:tools",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "card_mod": {
+                    "style": "ha-card {\n  --ha-tile-info-primary-font-size: .85rem;\n  --ha-tile-info-secondary-font-size: .78rem;\n}\n"
+                  },
+                  "tap_action": {
+                    "action": "toggle"
+                  },
+                  "icon_tap_action": {
+                    "action": "toggle"
+                  },
+                  "hold_action": {
+                    "action": "none"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "modes",
+                  "title": "Operating mode",
+                  "icon": "mdi:tune",
+                  "intro": "Tap a switch to change it (you will be asked to confirm). Pickers apply at once.",
+                  "open": true,
+                  "cards": [
+                    {
+                      "type": "glance",
+                      "title": "Fixed by the installer",
+                      "columns": 3,
+                      "show_icon": false,
+                      "show_state": true,
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "entities": [
+                        {
+                          "entity": "select.luxpower_inverter_working_mode",
+                          "name": "Working Mode",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_line_mode",
+                          "name": "Line Mode",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "select.luxpower_inverter_ac_charge_type",
+                      "name": "AC Charge Type",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "select-options"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_ac_charging",
+                      "name": "AC Charging",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change AC Charging? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change AC Charging? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_buzzer",
+                      "name": "Buzzer",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Buzzer? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Buzzer? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_charge_first_pv",
+                      "name": "Charge First (PV)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Charge First (PV)? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Charge First (PV)? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_battery_charge_last",
+                      "name": "Charge Last",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Charge Last? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Charge Last? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "select.luxpower_inverter_discharge_control_type",
+                      "name": "Discharge Control Type",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "select-options"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_eco_mode",
+                      "name": "Eco Mode",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Eco Mode? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Eco Mode? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_forced_discharge",
+                      "name": "Forced Discharge",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Forced Discharge? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Forced Discharge? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_green_mode",
+                      "name": "Green Mode",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Green Mode? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Green Mode? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                      "name": "Grid Peak Shaving",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Grid Peak Shaving? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Grid Peak Shaving? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "select.luxpower_inverter_grid_on_grid_eod_type",
+                      "name": "On-Grid EOD Type",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "select-options"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "select.luxpower_inverter_output_priority_config",
+                      "name": "Output Priority Config",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "select-options"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_grid_power_backup",
+                      "name": "Power Backup",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Power Backup? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Power Backup? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_take_load_together",
+                      "name": "PV & AC load jointly (hybrid mode)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change hybrid mode? On: PV, battery and grid share the load and export becomes possible. Off: off-grid behaviour. Only enable where grid-connected operation is allowed."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change hybrid mode? On: PV, battery and grid share the load and export becomes possible. Off: off-grid behaviour. Only enable where grid-connected operation is allowed."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_seamless_eps_switching",
+                      "name": "Seamless EPS Switching",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Seamless EPS Switching? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Seamless EPS Switching? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "custom:section-note-card",
+                      "text": "AC charge type is set but the **AC charging** switch is off, so the grid will not charge the battery.",
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_ac_charging",
+                          "state": "off"
+                        },
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state_not": "Disable"
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "protect",
+                  "title": "Battery protection and cut-offs",
+                  "icon": "mdi:battery-heart-variant",
+                  "intro": "Only the cut-offs that apply to your control types are shown. Use the wizard for a checked change.",
+                  "open": true,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_low_soc_alarm",
+                      "name": "Battery Low SOC Alarm",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to SOC",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_low_soc_recovery",
+                      "name": "Battery Low SOC Recovery",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to SOC",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_low_voltage_alarm",
+                      "name": "Battery Low Voltage Alarm",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to Voltage",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_low_voltage_recovery",
+                      "name": "Battery Low Voltage Recovery",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to Voltage",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_stop_charging_soc",
+                      "name": "Battery Stop Charging SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_charge_current",
+                      "name": "Charge Current",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_discharge_current",
+                      "name": "Discharge Current",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_discharge_recovery_soc_threshold",
+                      "name": "Discharge Recovery SOC Threshold",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to SOC",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_discharge_recovery_volt_threshold",
+                      "name": "Discharge Recovery Volt Threshold",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to Voltage",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_off_grid_cut_off_soc",
+                      "name": "Off-Grid Cut-Off SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_discharge_control_type",
+                          "state": [
+                            "According to SOC",
+                            "According to Both"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_on_grid_cut_off_soc",
+                      "name": "On-Grid Cut-Off SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_grid_on_grid_eod_type",
+                          "state": "According to SOC"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_on_grid_cut_off_voltage",
+                      "name": "On-Grid Cut-Off Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_grid_on_grid_eod_type",
+                          "state": "According to Voltage"
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "acchg",
+                  "title": "Charge from grid",
+                  "icon": "mdi:transmission-tower-import",
+                  "intro": "Shown while AC charging is on. Fields follow the charge type: SOC, voltage or time.",
+                  "open": true,
+                  "cards": [
+                    {
+                      "type": "custom:section-note-card",
+                      "text": "AC charging is on but **AC Charge Type** is *Disable*, so nothing will charge. Pick a type in *Operating mode*.",
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_ac_charging",
+                          "state": "on"
+                        },
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": "Disable"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_current_from_grid",
+                      "name": "AC Charge Current from Grid",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_end_soc",
+                      "name": "AC Charge End SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": [
+                            "According to SOC",
+                            "According to SOC and Time"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_end_voltage",
+                      "name": "AC Charge End Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": [
+                            "According to Voltage",
+                            "According to Voltage and Time"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_ac_charge_power_kw",
+                      "name": "AC Charge Power (kW)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_soc_limit",
+                      "name": "AC Charge SOC Limit",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": [
+                            "According to SOC",
+                            "According to SOC and Time"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_start_soc",
+                      "name": "AC Charge Start SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": [
+                            "According to SOC",
+                            "According to SOC and Time"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_start_voltage",
+                      "name": "AC Charge Start Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": [
+                            "According to Voltage",
+                            "According to Voltage and Time"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "custom:time-window-card",
+                      "title": "AC charging window",
+                      "windows": [
+                        {
+                          "start": "time.luxpower_inverter_ac_charging_start_time",
+                          "end": "time.luxpower_inverter_ac_charging_end_time"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_ac_charging_start_time_1",
+                          "end": "time.luxpower_inverter_ac_charging_end_time_1"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_ac_charging_start_time_2",
+                          "end": "time.luxpower_inverter_ac_charging_end_time_2"
+                        }
+                      ],
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "hint": "Inside a window the battery does not discharge: the house runs on the grid. Start = end means unused.",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_ac_charge_type",
+                          "state": [
+                            "According to Time",
+                            "According to Voltage and Time",
+                            "According to SOC and Time"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "switch.luxpower_inverter_ac_charging",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "chargefirst",
+                  "title": "Charge first (PV)",
+                  "icon": "mdi:solar-power",
+                  "intro": "Shown while Charge first is on.",
+                  "open": true,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_charge_first_end_voltage",
+                      "name": "Charge First End Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_charge_first_power",
+                      "name": "Charge First Power",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_charge_first_soc_limit",
+                      "name": "Charge First SOC Limit",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "custom:time-window-card",
+                      "title": "Charge first window",
+                      "windows": [
+                        {
+                          "start": "time.luxpower_inverter_battery_charge_first_start_time",
+                          "end": "time.luxpower_inverter_battery_charge_first_end_time"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_battery_charge_first_start_time_1",
+                          "end": "time.luxpower_inverter_battery_charge_first_end_time_1"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_battery_charge_first_start_time_2",
+                          "end": "time.luxpower_inverter_battery_charge_first_end_time_2"
+                        }
+                      ],
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "hint": "Inside a window PV charges the battery before the house. Start = end means unused."
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "switch.luxpower_inverter_charge_first_pv",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "forced",
+                  "title": "Forced discharge",
+                  "icon": "mdi:battery-arrow-down",
+                  "intro": "Shown while Forced discharge is on.",
+                  "open": true,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_forced_discharge_end_voltage",
+                      "name": "Forced Discharge End Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_forced_discharge_power_kw",
+                      "name": "Forced Discharge Power (kW)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_forced_discharge_soc_limit",
+                      "name": "Forced Discharge SOC Limit",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "custom:time-window-card",
+                      "title": "Forced discharge window",
+                      "windows": [
+                        {
+                          "start": "time.luxpower_inverter_forced_discharge_start_time",
+                          "end": "time.luxpower_inverter_forced_discharge_end_time"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_forced_discharge_start_time_1",
+                          "end": "time.luxpower_inverter_forced_discharge_end_time_1"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_forced_discharge_start_time_2",
+                          "end": "time.luxpower_inverter_forced_discharge_end_time_2"
+                        }
+                      ],
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "hint": "Inside a window the battery is discharged at the forced-discharge power. Start = end means unused."
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "switch.luxpower_inverter_forced_discharge",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "acfirst",
+                  "title": "AC priority schedule",
+                  "icon": "mdi:clock-time-four-outline",
+                  "intro": "During these windows the grid carries the house and PV charges the battery; outside them PV and battery carry it. All 00:00 means unused.",
+                  "open": false,
+                  "cards": [
+                    {
+                      "type": "custom:time-window-card",
+                      "title": "AC priority schedule (T1-T3)",
+                      "windows": [
+                        {
+                          "start": "time.luxpower_inverter_ac_first_load_start_time",
+                          "end": "time.luxpower_inverter_ac_first_load_end_time"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_ac_first_load_start_time_1",
+                          "end": "time.luxpower_inverter_ac_first_load_end_time_1"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_ac_first_load_start_time_2",
+                          "end": "time.luxpower_inverter_ac_first_load_end_time_2"
+                        }
+                      ],
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "hint": "Inside a window the grid carries the house and PV charges the battery. Start = end means unused."
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "grid",
+                  "title": "Grid, export and peak shaving",
+                  "icon": "mdi:transmission-tower",
+                  "intro": "Export needs hybrid mode (PV & AC load jointly). The export limit shows when export is on, CT offset when a CT is fitted, peak shaving fields when it is on.",
+                  "open": true,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_external_ct_power_offset",
+                      "name": "CT power offset (W, +-199)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_take_load_together",
+                          "state": "on"
+                        },
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_ct_connection",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_max_backflow_power",
+                      "name": "Export power limit (%)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_take_load_together",
+                          "state": "on"
+                        },
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_export",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_grid_grid_ct_connection",
+                      "name": "Grid CT connected",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change CT connection? Enable it only if an external CT is actually wired, or power control will be wrong."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change CT connection? Enable it only if an external CT is actually wired, or power control will be wrong."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_grid_grid_export",
+                      "name": "Grid Export",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change grid export? Check the EVN agreement first: many rooftop systems must not feed the grid."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change grid export? Check the EVN agreement first: many rooftop systems must not feed the grid."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      },
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_take_load_together",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_grid_peak_shaving_power",
+                      "name": "Grid Peak Shaving Power",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_grid_peak_shaving_power_period_1",
+                      "name": "Grid Peak Shaving Power Period 1",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_grid_peak_shaving_soc",
+                      "name": "Grid Peak Shaving SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_grid_peak_shaving_soc_period_1",
+                      "name": "Grid Peak Shaving SOC Period 1",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_grid_peak_shaving_voltage",
+                      "name": "Grid Peak Shaving Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_grid_peak_shaving_voltage_period_1",
+                      "name": "Grid Peak Shaving Voltage Period 1",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_grid_max_grid_input_power",
+                      "name": "Max Grid Input Power",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "custom:time-window-card",
+                      "title": "Peak shaving window",
+                      "windows": [
+                        {
+                          "start": "time.luxpower_inverter_grid_peak_shaving_start_time",
+                          "end": "time.luxpower_inverter_grid_peak_shaving_end_time"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_grid_peak_shaving_start_time_1",
+                          "end": "time.luxpower_inverter_grid_peak_shaving_end_time_1"
+                        }
+                      ],
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_grid_grid_peak_shaving",
+                          "state": "on"
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "adv_misc",
+                  "title": "Advanced: tuning and legacy",
+                  "icon": "mdi:tools",
+                  "intro": "Percent, precise and legacy twins of the kW controls, hysteresis and other tuning. Leave alone unless you know why.",
+                  "open": false,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_ac_charge_power",
+                      "name": "AC Charge Power",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_ac_charge_power_rate_precise",
+                      "name": "AC Charge Power Rate (Precise)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_ac_coupling",
+                      "name": "AC Coupling",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change AC Coupling? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change AC Coupling? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_active_power_percent",
+                      "name": "Active Power Percent",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_active_power_percent_precise",
+                      "name": "Active Power Percent (Precise)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_battery_battery_backup",
+                      "name": "Battery Backup",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Battery Backup? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Battery Backup? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_calibration_period",
+                      "name": "Battery Calibration Period",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_battery_battery_maintenance",
+                      "name": "Battery Maintenance",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Battery Maintenance? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Battery Maintenance? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_soc_hysteresis",
+                      "name": "Battery SOC Hysteresis",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_stop_charging_voltage",
+                      "name": "Battery Stop Charging Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_transfer_to_grid_soc",
+                      "name": "Battery Transfer to Grid SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_transfer_to_grid_voltage",
+                      "name": "Battery Transfer to Grid Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_battery_voltage_hysteresis",
+                      "name": "Battery Voltage Hysteresis",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_charge_first_power_rate_precise",
+                      "name": "Charge First Power Rate (Precise)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_charge_power_rate_legacy",
+                      "name": "Charge Power Rate (Legacy)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_discharge_power_rate_legacy",
+                      "name": "Discharge Power Rate (Legacy)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_fast_zero_export",
+                      "name": "Fast Zero Export",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Fast Zero Export? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Fast Zero Export? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_forced_discharge_power",
+                      "name": "Forced Discharge Power",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_forced_discharge_power_rate_precise",
+                      "name": "Forced Discharge Power Rate (Precise)",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_half_hour_ac_charge_start",
+                      "name": "Half Hour AC Charge Start",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Half Hour AC Charge Start? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Half Hour AC Charge Start? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_micro_grid",
+                      "name": "Micro-Grid",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Micro-Grid? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Micro-Grid? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_smart_load_on_grid_always_on",
+                      "name": "On-Grid Always On",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change On-Grid Always On? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change On-Grid Always On? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "switch.luxpower_inverter_quick_charge_start",
+                      "name": "Quick Charge Start",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Quick Charge Start? This changes the inverter directly."
+                        }
+                      },
+                      "icon_tap_action": {
+                        "action": "toggle",
+                        "confirmation": {
+                          "text": "Change Quick Charge Start? This changes the inverter directly."
+                        }
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "double_tap_action": {
+                        "action": "none"
+                      }
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_quick_charge_time",
+                      "name": "Quick Charge Time",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_specific_load_compensate",
+                      "name": "Specific Load Compensate",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_start_charge_p_import_threshold",
+                      "name": "Start Charge P_import Threshold",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_start_discharge_p_import",
+                      "name": "Start Discharge P_import",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_system_charge_power_rate",
+                      "name": "System Charge Power Rate",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_system_discharge_power_rate",
+                      "name": "System Discharge Power Rate",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom"
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "input_boolean.inverter_advanced",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "adv_acc",
+                  "title": "Advanced: AC coupling",
+                  "icon": "mdi:sine-wave",
+                  "intro": "Shown while AC coupling is on.",
+                  "open": false,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_ac_coupling_ac_couple_end_soc",
+                      "name": "AC Couple End SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_ac_coupling",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_ac_coupling_ac_couple_end_voltage",
+                      "name": "AC Couple End Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_ac_coupling",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_ac_coupling_ac_couple_start_soc",
+                      "name": "AC Couple Start SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_ac_coupling",
+                          "state": "on"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_ac_coupling_ac_couple_start_voltage",
+                      "name": "AC Couple Start Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "switch.luxpower_inverter_ac_coupling",
+                          "state": "on"
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "input_boolean.inverter_advanced",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "adv_gen",
+                  "title": "Advanced: generator port",
+                  "icon": "mdi:engine",
+                  "intro": "The generator / smart-load port is set to Generator.",
+                  "open": false,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_generator_charge_end_soc",
+                      "name": "Generator Charge End SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_generator_charge_end_voltage",
+                      "name": "Generator Charge End Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_generator_charge_start_soc",
+                      "name": "Generator Charge Start SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_generator_charge_start_voltage",
+                      "name": "Generator Charge Start Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_generator_generator_cool_down_time",
+                      "name": "Generator Cool Down Time",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_generator_generator_rated_power",
+                      "name": "Generator Rated Power",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_battery_max_generator_charge_current",
+                      "name": "Max Generator Charge Current",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Generator"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "custom:time-window-card",
+                      "title": "Generator window",
+                      "windows": [
+                        {
+                          "start": "time.luxpower_inverter_generator_generator_start_time",
+                          "end": "time.luxpower_inverter_generator_generator_end_time"
+                        },
+                        {
+                          "start": "time.luxpower_inverter_generator_generator_start_time_1",
+                          "end": "time.luxpower_inverter_generator_generator_end_time_1"
+                        }
+                      ],
+                      "grid_options": {
+                        "columns": "full"
+                      }
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "input_boolean.inverter_advanced",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "adv_load",
+                  "title": "Advanced: smart load port",
+                  "icon": "mdi:power-plug",
+                  "intro": "The generator / smart-load port is set to Smart Load.",
+                  "open": false,
+                  "cards": [
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_smart_load_smart_load_off_soc",
+                      "name": "Smart Load Off SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Smart Load"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_smart_load_smart_load_off_voltage",
+                      "name": "Smart Load Off Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Smart Load"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_smart_load_smart_load_on_soc",
+                      "name": "Smart Load On SOC",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Smart Load"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tile",
+                      "entity": "number.luxpower_inverter_smart_load_smart_load_on_voltage",
+                      "name": "Smart Load On Voltage",
+                      "grid_options": {
+                        "columns": 6
+                      },
+                      "tap_action": {
+                        "action": "none"
+                      },
+                      "icon_tap_action": {
+                        "action": "none"
+                      },
+                      "hold_action": {
+                        "action": "none"
+                      },
+                      "features": [
+                        {
+                          "type": "numeric-input",
+                          "style": "buttons"
+                        }
+                      ],
+                      "features_position": "bottom",
+                      "visibility": [
+                        {
+                          "condition": "state",
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "state": "Smart Load"
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ],
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "input_boolean.inverter_advanced",
+                  "state": "on"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "visibility": [
+                {
+                  "condition": "state",
+                  "entity": "input_boolean.inverter_advanced",
+                  "state": "on"
+                }
+              ],
+              "cards": [
+                {
+                  "type": "custom:collapsible-section-card",
+                  "id": "installer",
+                  "title": "Installer settings (read-only)",
+                  "icon": "mdi:lock",
+                  "intro": "Grid-code limits, reactive-power curves, lithium battery voltages (float, equalization, lead-acid), system and grid type, Working Mode. Shown only: a wrong value can trip the inverter, stop it (Standby) or breach the grid code. Change these in the LuxPower app.",
+                  "open": false,
+                  "cards": [
+                    {
+                      "type": "glance",
+                      "title": "Grid protection limits",
+                      "columns": 3,
+                      "show_icon": false,
+                      "show_state": true,
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "entities": [
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_connect_time",
+                          "name": "Grid Connect Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_high_limit",
+                          "name": "Grid Frequency High Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l1_high",
+                          "name": "Grid Frequency L1 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l1_high_time",
+                          "name": "Grid Frequency L1 High Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l1_low",
+                          "name": "Grid Frequency L1 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l1_low_time",
+                          "name": "Grid Frequency L1 Low Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l2_high",
+                          "name": "Grid Frequency L2 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l2_high_time",
+                          "name": "Grid Frequency L2 High Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l2_low",
+                          "name": "Grid Frequency L2 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l2_low_time",
+                          "name": "Grid Frequency L2 Low Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l3_high",
+                          "name": "Grid Frequency L3 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l3_high_time",
+                          "name": "Grid Frequency L3 High Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l3_low",
+                          "name": "Grid Frequency L3 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_l3_low_time",
+                          "name": "Grid Frequency L3 Low Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_frequency_low_limit",
+                          "name": "Grid Frequency Low Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_reconnect_time",
+                          "name": "Grid Reconnect Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_grid_grid_type",
+                          "name": "Grid Type",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_high_limit",
+                          "name": "Grid Voltage High Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l1_high",
+                          "name": "Grid Voltage L1 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l1_high_time",
+                          "name": "Grid Voltage L1 High Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l1_low",
+                          "name": "Grid Voltage L1 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l1_low_time",
+                          "name": "Grid Voltage L1 Low Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l2_high",
+                          "name": "Grid Voltage L2 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l2_high_time",
+                          "name": "Grid Voltage L2 High Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l2_low",
+                          "name": "Grid Voltage L2 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l2_low_time",
+                          "name": "Grid Voltage L2 Low Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l3_high",
+                          "name": "Grid Voltage L3 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l3_high_time",
+                          "name": "Grid Voltage L3 High Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l3_low",
+                          "name": "Grid Voltage L3 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_l3_low_time",
+                          "name": "Grid Voltage L3 Low Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_low_limit",
+                          "name": "Grid Voltage Low Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_grid_voltage_moving_average_high",
+                          "name": "Grid Voltage Moving Average High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_over_frequency_derate_delay",
+                          "name": "Over-Frequency Derate Delay",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_over_frequency_derate_end",
+                          "name": "Over-Frequency Derate End",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_over_frequency_derate_ratio",
+                          "name": "Over-Frequency Derate Ratio",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_over_frequency_derate_start",
+                          "name": "Over-Frequency Derate Start",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_grid_over_frequency_load_reduction",
+                          "name": "Over-Frequency Load Reduction",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_under_frequency_derate_end",
+                          "name": "Under-Frequency Derate End",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_under_frequency_derate_start",
+                          "name": "Under-Frequency Derate Start",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_under_frequency_increase_ratio",
+                          "name": "Under-Frequency Increase Ratio",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "title": "Reactive power and curves",
+                      "columns": 3,
+                      "show_icon": false,
+                      "show_state": true,
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "entities": [
+                        {
+                          "entity": "switch.luxpower_inverter_grid_ac_ct_direction_reversed",
+                          "name": "AC CT Direction Reversed",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_afci_arc_threshold",
+                          "name": "AFCI Arc Threshold",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_bus_overvoltage_alarm_point",
+                          "name": "BUS Overvoltage Alarm Point",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_grid_drms",
+                          "name": "DRMS",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_max_q_percent_for_qv",
+                          "name": "Max Q Percent for QV",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_nec_120_bus_bar_limit",
+                          "name": "NEC 120% Bus Bar Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_npe_threshold",
+                          "name": "NPE Threshold",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_grid_off_grid_composed_phase",
+                          "name": "Off-grid Composed Phase",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_over_temperature_derate_point",
+                          "name": "Over-Temperature Derate Point",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_p1_for_qp_curve",
+                          "name": "P1 for QP Curve",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_p2_for_qp_curve",
+                          "name": "P2 for QP Curve",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_p3_for_qp_curve",
+                          "name": "P3 for QP Curve",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_p4_for_qp_curve",
+                          "name": "P4 for QP Curve",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_pf_curve_lock_in_voltage",
+                          "name": "PF Curve Lock-In Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_pf_curve_lock_out_voltage",
+                          "name": "PF Curve Lock-Out Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_power_factor_command",
+                          "name": "Power Factor Command",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_q3_for_qv_curve",
+                          "name": "Q3 for QV Curve",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_q4_for_qv_curve",
+                          "name": "Q4 for QV Curve",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_curve_v1_high",
+                          "name": "QV Curve V1 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_curve_v1_low",
+                          "name": "QV Curve V1 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_curve_v2_high",
+                          "name": "QV Curve V2 High",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_curve_v2_low",
+                          "name": "QV Curve V2 Low",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_delay_time",
+                          "name": "QV Delay Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_lock_in_power",
+                          "name": "QV Lock-In Power",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_qv_lock_out_power",
+                          "name": "QV Lock-Out Power",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_grid_reactive_power_command_type",
+                          "name": "Reactive Power Command Type",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_reactive_power_percent",
+                          "name": "Reactive Power Percent",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_grid_volt_watt_function",
+                          "name": "Volt-Watt Function",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_voltwatt_delay_time",
+                          "name": "VoltWatt Delay Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_voltwatt_p2",
+                          "name": "VoltWatt P2",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_voltwatt_v1",
+                          "name": "VoltWatt V1",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_voltwatt_v2",
+                          "name": "VoltWatt V2",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_vref_filter_time",
+                          "name": "Vref Filter Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_grid_vref_for_qv",
+                          "name": "Vref for QV",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "title": "Battery hardware",
+                      "columns": 3,
+                      "show_icon": false,
+                      "show_state": true,
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "entities": [
+                        {
+                          "entity": "number.luxpower_inverter_battery_battery_cell_voltage_high_limit",
+                          "name": "Battery Cell Voltage High Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_battery_cell_voltage_low_limit",
+                          "name": "Battery Cell Voltage Low Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_battery_cells_in_parallel",
+                          "name": "Battery Cells in Parallel",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_battery_cells_in_series",
+                          "name": "Battery Cells in Series",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_battery_derating_start_voltage",
+                          "name": "Battery Derating Start Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_battery_inner_resistance",
+                          "name": "Battery Inner Resistance",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_equalization_voltage",
+                          "name": "Equalization Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_float_charge_current_threshold",
+                          "name": "Float Charge Current Threshold",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_float_charge_voltage",
+                          "name": "Float Charge Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_capacity",
+                          "name": "Lead-Acid Capacity",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_charge_temp_high_limit",
+                          "name": "Lead-Acid Charge Temp High Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_charge_temp_low_limit",
+                          "name": "Lead-Acid Charge Temp Low Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_charge_voltage",
+                          "name": "Lead-Acid Charge Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_discharge_cut_off_voltage",
+                          "name": "Lead-Acid Discharge Cut-Off Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_discharge_temp_high_limit",
+                          "name": "Lead-Acid Discharge Temp High Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_lead_acid_discharge_temp_low_limit",
+                          "name": "Lead-Acid Discharge Temp Low Limit",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_soc_calibration_soc_1",
+                          "name": "SOC Calibration SOC 1",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_soc_calibration_soc_2",
+                          "name": "SOC Calibration SOC 2",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_soc_calibration_voltage_1",
+                          "name": "SOC Calibration Voltage 1",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_soc_calibration_voltage_2",
+                          "name": "SOC Calibration Voltage 2",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_unmatched_battery_capacity",
+                          "name": "Unmatched Battery Capacity",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_battery_unmatched_battery_nominal_voltage",
+                          "name": "Unmatched Battery Nominal Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "title": "System and installer",
+                      "columns": 3,
+                      "show_icon": false,
+                      "show_state": true,
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "entities": [
+                        {
+                          "entity": "select.luxpower_inverter_eps_eps_frequency_set",
+                          "name": "EPS Frequency Set",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_eps_eps_voltage_set",
+                          "name": "EPS Voltage Set",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_equalization_interval",
+                          "name": "Equalization Interval",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_equalization_time",
+                          "name": "Equalization Time",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_language",
+                          "name": "Language",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_lcd_screen_type",
+                          "name": "LCD Screen Type",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_modbus_address",
+                          "name": "Modbus Address",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_power_soft_start_slope",
+                          "name": "Power Soft Start Slope",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_pv_pv_arc_detection",
+                          "name": "PV Arc Detection",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_pv_pv_input_model",
+                          "name": "PV Input Model",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_pv_start_pv_power",
+                          "name": "Start PV Power",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_pv_start_pv_voltage",
+                          "name": "Start PV Voltage",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_system_type",
+                          "name": "System Type",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_wattnode_ct1_amps",
+                          "name": "WattNode CT1 Amps",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_wattnode_ct1_direction",
+                          "name": "WattNode CT1 Direction",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_wattnode_ct2_amps",
+                          "name": "WattNode CT2 Amps",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_wattnode_ct2_direction",
+                          "name": "WattNode CT2 Direction",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "number.luxpower_inverter_wattnode_ct3_amps",
+                          "name": "WattNode CT3 Amps",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "switch.luxpower_inverter_wattnode_ct3_direction",
+                          "name": "WattNode CT3 Direction",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "title": "Smart-load / generator port and line mode",
+                      "columns": 3,
+                      "show_icon": false,
+                      "show_state": true,
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "entities": [
+                        {
+                          "entity": "select.luxpower_inverter_generator_generator_charge_type",
+                          "name": "Generator Charge Type",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_line_mode",
+                          "name": "Line Mode",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_smart_load_enable",
+                          "name": "Smart Load Enable",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        },
+                        {
+                          "entity": "select.luxpower_inverter_working_mode",
+                          "name": "Working Mode",
+                          "tap_action": {
+                            "action": "none"
+                          },
+                          "hold_action": {
+                            "action": "none"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

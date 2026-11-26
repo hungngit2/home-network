@@ -1,12 +1,20 @@
 # Home Assistant config (Wyse 5070)
 
+Custom cards in `www/` are split into a tiny loader (`NAME.js`, the Lovelace resource) and the code (`NAME.impl.js`): the loader re-fetches the implementation every minute, so edits show up without bumping the resource version (HA caches `/local` for 31 days). Edit `NAME.impl.js`.
+
 Exported from `/opt/docker/homeassistant/config` on the Wyse (HA 2026.9, Docker, host network) on 2026-11-20.
 
 | File | Restores to | Contents |
 |---|---|---|
-| `configuration.yaml` | `configuration.yaml` | Recorder tuning; kWh templates for the Tuya energy plugs, which report Wh (with `availability:` guards); Battery Status and Battery Runtime sensors |
+| `configuration.yaml` | `configuration.yaml` | Recorder tuning; kWh templates for the Tuya energy plugs, which report Wh (with `availability:` guards); Battery Status, Battery Runtime and Battery energy left sensors; Settings health-check sensors (Devices offline, Updates pending, Safety automations off: the device and automation lists live here and in `gen_dashboard.py`) |
 | `automations.yaml` | `automations.yaml` | Grid fallback at 30%/40% battery SOC, low-battery and grid-fallback alerts, inverter fault and offline alerts, irrigation auto-off, bike charger cut-off |
 | `lovelace.lovelace.json` | `.storage/lovelace.lovelace` | Default dashboard: Home, Energy, Equipment, Settings (admin only) |
+| `lovelace.inverter-setup.json` | `.storage/lovelace.inverter_setup` | **Solar Inverter Settings** (page title Luxpower SNA PRO 6.5kW) dashboard: sidebar entry `/inverter-setup`, admin only (registered in `.storage/lovelace_dashboards` as id `inverter_setup`, `require_admin: true`) |
+| `gen_inverter_tab.py` | — | Builds the admin-only **Inverter** dashboard (all LuxPower controls) and trims Settings. Controls show only when their driver makes them meaningful (AC charging, Charge first, Forced discharge, Export, Peak shaving, charge/discharge control types); `input_boolean.inverter_advanced` reveals tuning, generator/smart load, AC coupling and the read-only installer list. Run after `gen_dashboard.py`, on the Wyse with HA stopped: `python3 gen_inverter_tab.py .storage/core.entity_registry .storage/lovelace.lovelace .storage/lovelace.inverter_setup .storage/lovelace_dashboards`; `--check STATES.json` runs the offline visibility self-check |
+| `www/collapsible-section-card.js` | `www/collapsible-section-card.js` | `custom:collapsible-section-card`: foldable group of cards (remembers open/closed per browser, renders children only while open). Used for every group on the Inverter tab. Needs a Lovelace resource `/local/collapsible-section-card.js` |
+| `www/time-window-card.js` | `www/time-window-card.js` | `custom:time-window-card`: compact numbered Start/End editor for inverter time windows (small time inputs, read-back tick, Clear). Needs a Lovelace resource `/local/time-window-card.js` |
+| `www/inverter-wizard-card.js` | `www/inverter-wizard-card.js` | `custom:inverter-wizard-card`: four guided wizards (backup reserve, charge from grid, export, battery protection) with a review step and serialized, read-back writes. Needs a Lovelace resource `/local/inverter-wizard-card.js` |
+| `www/battery-report-card.js` | `www/battery-report-card.js` | `custom:battery-report-card` on the Equipment tab: Day/Week/Month/Year picker, total and overnight (18:00–06:00) discharge kWh, and measured real battery capacity kWh and health (the inverter's SoH is always 100%). Needs a Lovelace resource `/local/battery-report-card.js` |
 | `gen_dashboard.py` | — | Rebuilds that dashboard. Run it on the Wyse with HA stopped: `python3 gen_dashboard.py .storage/lovelace.lovelace`. It keeps the live Home Energy Hub card and the EVN entity IDs |
 
 The dashboard needs the HACS cards `apexcharts-card` and Home Energy Hub (`gratak/solar-flow-card`, `type: custom:home-energy-hub`, Diorama theme on the Energy view).

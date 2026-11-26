@@ -846,6 +846,40 @@
                 },
                 {
                   "type": "tile",
+                  "entity": "sensor.battery_energy_left",
+                  "name": "Energy left",
+                  "icon": "mdi:battery-clock",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "state_content": [
+                    "state",
+                    "summary"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.battery_runtime",
+                  "name": "Runtime",
+                  "icon": "mdi:timer-sand",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "state",
+                      "entity": "sensor.battery_runtime",
+                      "state_not": [
+                        "unavailable",
+                        "unknown"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
                   "entity": "sensor.battery_status",
                   "name": "Battery now",
                   "color": "green",
@@ -860,7 +894,7 @@
                   "language": "en",
                   "weather_entity": "weather.forecast_home",
                   "battery_capacity": 16.08,
-                  "battery_min_soc": 30,
+                  "battery_min_soc": 10,
                   "entities": {
                     "solar_power": "sensor.luxpower_inverter_pv_pv_power",
                     "load_power": "sensor.luxpower_inverter_load_power",
@@ -1122,7 +1156,7 @@
                   "language": "en",
                   "weather_entity": "weather.forecast_home",
                   "battery_capacity": 16.08,
-                  "battery_min_soc": 30,
+                  "battery_min_soc": 10,
                   "entities": {
                     "solar_power": "sensor.luxpower_inverter_pv_pv_power",
                     "load_power": "sensor.luxpower_inverter_load_power",
@@ -1429,47 +1463,24 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.luxpower_inverter_battery_battery_soh",
-                  "name": "Health",
-                  "icon": "mdi:heart-pulse",
+                  "entity": "sensor.battery_energy_left",
+                  "name": "Energy left",
+                  "icon": "mdi:battery-clock",
                   "color": "green",
                   "grid_options": {
                     "columns": 6
-                  }
+                  },
+                  "state_content": [
+                    "state",
+                    "summary"
+                  ]
                 },
                 {
-                  "type": "tile",
-                  "entity": "sensor.luxpower_inverter_battery_bms_cycle_count",
-                  "name": "Cycles",
-                  "icon": "mdi:counter",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.luxpower_inverter_battery_days_since_soc_99",
-                  "name": "Days since full",
-                  "icon": "mdi:calendar-check",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "statistics-graph",
-                  "title": "Charge, last 7 days",
-                  "entities": [
-                    "sensor.luxpower_inverter_battery_battery_soc"
-                  ],
-                  "days_to_show": 7,
-                  "period": "hour",
-                  "stat_types": [
-                    "mean",
-                    "min",
-                    "max"
-                  ],
-                  "chart_type": "line",
-                  "hide_legend": true,
+                  "type": "custom:battery-report-card",
+                  "title": "Battery report",
+                  "rated_kwh": 16.08,
+                  "night_start": 18,
+                  "night_end": 6,
                   "grid_options": {
                     "columns": "full"
                   }
@@ -1490,6 +1501,51 @@
                 },
                 {
                   "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_cell_difference",
+                  "name": "Cell imbalance",
+                  "icon": "mdi:scale-unbalanced",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_min_cell_voltage",
+                  "name": "Cell voltage (min)",
+                  "icon": "mdi:battery-minus-variant",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_max_cell_voltage",
+                  "name": "Cell voltage (max)",
+                  "icon": "mdi:battery-plus-variant",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_min_cell_temperature",
+                  "name": "Cell temp (min)",
+                  "icon": "mdi:thermometer-low",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_battery_bms_max_cell_temperature",
+                  "name": "Cell temp (max)",
+                  "icon": "mdi:thermometer-high",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
                   "entity": "sensor.luxpower_inverter_battery_bms_battery_current",
                   "name": "Current (−: out)",
                   "icon": "mdi:current-dc",
@@ -1499,18 +1555,9 @@
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.luxpower_inverter_battery_bms_max_cell_temperature",
-                  "name": "Cell temp (max)",
-                  "icon": "mdi:thermometer",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.luxpower_inverter_battery_bms_cell_difference",
-                  "name": "Cell imbalance",
-                  "icon": "mdi:scale-unbalanced",
+                  "entity": "sensor.luxpower_inverter_battery_bms_cycle_count",
+                  "name": "Cycles",
+                  "icon": "mdi:counter",
                   "grid_options": {
                     "columns": 6
                   }
@@ -1577,6 +1624,26 @@
                 },
                 {
                   "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv1_energy_today",
+                  "name": "String 1 today",
+                  "icon": "mdi:solar-panel",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_pv_pv2_energy_today",
+                  "name": "String 2 today",
+                  "icon": "mdi:solar-panel",
+                  "color": "amber",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
                   "entity": "sensor.luxpower_inverter_eps_eps_voltage",
                   "name": "Output voltage",
                   "icon": "mdi:sine-wave",
@@ -1610,6 +1677,34 @@
                   "grid_options": {
                     "columns": 6
                   }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.luxpower_inverter_inverter_state",
+                  "name": "Inverter settings",
+                  "icon": "mdi:cog-transfer",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/inverter-setup"
+                  },
+                  "icon_tap_action": {
+                    "action": "navigate",
+                    "navigation_path": "/inverter-setup"
+                  },
+                  "visibility": [
+                    {
+                      "condition": "user",
+                      "users": [
+                        "3d0602e4c2514c10b975883aa25b394f"
+                      ]
+                    }
+                  ],
+                  "state_content": [
+                    "state"
+                  ]
                 }
               ]
             },
@@ -1820,160 +1915,171 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "Inverter settings",
+                  "heading": "Health check",
                   "heading_style": "title",
-                  "icon": "mdi:cog-outline"
+                  "icon": "mdi:heart-pulse"
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.backup_last_successful_automatic_backup",
+                  "name": "Last backup",
+                  "icon": "mdi:backup-restore",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.backup_next_scheduled_automatic_backup",
+                  "name": "Next backup",
+                  "icon": "mdi:calendar-clock",
+                  "grid_options": {
+                    "columns": 6
+                  }
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.devices_offline",
+                  "name": "Devices online",
+                  "icon": "mdi:lan-check",
+                  "color": "green",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.devices_offline",
+                      "below": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.devices_offline",
+                  "name": "Devices offline",
+                  "icon": "mdi:lan-disconnect",
+                  "color": "red",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.devices_offline",
+                      "above": 0
+                    }
+                  ]
                 },
                 {
                   "type": "markdown",
                   "grid_options": {
                     "columns": "full"
                   },
-                  "content": "These change the inverter directly. Open a tile to change it."
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.devices_offline",
+                      "above": 0
+                    }
+                  ],
+                  "content": "**Offline:** {{ state_attr('sensor.devices_offline', 'names') }}"
                 },
                 {
                   "type": "tile",
-                  "entity": "switch.luxpower_inverter_ac_charging",
-                  "name": "AC charging",
-                  "icon": "mdi:transmission-tower-import",
+                  "entity": "sensor.updates_pending",
+                  "name": "Up to date",
+                  "icon": "mdi:check-circle-outline",
+                  "color": "green",
                   "grid_options": {
                     "columns": 6
                   },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.updates_pending",
+                      "below": 1
+                    }
+                  ]
                 },
                 {
                   "type": "tile",
-                  "entity": "switch.luxpower_inverter_charge_first_pv",
-                  "name": "Charge first (PV)",
-                  "icon": "mdi:solar-power",
+                  "entity": "sensor.updates_pending",
+                  "name": "Updates pending",
+                  "icon": "mdi:update",
+                  "color": "amber",
                   "grid_options": {
                     "columns": 6
                   },
-                  "tap_action": {
-                    "action": "more-info"
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.updates_pending",
+                      "above": 0
+                    }
+                  ]
+                },
+                {
+                  "type": "markdown",
+                  "grid_options": {
+                    "columns": "full"
                   },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.updates_pending",
+                      "above": 0
+                    }
+                  ],
+                  "content": "**Updates:** {{ state_attr('sensor.updates_pending', 'names') }}"
                 },
                 {
                   "type": "tile",
-                  "entity": "switch.luxpower_inverter_eco_mode",
-                  "name": "Eco mode",
-                  "icon": "mdi:leaf",
+                  "entity": "sensor.safety_automations_off",
+                  "name": "Safety automations on",
+                  "icon": "mdi:shield-check",
+                  "color": "green",
                   "grid_options": {
                     "columns": 6
                   },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.safety_automations_off",
+                      "below": 1
+                    }
+                  ]
                 },
                 {
                   "type": "tile",
-                  "entity": "switch.luxpower_inverter_green_mode",
-                  "name": "Green mode",
-                  "icon": "mdi:sprout",
+                  "entity": "sensor.safety_automations_off",
+                  "name": "Safety automations off",
+                  "icon": "mdi:shield-alert",
+                  "color": "red",
                   "grid_options": {
                     "columns": 6
                   },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.safety_automations_off",
+                      "above": 0
+                    }
+                  ]
                 },
                 {
-                  "type": "tile",
-                  "entity": "switch.luxpower_inverter_forced_discharge",
-                  "name": "Forced discharge",
-                  "icon": "mdi:battery-arrow-down",
+                  "type": "markdown",
                   "grid_options": {
-                    "columns": 6
+                    "columns": "full"
                   },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.luxpower_inverter_seamless_eps_switching",
-                  "name": "Seamless EPS",
-                  "icon": "mdi:swap-horizontal",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.luxpower_inverter_grid_power_backup",
-                  "name": "Power backup",
-                  "icon": "mdi:shield-home",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.luxpower_inverter_buzzer",
-                  "name": "Buzzer",
-                  "icon": "mdi:volume-high",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.safety_automations_off",
+                      "above": 0
+                    }
+                  ],
+                  "content": "**Off:** {{ state_attr('sensor.safety_automations_off', 'names') }}"
                 }
               ]
             },
@@ -1982,16 +2088,16 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "Battery limits",
+                  "heading": "Controls",
                   "heading_style": "title",
-                  "icon": "mdi:tune-variant"
+                  "icon": "mdi:toggle-switch-outline"
                 },
                 {
                   "type": "markdown",
                   "grid_options": {
                     "columns": "full"
                   },
-                  "content": "Automations close the grid fallback at **30%** battery or when the house draws more than **5.5 kW**, and open it again at **40%** once the load is under **4 kW**. The inverter's on-grid cut-off is also **30%**, so the battery stops there even if an automation fails."
+                  "content": "Automations close the grid fallback at **30%** battery or when the house draws more than **5.5 kW**, and open it again at **40%** once the load is under **4 kW**. Inverter settings are on the **Solar Inverter Settings** page in the sidebar."
                 },
                 {
                   "type": "tile",
@@ -2048,150 +2154,121 @@
                   "double_tap_action": {
                     "action": "none"
                   }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Safety automations",
+                  "heading_style": "title",
+                  "icon": "mdi:shield-check"
                 },
                 {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_off_grid_cut_off_soc",
-                  "name": "Off-grid cut-off",
-                  "icon": "mdi:battery-off-outline",
+                  "type": "entities",
                   "grid_options": {
-                    "columns": 6
+                    "columns": "full"
                   },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "show_header_toggle": false,
+                  "entities": [
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_grid_power_outage",
+                      "attribute": "last_triggered",
+                      "name": "Alert: grid outage",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_grid_power_restored",
+                      "attribute": "last_triggered",
+                      "name": "Alert: grid restored",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_grid_protector_engaged",
+                      "attribute": "last_triggered",
+                      "name": "Alert: grid fallback engaged",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_inverter_fault_or_warning",
+                      "attribute": "last_triggered",
+                      "name": "Alert: inverter fault / warning",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_inverter_offline",
+                      "attribute": "last_triggered",
+                      "name": "Alert: inverter offline",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.alert_low_battery_soc",
+                      "attribute": "last_triggered",
+                      "name": "Alert: low battery",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_close_grid_protector_at_30_soc",
+                      "attribute": "last_triggered",
+                      "name": "Grid fallback: close at 30%",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_open_grid_protector_at_40_soc",
+                      "attribute": "last_triggered",
+                      "name": "Grid fallback: open at 40%",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_close_grid_protector_on_high_load",
+                      "attribute": "last_triggered",
+                      "name": "Grid fallback: close on high load",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.solar_off_grid_open_grid_protector_after_high_load",
+                      "attribute": "last_triggered",
+                      "name": "Grid fallback: open after high load",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    },
+                    {
+                      "type": "attribute",
+                      "entity": "automation.bike_overcharge_cutoff",
+                      "attribute": "last_triggered",
+                      "name": "Bike charger cut-off",
+                      "format": "relative",
+                      "icon": "mdi:history"
+                    }
+                  ]
                 },
                 {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_on_grid_cut_off_soc",
-                  "name": "On-grid cut-off",
-                  "icon": "mdi:battery-off",
+                  "type": "markdown",
                   "grid_options": {
-                    "columns": 6
+                    "columns": "full"
                   },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_battery_low_soc_alarm",
-                  "name": "Low battery alarm",
-                  "icon": "mdi:battery-alert-variant-outline",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_battery_stop_charging_soc",
-                  "name": "Stop charging at",
-                  "icon": "mdi:battery-charging-100",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_charge_current",
-                  "name": "Max charge current",
-                  "icon": "mdi:current-dc",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_discharge_current",
-                  "name": "Max discharge current",
-                  "icon": "mdi:current-dc",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "number.luxpower_inverter_battery_ac_charge_soc_limit",
-                  "name": "AC charge limit",
-                  "icon": "mdi:transmission-tower-import",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "select.luxpower_inverter_output_priority_config",
-                  "name": "Output priority",
-                  "icon": "mdi:priority-high",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "more-info"
-                  },
-                  "icon_tap_action": {
-                    "action": "more-info"
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  }
+                  "content": "Last time each one fired. Read-only here, so none can be switched off by a stray tap; manage them in [Automations](/config/automation/dashboard)."
                 }
               ]
             },
@@ -2268,18 +2345,9 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "System",
+                  "heading": "Network",
                   "heading_style": "title",
-                  "icon": "mdi:server"
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.backup_last_successful_automatic_backup",
-                  "name": "Last backup",
-                  "icon": "mdi:backup-restore",
-                  "grid_options": {
-                    "columns": 6
-                  }
+                  "icon": "mdi:wifi"
                 },
                 {
                   "type": "tile",
@@ -2306,26 +2374,6 @@
                   "icon": "mdi:wifi",
                   "grid_options": {
                     "columns": 6
-                  }
-                },
-                {
-                  "type": "entity-filter",
-                  "state_filter": [
-                    "on"
-                  ],
-                  "show_empty": false,
-                  "card": {
-                    "type": "entities",
-                    "title": "Updates available"
-                  },
-                  "entities": [
-                    "update.hacs_update",
-                    "update.tuya_local_update",
-                    "update.sonoff_lan_update",
-                    "update.luxpower_inverter_modbus_update"
-                  ],
-                  "grid_options": {
-                    "columns": "full"
                   }
                 },
                 {

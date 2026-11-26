@@ -39,6 +39,10 @@ doc = json.load(open(P))
 old = doc["data"]["config"]
 hub = copy.deepcopy(next(c for v in old["views"] for s in v.get("sections", []) for c in s["cards"]
                          if c.get("type") == "custom:home-energy-hub" and c.get("wide")))
+hub["battery_min_soc"] = 10  # the inverter's on-grid / off-grid cut-off setting (was 30, the grid-fallback automation threshold)
+# The live "Money" section on the Energy tab was edited by hand after this script last ran; carry it over as is.
+old_money = next((sec for v in old["views"] if v.get("path") == "energy" for sec in v.get("sections", [])
+                  if any(c.get("heading") in ("Money", "Energy Cost") for c in sec.get("cards", []))), None)
 
 
 def heading(text, icon=None, style="title", **kw):
@@ -145,6 +149,9 @@ power_now = {"type": "grid", "cards": [
            state_content=["last_changed"], visibility=[is_(GRID_SW, "off")]),
     status(GRID_SW, "On grid", "mdi:transmission-tower", 6, COLORS["grid"],
            state_content=["last_changed"], visibility=[is_(GRID_SW, "on")]),
+    tile("sensor.battery_energy_left", "Energy left", "mdi:battery-clock", COLORS["battery"], 6, state_content=["state", "summary"]),
+    tile("sensor.battery_runtime", "Runtime", "mdi:timer-sand", COLORS["battery"], 6,
+         visibility=[{"condition": "state", "entity": "sensor.battery_runtime", "state_not": ["unavailable", "unknown"]}]),
     tile("sensor.battery_status", "Battery now", None, COLORS["battery"], 12),
     forecast_hub,
 ]}
@@ -193,7 +200,8 @@ hub.update({
 })
 energy = {"title": "Energy", "path": "energy", "icon": "mdi:lightning-bolt", "type": "sections", "max_columns": 3, "sections": [
     {"type": "grid", "column_span": 3, "cards": [hub]},
-    {"type": "grid", "column_span": 3, "cards": [
+] + [
+    old_money or {"type": "grid", "column_span": 3, "cards": [
         heading("Money", "mdi:cash-multiple", tap_action=PANEL),
         tile(ECM + "savings_today", "Saved today", "mdi:piggy-bank", "green", tap_action=PANEL),
         tile(ECM + "savings_period", "Saved this period", "mdi:piggy-bank-outline", "green", tap_action=PANEL),
@@ -221,18 +229,20 @@ energy = {"title": "Energy", "path": "energy", "icon": "mdi:lightning-bolt", "ty
 equipment = {"title": "Equipment", "path": "equipment", "icon": "mdi:solar-power-variant", "type": "sections", "max_columns": 3, "sections": [
     {"type": "grid", "cards": [
         heading("Battery", "mdi:home-battery"),
-        tile(SOC, "Charge", "mdi:battery-high", COLORS["battery"]),
-        tile(L + "battery_battery_soh", "Health", "mdi:heart-pulse", COLORS["battery"]),
-        tile(L + "battery_bms_cycle_count", "Cycles", "mdi:counter"),
-        tile(L + "battery_days_since_soc_99", "Days since full", "mdi:calendar-check"),
-        {"type": "statistics-graph", "title": "Charge, last 7 days", "entities": [SOC], "days_to_show": 7,
-         "period": "hour", "stat_types": ["mean", "min", "max"], "chart_type": "line", "hide_legend": True,
-         "grid_options": {"columns": "full"}},
-        heading("Details", style="subtitle"),
+        tile(SOC, "Charge", "mdi:battery-high", COLORS["battery"], 6),
+        tile("sensor.battery_energy_left", "Energy left", "mdi:battery-clock", COLORS["battery"], 6, state_content=["state", "summary"]),
+        # www/battery-report-card.js: Day/Week/Month/Year discharge, overnight discharge, measured capacity
+        {"type": "custom:battery-report-card", "title": "Battery report", "rated_kwh": 16.08,
+         "night_start": 18, "night_end": 6, "grid_options": {"columns": "full"}},
+        heading("Details", style="subtitle"),  # order as arranged in the live dashboard
         tile(L + "battery_battery_voltage", "Voltage", "mdi:current-dc"),
-        tile(L + "battery_bms_battery_current", "Current (−: out)", "mdi:current-dc"),
-        tile(L + "battery_bms_max_cell_temperature", "Cell temp (max)", "mdi:thermometer"),
         tile(L + "battery_bms_cell_difference", "Cell imbalance", "mdi:scale-unbalanced"),
+        tile(L + "battery_bms_min_cell_voltage", "Cell voltage (min)", "mdi:battery-minus-variant"),
+        tile(L + "battery_bms_max_cell_voltage", "Cell voltage (max)", "mdi:battery-plus-variant"),
+        tile(L + "battery_bms_min_cell_temperature", "Cell temp (min)", "mdi:thermometer-low"),
+        tile(L + "battery_bms_max_cell_temperature", "Cell temp (max)", "mdi:thermometer-high"),
+        tile(L + "battery_bms_battery_current", "Current (−: out)", "mdi:current-dc"),
+        tile(L + "battery_bms_cycle_count", "Cycles", "mdi:counter"),
     ]},
     {"type": "grid", "cards": [
         heading("Inverter", "mdi:solar-power-variant"),
@@ -241,10 +251,15 @@ equipment = {"title": "Equipment", "path": "equipment", "icon": "mdi:solar-power
         tile(L + "load_percentage", "Load", "mdi:gauge", COLORS["home"]),
         tile(L + "pv_pv1_power", "PV string 1 (6 panels)", "mdi:solar-panel", COLORS["solar"]),
         tile(L + "pv_pv2_power", "PV string 2 (3 panels)", "mdi:solar-panel", COLORS["solar"]),
+        tile(L + "pv_pv1_energy_today", "String 1 today", "mdi:solar-panel", COLORS["solar"]),
+        tile(L + "pv_pv2_energy_today", "String 2 today", "mdi:solar-panel", COLORS["solar"]),
         tile(L + "eps_eps_voltage", "Output voltage", "mdi:sine-wave"),
         tile("binary_sensor.luxpower_inverter_grid_grid_connected", "Grid at inverter", "mdi:transmission-tower"),
         tile(FAULT, "Faults", "mdi:alert-octagon-outline"),
         tile(WARN, "Warnings", "mdi:alert-outline"),
+        tile("sensor.luxpower_inverter_inverter_state", "Inverter settings", "mdi:cog-transfer", None, 12,
+             tap_action={"action": "navigate", "navigation_path": "/inverter-setup"}, icon_tap_action={"action": "navigate", "navigation_path": "/inverter-setup"},
+             visibility=[ADMIN_ONLY], state_content=["state"]),
     ]},
     {"type": "grid", "cards": [
         heading("Breakers & plugs", "mdi:electric-switch"),
@@ -266,31 +281,48 @@ equipment = {"title": "Equipment", "path": "equipment", "icon": "mdi:solar-power
 ]}
 
 
-def ro(entity, name, icon=None):
-    return tile(entity, name, icon, None, 6, tap_action=MORE, icon_tap_action=MORE, hold_action=NONE)
+# Devices whose loss matters (real devices only: the OwnTone / Phicomm / TV leftovers are deliberately not counted).
+# The same list is in configuration.yaml (sensor.devices_offline); keep the two in step.
+SAFETY_AUTOMATIONS = [
+    ("automation.alert_grid_power_outage", "Alert: grid outage"), ("automation.alert_grid_power_restored", "Alert: grid restored"),
+    ("automation.alert_grid_protector_engaged", "Alert: grid fallback engaged"), ("automation.alert_inverter_fault_or_warning", "Alert: inverter fault / warning"),
+    ("automation.alert_inverter_offline", "Alert: inverter offline"), ("automation.alert_low_battery_soc", "Alert: low battery"),
+    ("automation.solar_off_grid_close_grid_protector_at_30_soc", "Grid fallback: close at 30%"),
+    ("automation.solar_off_grid_open_grid_protector_at_40_soc", "Grid fallback: open at 40%"),
+    ("automation.solar_off_grid_close_grid_protector_on_high_load", "Grid fallback: close on high load"),
+    ("automation.solar_off_grid_open_grid_protector_after_high_load", "Grid fallback: open after high load"),
+    ("automation.bike_overcharge_cutoff", "Bike charger cut-off"),
+]
+
+
+def counter_tiles(sensor, ok_name, bad_name, ok_icon, bad_icon, bad_color, list_label):
+    """A green tile at 0, a coloured tile above 0, and a one-line list of what is behind the count."""
+    above = [{"condition": "numeric_state", "entity": sensor, "above": 0}]
+    zero = [{"condition": "numeric_state", "entity": sensor, "below": 1}]
+    return [
+        tile(sensor, ok_name, ok_icon, "green", 6, visibility=zero),
+        tile(sensor, bad_name, bad_icon, bad_color, 6, visibility=above),
+        {"type": "markdown", "grid_options": {"columns": "full"}, "visibility": above,
+         "content": f"**{list_label}:** {{{{ state_attr('{sensor}', 'names') }}}}"},
+    ]
 
 
 settings = {"title": "Settings", "path": "settings", "icon": "mdi:cog", "type": "sections", "max_columns": 3,
             "visible": [{"user": ADMIN}], "sections": [
     {"type": "grid", "cards": [
-        heading("Inverter settings", "mdi:cog-outline"),
-        {"type": "markdown", "grid_options": {"columns": "full"},
-         "content": "These change the inverter directly. Open a tile to change it."},
-        ro("switch.luxpower_inverter_ac_charging", "AC charging", "mdi:transmission-tower-import"),
-        ro("switch.luxpower_inverter_charge_first_pv", "Charge first (PV)", "mdi:solar-power"),
-        ro("switch.luxpower_inverter_eco_mode", "Eco mode", "mdi:leaf"),
-        ro("switch.luxpower_inverter_green_mode", "Green mode", "mdi:sprout"),
-        ro("switch.luxpower_inverter_forced_discharge", "Forced discharge", "mdi:battery-arrow-down"),
-        ro("switch.luxpower_inverter_seamless_eps_switching", "Seamless EPS", "mdi:swap-horizontal"),
-        ro("switch.luxpower_inverter_grid_power_backup", "Power backup", "mdi:shield-home"),
-        ro("switch.luxpower_inverter_buzzer", "Buzzer", "mdi:volume-high"),
+        heading("Health check", "mdi:heart-pulse"),
+        tile(BACKUP, "Last backup", "mdi:backup-restore", None, 6),
+        tile("sensor.backup_next_scheduled_automatic_backup", "Next backup", "mdi:calendar-clock", None, 6),
+        *counter_tiles("sensor.devices_offline", "Devices online", "Devices offline", "mdi:lan-check", "mdi:lan-disconnect", "red", "Offline"),
+        *counter_tiles("sensor.updates_pending", "Up to date", "Updates pending", "mdi:check-circle-outline", "mdi:update", "amber", "Updates"),
+        *counter_tiles("sensor.safety_automations_off", "Safety automations on", "Safety automations off", "mdi:shield-check", "mdi:shield-alert", "red", "Off"),
     ]},
     {"type": "grid", "cards": [
-        heading("Battery limits", "mdi:tune-variant"),
+        heading("Controls", "mdi:toggle-switch-outline"),
         {"type": "markdown", "grid_options": {"columns": "full"},
          "content": "Automations close the grid fallback at **30%** battery or when the house draws more than "
                     "**5.5 kW**, and open it again at **40%** once the load is under **4 kW**. "
-                    "The inverter's on-grid cut-off is also **30%**, so the battery stops there even if an automation fails."},
+                    "Inverter settings are on the **Solar Inverter Settings** page in the sidebar."},
         tile(GRID_SW, "Grid fallback (manual)", "mdi:transmission-tower", COLORS["grid"], 6,
              tap_action=confirm("Switch grid fallback by hand? The battery automations may switch it back."),
              icon_tap_action=confirm("Switch grid fallback by hand? The battery automations may switch it back."),
@@ -299,14 +331,15 @@ settings = {"title": "Settings", "path": "settings", "icon": "mdi:cog", "type": 
              tap_action=confirm("Switch the CHEST FREEZER plug? Food may spoil if left off."),
              icon_tap_action=confirm("Switch the CHEST FREEZER plug? Food may spoil if left off."),
              hold_action=NONE, double_tap_action=NONE),
-        ro("number.luxpower_inverter_battery_off_grid_cut_off_soc", "Off-grid cut-off", "mdi:battery-off-outline"),
-        ro("number.luxpower_inverter_battery_on_grid_cut_off_soc", "On-grid cut-off", "mdi:battery-off"),
-        ro("number.luxpower_inverter_battery_battery_low_soc_alarm", "Low battery alarm", "mdi:battery-alert-variant-outline"),
-        ro("number.luxpower_inverter_battery_battery_stop_charging_soc", "Stop charging at", "mdi:battery-charging-100"),
-        ro("number.luxpower_inverter_battery_charge_current", "Max charge current", "mdi:current-dc"),
-        ro("number.luxpower_inverter_battery_discharge_current", "Max discharge current", "mdi:current-dc"),
-        ro("number.luxpower_inverter_battery_ac_charge_soc_limit", "AC charge limit", "mdi:transmission-tower-import"),
-        ro("select.luxpower_inverter_output_priority_config", "Output priority", "mdi:priority-high"),
+    ]},
+    {"type": "grid", "cards": [
+        heading("Safety automations", "mdi:shield-check"),
+        {"type": "entities", "grid_options": {"columns": "full"}, "show_header_toggle": False,
+         "entities": [{"type": "attribute", "entity": e, "attribute": "last_triggered", "name": n, "format": "relative", "icon": "mdi:history"}
+                      for e, n in SAFETY_AUTOMATIONS]},
+        {"type": "markdown", "grid_options": {"columns": "full"},
+         "content": "Last time each one fired. Read-only here, so none can be switched off by a stray tap; manage them in "
+                    "[Automations](/config/automation/dashboard)."},
     ]},
     {"type": "grid", "cards": [
         heading("Energy data", "mdi:database-check"),
@@ -317,16 +350,10 @@ settings = {"title": "Settings", "path": "settings", "icon": "mdi:cog", "type": 
         tile(ECM + "evn_meter_reading", "EVN meter reading", "mdi:counter", None, 6),
     ]},
     {"type": "grid", "cards": [
-        heading("System", "mdi:server"),
-        tile(BACKUP, "Last backup", "mdi:backup-restore"),
+        heading("Network", "mdi:wifi"),
         tile("sensor.sonoff_1000a8b00e_rssi", "Network relay Wi-Fi", "mdi:wifi"),
         tile("sensor.sonoff_10014c209d_rssi", "Front light Wi-Fi", "mdi:wifi"),
         tile("sensor.sonoff_1000eff333_rssi", "Irrigation Wi-Fi", "mdi:wifi"),
-        {"type": "entity-filter", "state_filter": ["on"], "show_empty": False,
-         "card": {"type": "entities", "title": "Updates available"},
-         "entities": ["update.hacs_update", "update.tuya_local_update", "update.sonoff_lan_update",
-                      "update.luxpower_inverter_modbus_update"],
-         "grid_options": {"columns": "full"}},
         {"type": "markdown", "grid_options": {"columns": "full"},
          "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · "
                     "[Logs](/config/logs) · [Backups](/config/backup) · [Energy setup](/config/energy) · "

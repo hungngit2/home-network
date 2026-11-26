@@ -237,14 +237,14 @@
       title: Grid power outage
       message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'')
         }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'')
-        }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
+        }} h to {{ states(''number.luxpower_inverter_battery_off_grid_cut_off_soc'') | int(10) }}%{% endif %}. The grid fallback cannot help until power returns.'
   - action: notify.mobile_app_mais_iphone16p
     continue_on_error: true
     data:
       title: Grid power outage
       message: 'EVN power is off. The house runs on battery: {{ states(''sensor.luxpower_inverter_battery_battery_soc'')
         }}%{% if has_value(''sensor.battery_runtime'') %}, about {{ states(''sensor.battery_runtime'')
-        }} h to 30%{% endif %}. The grid fallback cannot help until power returns.'
+        }} h to {{ states(''number.luxpower_inverter_battery_off_grid_cut_off_soc'') | int(10) }}%{% endif %}. The grid fallback cannot help until power returns.'
   mode: single
 - id: alert_grid_restored
   alias: 'Alert: Grid Power Restored'

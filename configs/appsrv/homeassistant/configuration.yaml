@@ -85,16 +85,74 @@ template:
           {% set f = states('sensor.luxpower_inverter_battery_battery_flow') | float(0) %}
           {% if f < -30 %}Charging {{ (-f) | int }} W{% elif f > 30 %}Discharging {{ f | int }} W{% else %}Idle{% endif %}
         availability: "{{ has_value('sensor.luxpower_inverter_battery_battery_flow') }}"
-      # 16.08 kWh = energy-dashboard battery capacity; 30% = grid-fallback automation threshold
+      # 16.08 kWh = energy-dashboard battery capacity; counts down to the inverter's cut-off SOC setting
+      # (off-grid one during an EVN outage, else on-grid)
       - name: "Battery Runtime"
         unique_id: battery_runtime
         unit_of_measurement: "h"
         icon: mdi:timer-sand
         state: >-
+          {% set cut = states('number.luxpower_inverter_battery_off_grid_cut_off_soc' if is_state('input_boolean.grid_outage', 'on')
+                               else 'number.luxpower_inverter_battery_on_grid_cut_off_soc') | float(10) %}
           {% set soc = states('sensor.luxpower_inverter_battery_battery_soc') | float(0) %}
           {% set kw = states('sensor.luxpower_inverter_battery_battery_flow') | float(0) / 1000 %}
-          {{ ((soc - 30) / 100 * 16.08 / kw) | round(1) }}
+          {{ ((soc - cut) / 100 * 16.08 / kw) | round(1) }}
         availability: >-
+          {% set cut = states('number.luxpower_inverter_battery_off_grid_cut_off_soc' if is_state('input_boolean.grid_outage', 'on')
+                               else 'number.luxpower_inverter_battery_on_grid_cut_off_soc') | float(10) %}
           {{ has_value('sensor.luxpower_inverter_battery_battery_soc')
-             and states('sensor.luxpower_inverter_battery_battery_soc') | float(0) > 30
+             and states('sensor.luxpower_inverter_battery_battery_soc') | float(0) > cut
              and states('sensor.luxpower_inverter_battery_battery_flow') | float(0) > 50 }}
+      # Usable energy above the inverter's cut-off SOC setting (off-grid one during an EVN outage, else on-grid); 16.08 kWh = battery capacity
+      - name: "Battery energy left"
+        unique_id: battery_energy_left
+        unit_of_measurement: "kWh"
+        device_class: energy_storage
+        icon: mdi:battery-clock
+        state: >-
+          {% set cut = states('number.luxpower_inverter_battery_off_grid_cut_off_soc' if is_state('input_boolean.grid_outage', 'on')
+                               else 'number.luxpower_inverter_battery_on_grid_cut_off_soc') | float(10) %}
+          {{ ([states('sensor.luxpower_inverter_battery_battery_soc') | float(0) - cut, 0] | max / 100 * 16.08) | round(1) }}
+        availability: "{{ has_value('sensor.luxpower_inverter_battery_battery_soc') }}"
+        attributes:
+          summary: >-
+            {% set cut = states('number.luxpower_inverter_battery_off_grid_cut_off_soc' if is_state('input_boolean.grid_outage', 'on')
+                                 else 'number.luxpower_inverter_battery_on_grid_cut_off_soc') | float(10) %}
+            {% set soc = states('sensor.luxpower_inverter_battery_battery_soc') | float(0) %}
+            {{ ([soc - cut, 0] | max) | round(0) | int }}% to {{ cut | round(0) | int }}% cut-off
+      # --- Settings health check (dashboard tiles). The device and automation lists are the same ones gen_dashboard.py uses.
+      - name: "Devices offline"
+        unique_id: devices_offline
+        unit_of_measurement: "devices"
+        icon: mdi:lan-disconnect
+        state: >-
+          {% set ids = ['sensor.cb_ground_floor_power', 'sensor.cb_floor_1_power', 'sensor.cb_floor_2_power', 'sensor.meter_protector_voltage', 'sensor.grid_protector_voltage_a', 'sensor.refrigerator_power', 'sensor.mosquito_repellent_power', 'sensor.bike_charger_power', 'sensor.sonoff_1000a8b00e_rssi', 'sensor.sonoff_10014c209d_rssi', 'sensor.sonoff_1000eff333_rssi', 'sensor.luxpower_inverter_battery_battery_soc', 'climate.1b_ac', 'climate.2b_ac', 'climate.floor_1_ac', 'climate.floor_2_ac', 'remote.1b_infrared_rf', 'remote.2b_infrared'] %}
+          {{ ids | select('is_state', 'unavailable') | list | count }}
+        attributes:
+          names: >-
+            {% set ids = ['sensor.cb_ground_floor_power', 'sensor.cb_floor_1_power', 'sensor.cb_floor_2_power', 'sensor.meter_protector_voltage', 'sensor.grid_protector_voltage_a', 'sensor.refrigerator_power', 'sensor.mosquito_repellent_power', 'sensor.bike_charger_power', 'sensor.sonoff_1000a8b00e_rssi', 'sensor.sonoff_10014c209d_rssi', 'sensor.sonoff_1000eff333_rssi', 'sensor.luxpower_inverter_battery_battery_soc', 'climate.1b_ac', 'climate.2b_ac', 'climate.floor_1_ac', 'climate.floor_2_ac', 'remote.1b_infrared_rf', 'remote.2b_infrared'] %}
+            {{ ids | select('is_state', 'unavailable') | map('state_attr', 'friendly_name') | join(', ') }}
+      - name: "Updates pending"
+        unique_id: updates_pending
+        unit_of_measurement: "updates"
+        icon: mdi:update
+        state: "{{ states.update | selectattr('state', 'eq', 'on') | list | count }}"
+        attributes:
+          names: "{{ states.update | selectattr('state', 'eq', 'on') | map(attribute='name') | join(', ') }}"
+      - name: "Safety automations off"
+        unique_id: safety_automations_off
+        unit_of_measurement: "automations"
+        icon: mdi:shield-alert
+        state: >-
+          {% set ids = ['automation.alert_grid_power_outage', 'automation.alert_grid_power_restored', 'automation.alert_grid_protector_engaged', 'automation.alert_inverter_fault_or_warning', 'automation.alert_inverter_offline', 'automation.alert_low_battery_soc', 'automation.solar_off_grid_close_grid_protector_at_30_soc', 'automation.solar_off_grid_open_grid_protector_at_40_soc', 'automation.solar_off_grid_close_grid_protector_on_high_load', 'automation.solar_off_grid_open_grid_protector_after_high_load', 'automation.bike_overcharge_cutoff'] %}
+          {{ ids | reject('is_state', 'on') | list | count }}
+        attributes:
+          names: >-
+            {% set ids = ['automation.alert_grid_power_outage', 'automation.alert_grid_power_restored', 'automation.alert_grid_protector_engaged', 'automation.alert_inverter_fault_or_warning', 'automation.alert_inverter_offline', 'automation.alert_low_battery_soc', 'automation.solar_off_grid_close_grid_protector_at_30_soc', 'automation.solar_off_grid_open_grid_protector_at_40_soc', 'automation.solar_off_grid_close_grid_protector_on_high_load', 'automation.solar_off_grid_open_grid_protector_after_high_load', 'automation.bike_overcharge_cutoff'] %}
+            {{ ids | reject('is_state', 'on') | map('state_attr', 'friendly_name') | join(', ') }}
+
+# Reveals the advanced inverter settings on the Inverter tab (generator / smart load, AC coupling, tuning, installer list)
+input_boolean:
+  inverter_advanced:
+    name: Show advanced inverter settings
+    icon: mdi:tools
