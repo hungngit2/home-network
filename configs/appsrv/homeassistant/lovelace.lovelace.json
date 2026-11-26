@@ -2031,80 +2031,107 @@
                   "icon": "mdi:shield-check"
                 },
                 {
-                  "type": "markdown",
-                  "grid_options": {
-                    "columns": "full"
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.safety_automations_off",
-                      "above": 0
-                    }
-                  ],
-                  "content": "**Off:** {{ state_attr('sensor.safety_automations_off', 'names') }}"
-                },
-                {
                   "type": "entities",
-                  "grid_options": {
-                    "columns": "full"
-                  },
                   "show_header_toggle": false,
                   "entities": [
                     {
                       "entity": "automation.alert_grid_power_outage",
                       "name": "Alert: grid outage",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/alert_grid_power_outage"
+                      }
                     },
                     {
                       "entity": "automation.alert_grid_power_restored",
                       "name": "Alert: grid restored",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/alert_grid_power_restored"
+                      }
                     },
                     {
                       "entity": "automation.alert_grid_protector_engaged",
                       "name": "Alert: grid fallback engaged",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/alert_grid_protector_engaged"
+                      }
                     },
                     {
                       "entity": "automation.alert_inverter_fault_or_warning",
                       "name": "Alert: inverter fault / warning",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/alert_inverter_fault_or_warning"
+                      }
                     },
                     {
                       "entity": "automation.alert_inverter_offline",
                       "name": "Alert: inverter offline",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/alert_inverter_offline"
+                      }
                     },
                     {
                       "entity": "automation.alert_low_battery_soc",
                       "name": "Alert: low battery",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/alert_low_battery_soc"
+                      }
                     },
                     {
                       "entity": "automation.solar_off_grid_close_grid_protector_at_30_soc",
                       "name": "Grid fallback: close at 30%",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/solar_off_grid_close_grid_protector_at_30_soc"
+                      }
                     },
                     {
                       "entity": "automation.solar_off_grid_open_grid_protector_at_40_soc",
                       "name": "Grid fallback: open at 40%",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/solar_off_grid_open_grid_protector_at_40_soc"
+                      }
                     },
                     {
                       "entity": "automation.solar_off_grid_close_grid_protector_on_high_load",
                       "name": "Grid fallback: close on high load",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/solar_off_grid_close_grid_protector_on_high_load"
+                      }
                     },
                     {
                       "entity": "automation.solar_off_grid_open_grid_protector_after_high_load",
                       "name": "Grid fallback: open after high load",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/solar_off_grid_open_grid_protector_after_high_load"
+                      }
                     },
                     {
                       "entity": "automation.bike_overcharge_cutoff",
                       "name": "Bike charger cut-off",
-                      "secondary_info": "last-triggered"
+                      "secondary_info": "last-triggered",
+                      "tap_action": {
+                        "action": "navigate",
+                        "navigation_path": "/config/automation/config/bike_overcharge_cutoff"
+                      }
                     }
                   ]
                 },
@@ -2115,8 +2142,7 @@
                   },
                   "content": "Last time each one fired. Read-only here, so none can be switched off by a stray tap; manage them in [Automations](/config/automation/dashboard)."
                 }
-              ],
-              "column_span": 2
+              ]
             }
           ],
           "cards": [],
