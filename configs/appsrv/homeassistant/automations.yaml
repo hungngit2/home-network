@@ -111,21 +111,6 @@
         }}%, load {{ states('sensor.luxpower_inverter_load_power') | int(0) }} W of
         6500 W.
   mode: single
-- id: irrigation_pump_auto_shutoff
-  alias: 'Garden: Irrigation Pump Auto Shut-off'
-  description: Turn off irrigation pump automatically after 15 minutes.
-  triggers:
-  - trigger: state
-    entity_id: switch.sonoff_1000eff333
-    from: 'off'
-    to: 'on'
-    for:
-      minutes: 15
-  actions:
-  - action: switch.turn_off
-    target:
-      entity_id: switch.sonoff_1000eff333
-  mode: single
 - id: alert_inverter_fault
   alias: 'Alert: Inverter Fault or Warning'
   description: Notify when the LuxPower inverter reports a fault or warning.

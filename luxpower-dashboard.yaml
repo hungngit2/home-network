@@ -1,0 +1,178 @@
+views:
+  - title: LuxPower Energy
+    path: luxpower-energy
+    icon: mdi:solar-power
+    cards:
+      - type: custom:power-flow-card-inverter
+        dashboard_layout: full
+        three_phase: false
+        single_load_mode: false
+        invert_grid_power: true
+        invert_battery_power: true
+        inverter_image: false
+        inverter_icon: mdi:solar-inverter
+        entities:
+          inverter_power: sensor.luxpower_inverter_inverter_power
+          inverter_current: sensor.luxpower_inverter_inverter_current
+          inverter_voltage: sensor.luxpower_inverter_bus_1_voltage
+          inverter_temp: sensor.luxpower_inverter_radiator_temperature
+
+          battery1_battery2_power: sensor.luxpower_inverter_battery_battery_flow
+          battery1_battery2_current: sensor.luxpower_inverter_battery_bms_battery_current
+
+          pv_power: sensor.luxpower_inverter_pv_pv_power
+          pv1_power: sensor.luxpower_inverter_pv_pv1_power
+          pv1_voltage: sensor.luxpower_inverter_pv_pv1_voltage
+          pv1_current: sensor.luxpower_inverter_pv_pv1_current
+          pv2_power: sensor.luxpower_inverter_pv_pv2_power
+          pv2_voltage: sensor.luxpower_inverter_pv_pv2_voltage
+          pv2_current: sensor.luxpower_inverter_pv_pv2_current
+
+          grid_power: sensor.luxpower_inverter_grid_grid_flow
+          grid_voltage: sensor.luxpower_inverter_grid_grid_voltage
+          grid_frequency: sensor.luxpower_inverter_grid_grid_frequency
+          grid_current: sensor.luxpower_inverter_inverter_current
+
+          load_power: sensor.luxpower_inverter_load_power
+          load_voltage: sensor.luxpower_inverter_grid_grid_voltage
+          load_frequency: sensor.luxpower_inverter_grid_grid_frequency
+
+          eps_power: sensor.luxpower_inverter_eps_eps_power
+          eps_voltage: sensor.luxpower_inverter_eps_eps_voltage
+          eps_frequency: sensor.luxpower_inverter_eps_eps_frequency
+
+          battery_power: sensor.luxpower_inverter_battery_battery_flow
+          battery_voltage: sensor.luxpower_inverter_battery_battery_voltage
+          battery_soc: sensor.luxpower_inverter_battery_battery_soc
+          battery_current: sensor.luxpower_inverter_battery_bms_battery_current
+          battery_temp: sensor.luxpower_inverter_battery_bms_max_cell_temperature
+
+          pv_daily: sensor.luxpower_inverter_pv_pv_energy_today
+          pv_total: sensor.luxpower_inverter_pv_pv_energy_total
+          grid_buy_daily: sensor.luxpower_inverter_grid_energy_from_grid_today
+          grid_buy_total: sensor.luxpower_inverter_grid_energy_from_grid_total
+          grid_sell_daily: sensor.luxpower_inverter_grid_energy_to_grid_today
+          grid_sell_total: sensor.luxpower_inverter_grid_energy_to_grid_total
+          load_daily: sensor.luxpower_inverter_home_consumption_today_calculated
+          load_total: sensor.luxpower_inverter_home_consumption_total_calculated
+          battery_charge_daily: sensor.luxpower_inverter_charge_energy_today
+          battery_charge_total: sensor.luxpower_inverter_charge_energy_total
+          battery_discharge_daily: sensor.luxpower_inverter_discharge_energy_today
+          battery_discharge_total: sensor.luxpower_inverter_discharge_energy_total
+
+      - type: entities
+        title: LuxPower SNA Pro 6.5kW & JK BMS Status
+        entities:
+          - entity: sensor.luxpower_inverter_inverter_state
+            name: Operating State
+          - entity: sensor.luxpower_inverter_battery_battery_soc
+            name: Battery SOC
+          - entity: sensor.luxpower_inverter_battery_battery_voltage
+            name: Battery Voltage
+          - entity: sensor.luxpower_inverter_battery_bms_battery_current
+            name: Battery Current
+          - entity: sensor.luxpower_inverter_battery_bms_max_cell_temperature
+            name: BMS Max Cell Temp
+          - entity: sensor.luxpower_inverter_battery_bms_min_cell_temperature
+            name: BMS Min Cell Temp
+          - entity: sensor.luxpower_inverter_battery_bms_max_cell_voltage
+            name: Max Cell Voltage
+          - entity: sensor.luxpower_inverter_battery_bms_min_cell_voltage
+            name: Min Cell Voltage
+          - entity: sensor.luxpower_inverter_battery_bms_cell_difference
+            name: Cell Difference
+          - entity: sensor.luxpower_inverter_battery_bms_cycle_count
+            name: BMS Cycle Count
+          - entity: sensor.luxpower_inverter_radiator_temperature
+            name: Inverter Radiator Temp 1
+          - entity: sensor.luxpower_inverter_radiator_temperature_2
+            name: Inverter Radiator Temp 2
+          - entity: binary_sensor.luxpower_inverter_grid_grid_connected
+            name: Grid Connected
+          - entity: select.luxpower_inverter_grid_on_grid_eod_type
+            name: On-Grid EOD Type
+          - entity: number.luxpower_inverter_battery_on_grid_cut_off_soc
+            name: On-Grid Cut-Off SOC
+          - entity: number.luxpower_inverter_battery_off_grid_cut_off_soc
+            name: Off-Grid Cut-Off SOC
+          - entity: switch.grid_protector
+            name: Grid Protector Breaker
+
+      - type: entities
+        title: Home Circuits & Appliances (Power & Energy)
+        entities:
+          - entity: sensor.meter_protector_power
+            name: Meter/Protector Power
+          - entity: sensor.meter_protector_energy
+            name: Meter/Protector Energy
+          - entity: sensor.cb_ground_floor_power
+            name: CB - Ground Floor Power
+          - entity: sensor.cb_ground_floor_energy
+            name: CB - Ground Floor Energy
+          - entity: sensor.cb_floor_1_power
+            name: CB - Floor 1 Power
+          - entity: sensor.cb_floor_1_energy
+            name: CB - Floor 1 Energy
+          - entity: sensor.cb_floor_2_power
+            name: CB - Floor 2 Power
+          - entity: sensor.cb_floor_2_energy
+            name: CB - Floor 2 Energy
+          - entity: sensor.refrigerator_power
+            name: Refrigerator Power
+          - entity: sensor.refrigerator_energy
+            name: Refrigerator Energy
+          - entity: sensor.mosquito_repellent_power
+            name: Chest Freezer Power
+          - entity: sensor.mosquito_repellent_energy
+            name: Chest Freezer Energy
+          - entity: sensor.sac_xe_power
+            name: Bike Charger Power
+          - entity: sensor.sac_xe_energy
+            name: Bike Charger Energy
+          - entity: sensor.mosquito_liquid_power
+            name: Mosquito Liquid Power
+          - entity: sensor.mosquito_liquid_energy
+            name: Mosquito Liquid Energy
+          - entity: sensor.grid_protector_power_a
+            name: Grid Protector Power
+          - entity: sensor.grid_protector_energy
+            name: Grid Protector Energy
+          - entity: sensor.pe06000255425_econ_monthly_new
+            name: EVN Monthly Consumption
+          - entity: sensor.pe06000255425_econ_total_new
+            name: EVN Meter Total
+
+      - type: horizontal-stack
+        cards:
+          - type: statistic
+            entity: sensor.luxpower_inverter_pv_pv_energy_today
+            name: PV Yield Today
+            period:
+              calendar:
+                period: day
+          - type: statistic
+            entity: sensor.luxpower_inverter_home_consumption_today_calculated
+            name: Load Today
+            period:
+              calendar:
+                period: day
+
+      - type: history-graph
+        title: Battery SOC History (24h)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.luxpower_inverter_battery_battery_soc
+            name: SOC %
+
+      - type: history-graph
+        title: Power Flows - PV, Battery, Load, Grid (24h)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.luxpower_inverter_pv_pv_power
+            name: PV Power
+          - entity: sensor.luxpower_inverter_battery_battery_flow
+            name: Battery Flow (+ Charge, - Discharge)
+          - entity: sensor.luxpower_inverter_load_power
+            name: Home Load
+          - entity: sensor.luxpower_inverter_grid_grid_flow
+            name: Grid Flow

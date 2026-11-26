@@ -15,7 +15,8 @@
       "flow_rate_lpm": null,
       "water_total_l": 0.0,
       "avg_lpm": null,
-      "flow_runs": 0
+      "flow_runs": 0,
+      "created_at": 1795520336
     }
   ],
   "schedules": [
@@ -33,7 +34,8 @@
       "sun_offset_min": 0,
       "duration_min": 5,
       "enabled": true,
-      "conditions": []
+      "conditions": [],
+      "created_at": 1795520336
     },
     {
       "id": "d7dd12632595",
@@ -49,7 +51,8 @@
       "sun_offset_min": 0,
       "duration_min": 2,
       "enabled": true,
-      "conditions": []
+      "conditions": [],
+      "created_at": 1795520414
     }
   ]
 }
