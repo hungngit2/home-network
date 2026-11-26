@@ -119,7 +119,7 @@ template:
             {% set cut = states('number.luxpower_inverter_battery_off_grid_cut_off_soc' if is_state('input_boolean.grid_outage', 'on')
                                  else 'number.luxpower_inverter_battery_on_grid_cut_off_soc') | float(10) %}
             {% set soc = states('sensor.luxpower_inverter_battery_battery_soc') | float(0) %}
-            {{ ([soc - cut, 0] | max) | round(0) | int }}% to {{ cut | round(0) | int }}% cut-off
+            {{ (([soc - cut, 0] | max / 100 * 16.08) | round(1)) }} kWh to {{ cut | round(0) | int }}% cutoff
       # --- Settings health check (dashboard tiles). The device and automation lists are the same ones gen_dashboard.py uses.
       - name: "Devices offline"
         unique_id: devices_offline

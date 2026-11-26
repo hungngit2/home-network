@@ -149,7 +149,7 @@ power_now = {"type": "grid", "cards": [
            state_content=["last_changed"], visibility=[is_(GRID_SW, "off")]),
     status(GRID_SW, "On grid", "mdi:transmission-tower", 6, COLORS["grid"],
            state_content=["last_changed"], visibility=[is_(GRID_SW, "on")]),
-    tile("sensor.battery_energy_left", "Energy left", "mdi:battery-clock", COLORS["battery"], 6, state_content=["state", "summary"]),
+    tile("sensor.battery_energy_left", "Energy left", "mdi:battery-clock", COLORS["battery"], 6, state_content=["summary"]),
     tile("sensor.battery_runtime", "Runtime", "mdi:timer-sand", COLORS["battery"], 6,
          visibility=[{"condition": "state", "entity": "sensor.battery_runtime", "state_not": ["unavailable", "unknown"]}]),
     tile("sensor.battery_status", "Battery now", None, COLORS["battery"], 12),
@@ -230,7 +230,7 @@ equipment = {"title": "Equipment", "path": "equipment", "icon": "mdi:solar-power
     {"type": "grid", "cards": [
         heading("Battery", "mdi:home-battery"),
         tile(SOC, "Charge", "mdi:battery-high", COLORS["battery"], 6),
-        tile("sensor.battery_energy_left", "Energy left", "mdi:battery-clock", COLORS["battery"], 6, state_content=["state", "summary"]),
+        tile("sensor.battery_energy_left", "Energy left", "mdi:battery-clock", COLORS["battery"], 6, state_content=["summary"]),
         # www/battery-report-card.js: Day/Week/Month/Year discharge, overnight discharge, measured capacity
         {"type": "custom:battery-report-card", "title": "Battery report", "rated_kwh": 16.08,
          "night_start": 18, "night_end": 6, "grid_options": {"columns": "full"}},

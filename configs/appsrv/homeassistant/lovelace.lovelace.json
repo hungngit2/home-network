@@ -854,7 +854,6 @@
                     "columns": 6
                   },
                   "state_content": [
-                    "state",
                     "summary"
                   ]
                 },
@@ -1471,7 +1470,6 @@
                     "columns": 6
                   },
                   "state_content": [
-                    "state",
                     "summary"
                   ]
                 },
