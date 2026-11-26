@@ -404,7 +404,7 @@
           .nav button { border: 1px solid var(--divider-color); border-radius: 8px; min-width: 36px; }
           .nav button:disabled { opacity: .35; cursor: default; }
           .nav .lbl { min-width: 170px; text-align: center; font-weight: 500; }
-          .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 8px 0 10px; }
+          .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 8px; margin: 8px 0 10px; }
           .tile { background: var(--secondary-background-color); border-radius: 10px; padding: 8px 10px; }
           .k { font-size: .75rem; color: var(--secondary-text-color); display: flex; align-items: center; gap: 5px; }
           .v { font-size: 1.5rem; font-weight: 500; color: var(--primary-text-color); }

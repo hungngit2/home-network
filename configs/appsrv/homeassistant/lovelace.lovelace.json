@@ -919,7 +919,7 @@
                     "pv2_current": "sensor.luxpower_inverter_pv_pv2_current"
                   },
                   "co2_factor": 0.68,
-                  "currency": "\u20ab",
+                  "currency": "₫",
                   "pv_capacity": 5.145,
                   "colors": {
                     "solar": "#ffc107",
@@ -1221,7 +1221,7 @@
                   "wide": true,
                   "show_insights": true,
                   "co2_factor": 0.68,
-                  "currency": "\u20ab",
+                  "currency": "₫",
                   "periods": [
                     "today",
                     "3d",
@@ -1362,7 +1362,7 @@
                   },
                   "header": {
                     "show": true,
-                    "title": "Cost per month this year (\u20ab)",
+                    "title": "Cost per month this year (₫)",
                     "show_states": false
                   },
                   "graph_span": "1y",
@@ -1375,11 +1375,11 @@
                     },
                     "legend": {
                       "position": "bottom",
-                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' \u00b7 ' + Math.round(s).toLocaleString('en-US') + ' \u20ab'; }"
+                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' · ' + Math.round(s).toLocaleString('en-US') + ' ₫'; }"
                     },
                     "tooltip": {
                       "y": {
-                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' \u20ab'; }"
+                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
                       }
                     }
                   },
@@ -1389,7 +1389,7 @@
                       "decimals": 0,
                       "apex_config": {
                         "labels": {
-                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' \u20ab'; }"
+                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
                         }
                       }
                     }
@@ -1545,7 +1545,7 @@
                 {
                   "type": "tile",
                   "entity": "sensor.luxpower_inverter_battery_bms_battery_current",
-                  "name": "Current (\u2212: out)",
+                  "name": "Current (−: out)",
                   "icon": "mdi:current-dc",
                   "grid_options": {
                     "columns": 6
