@@ -1456,82 +1456,18 @@
                   }
                 },
                 {
-                  "type": "custom:apexcharts-card",
-                  "header": {
-                    "show": true,
-                    "title": "Battery Performance (Power, Voltage & SoC)",
-                    "show_states": true
-                  },
-                  "graph_span": "24h",
-                  "span": {
-                    "start": "day"
-                  },
-                  "apex_config": {
-                    "chart": {
-                      "height": 260
-                    },
-                    "stroke": {
-                      "width": [
-                        2,
-                        2,
-                        2
-                      ]
-                    },
-                    "tooltip": {
-                      "shared": true
-                    }
-                  },
-                  "series": [
-                    {
-                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
-                      "name": "SoC",
-                      "type": "line",
-                      "color": "#2196F3",
-                      "unit": "%",
-                      "yaxis_id": "soc"
-                    },
-                    {
-                      "entity": "sensor.luxpower_inverter_battery_battery_flow",
-                      "name": "Power",
-                      "type": "area",
-                      "color": "#4CAF50",
-                      "unit": "W",
-                      "yaxis_id": "power",
-                      "transform": "return x;"
-                    },
-                    {
-                      "entity": "sensor.luxpower_inverter_battery_battery_voltage",
-                      "name": "Voltage",
-                      "type": "line",
-                      "color": "#FF9800",
-                      "unit": "V",
-                      "yaxis_id": "volt"
-                    }
+                  "type": "statistics-graph",
+                  "title": "Battery Performance (SoC & Power)",
+                  "days_to_show": 7,
+                  "period": "hour",
+                  "stat_types": [
+                    "mean",
+                    "min",
+                    "max"
                   ],
-                  "yaxis": [
-                    {
-                      "id": "soc",
-                      "min": 0,
-                      "max": 100,
-                      "decimals": 0,
-                      "title": {
-                        "text": "SoC (%)"
-                      }
-                    },
-                    {
-                      "id": "power",
-                      "opposite": true,
-                      "decimals": 0,
-                      "title": {
-                        "text": "Power (W)"
-                      }
-                    },
-                    {
-                      "id": "volt",
-                      "show": false,
-                      "min": 40,
-                      "max": 60
-                    }
+                  "entities": [
+                    "sensor.luxpower_inverter_battery_battery_soc",
+                    "sensor.luxpower_inverter_battery_battery_flow"
                   ]
                 },
                 {
