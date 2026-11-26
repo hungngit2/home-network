@@ -1897,11 +1897,10 @@
           ]
         },
         {
-          "title": "Settings",
-          "path": "settings",
-          "icon": "mdi:cog",
+          "title": "Automations",
+          "path": "automations",
+          "icon": "mdi:home-automation",
           "type": "sections",
-          "max_columns": 3,
           "visible": [
             {
               "user": "3d0602e4c2514c10b975883aa25b394f"
@@ -1913,171 +1912,66 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "Health check",
+                  "heading": "Energy data",
                   "heading_style": "title",
-                  "icon": "mdi:heart-pulse"
+                  "icon": "mdi:database-check"
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.backup_last_successful_automatic_backup",
-                  "name": "Last backup",
-                  "icon": "mdi:backup-restore",
+                  "entity": "sensor.ecm_data_quality",
+                  "name": "Data quality",
+                  "icon": "mdi:database-check",
+                  "grid_options": {
+                    "columns": 12
+                  },
+                  "state_content": [
+                    "state",
+                    "reasons"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_reconciliation",
+                  "name": "EVN meter check",
+                  "icon": "mdi:scale-balance",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "state_content": [
+                    "state",
+                    "data_age_days"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_difference",
+                  "name": "EVN minus our meter",
+                  "icon": "mdi:scale-unbalanced",
                   "grid_options": {
                     "columns": 6
                   }
                 },
                 {
                   "type": "tile",
-                  "entity": "sensor.backup_next_scheduled_automatic_backup",
-                  "name": "Next backup",
-                  "icon": "mdi:calendar-clock",
+                  "entity": "sensor.ecm_active_tariff",
+                  "name": "Tariff",
+                  "icon": "mdi:tag-text",
+                  "grid_options": {
+                    "columns": 6
+                  },
+                  "state_content": [
+                    "state",
+                    "verified"
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "sensor.ecm_evn_meter_reading",
+                  "name": "EVN meter reading",
+                  "icon": "mdi:counter",
                   "grid_options": {
                     "columns": 6
                   }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.devices_offline",
-                  "name": "Devices online",
-                  "icon": "mdi:lan-check",
-                  "color": "green",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.devices_offline",
-                      "below": 1
-                    }
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.devices_offline",
-                  "name": "Devices offline",
-                  "icon": "mdi:lan-disconnect",
-                  "color": "red",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.devices_offline",
-                      "above": 0
-                    }
-                  ]
-                },
-                {
-                  "type": "markdown",
-                  "grid_options": {
-                    "columns": "full"
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.devices_offline",
-                      "above": 0
-                    }
-                  ],
-                  "content": "**Offline:** {{ state_attr('sensor.devices_offline', 'names') }}"
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.updates_pending",
-                  "name": "Up to date",
-                  "icon": "mdi:check-circle-outline",
-                  "color": "green",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.updates_pending",
-                      "below": 1
-                    }
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.updates_pending",
-                  "name": "Updates pending",
-                  "icon": "mdi:update",
-                  "color": "amber",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.updates_pending",
-                      "above": 0
-                    }
-                  ]
-                },
-                {
-                  "type": "markdown",
-                  "grid_options": {
-                    "columns": "full"
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.updates_pending",
-                      "above": 0
-                    }
-                  ],
-                  "content": "**Updates:** {{ state_attr('sensor.updates_pending', 'names') }}"
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.safety_automations_off",
-                  "name": "Safety automations on",
-                  "icon": "mdi:shield-check",
-                  "color": "green",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.safety_automations_off",
-                      "below": 1
-                    }
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.safety_automations_off",
-                  "name": "Safety automations off",
-                  "icon": "mdi:shield-alert",
-                  "color": "red",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.safety_automations_off",
-                      "above": 0
-                    }
-                  ]
-                },
-                {
-                  "type": "markdown",
-                  "grid_options": {
-                    "columns": "full"
-                  },
-                  "visibility": [
-                    {
-                      "condition": "numeric_state",
-                      "entity": "sensor.safety_automations_off",
-                      "above": 0
-                    }
-                  ],
-                  "content": "**Off:** {{ state_attr('sensor.safety_automations_off', 'names') }}"
                 }
               ]
             },
@@ -2100,11 +1994,11 @@
                 {
                   "type": "tile",
                   "entity": "switch.grid_protector",
-                  "name": "Grid fallback (manual)",
+                  "name": "Grid Switch",
                   "icon": "mdi:transmission-tower",
                   "color": "deep-orange",
                   "grid_options": {
-                    "columns": 6
+                    "columns": 12
                   },
                   "tap_action": {
                     "action": "toggle",
@@ -2116,34 +2010,6 @@
                     "action": "toggle",
                     "confirmation": {
                       "text": "Switch grid fallback by hand? The battery automations may switch it back."
-                    }
-                  },
-                  "hold_action": {
-                    "action": "none"
-                  },
-                  "double_tap_action": {
-                    "action": "none"
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "switch.mosquito_repellent",
-                  "name": "Chest freezer plug",
-                  "icon": "mdi:fridge-industrial",
-                  "color": "light-blue",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "toggle",
-                    "confirmation": {
-                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
-                    }
-                  },
-                  "icon_tap_action": {
-                    "action": "toggle",
-                    "confirmation": {
-                      "text": "Switch the CHEST FREEZER plug? Food may spoil if left off."
                     }
                   },
                   "hold_action": {
@@ -2163,6 +2029,20 @@
                   "heading": "Safety automations",
                   "heading_style": "title",
                   "icon": "mdi:shield-check"
+                },
+                {
+                  "type": "markdown",
+                  "grid_options": {
+                    "columns": "full"
+                  },
+                  "visibility": [
+                    {
+                      "condition": "numeric_state",
+                      "entity": "sensor.safety_automations_off",
+                      "above": 0
+                    }
+                  ],
+                  "content": "**Off:** {{ state_attr('sensor.safety_automations_off', 'names') }}"
                 },
                 {
                   "type": "entities",
@@ -2268,122 +2148,12 @@
                   },
                   "content": "Last time each one fired. Read-only here, so none can be switched off by a stray tap; manage them in [Automations](/config/automation/dashboard)."
                 }
-              ]
-            },
-            {
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "heading",
-                  "heading": "Energy data",
-                  "heading_style": "title",
-                  "icon": "mdi:database-check"
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.ecm_data_quality",
-                  "name": "Data quality",
-                  "icon": "mdi:database-check",
-                  "grid_options": {
-                    "columns": 12
-                  },
-                  "state_content": [
-                    "state",
-                    "reasons"
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.ecm_evn_reconciliation",
-                  "name": "EVN meter check",
-                  "icon": "mdi:scale-balance",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "state_content": [
-                    "state",
-                    "data_age_days"
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.ecm_evn_difference",
-                  "name": "EVN minus our meter",
-                  "icon": "mdi:scale-unbalanced",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.ecm_active_tariff",
-                  "name": "Tariff",
-                  "icon": "mdi:tag-text",
-                  "grid_options": {
-                    "columns": 6
-                  },
-                  "state_content": [
-                    "state",
-                    "verified"
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.ecm_evn_meter_reading",
-                  "name": "EVN meter reading",
-                  "icon": "mdi:counter",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                }
-              ]
-            },
-            {
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "heading",
-                  "heading": "Network",
-                  "heading_style": "title",
-                  "icon": "mdi:wifi"
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.sonoff_1000a8b00e_rssi",
-                  "name": "Network relay Wi-Fi",
-                  "icon": "mdi:wifi",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.sonoff_10014c209d_rssi",
-                  "name": "Front light Wi-Fi",
-                  "icon": "mdi:wifi",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "tile",
-                  "entity": "sensor.sonoff_1000eff333_rssi",
-                  "name": "Irrigation Wi-Fi",
-                  "icon": "mdi:wifi",
-                  "grid_options": {
-                    "columns": 6
-                  }
-                },
-                {
-                  "type": "markdown",
-                  "grid_options": {
-                    "columns": "full"
-                  },
-                  "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · [Logs](/config/logs) · [Backups](/config/backup) · [Energy setup](/config/energy) · [Energy Cost](/energy-cost) · [Energy Cost Manager](/config/integrations/integration/energy_cost_manager)"
-                }
-              ]
+              ],
+              "column_span": 2
             }
-          ]
+          ],
+          "cards": [],
+          "max_columns": 3
         }
       ]
     }
