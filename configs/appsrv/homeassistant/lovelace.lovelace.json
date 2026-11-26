@@ -1256,7 +1256,7 @@
               "cards": [
                 {
                   "type": "heading",
-                  "heading": "Money",
+                  "heading": "Energy Cost",
                   "heading_style": "title",
                   "icon": "mdi:cash-multiple",
                   "tap_action": {
@@ -1271,11 +1271,8 @@
                   "icon": "mdi:piggy-bank",
                   "color": "green",
                   "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "/energy-cost"
+                    "rows": 1,
+                    "columns": 4
                   }
                 },
                 {
@@ -1285,11 +1282,7 @@
                   "icon": "mdi:piggy-bank-outline",
                   "color": "green",
                   "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "/energy-cost"
+                    "columns": 4
                   }
                 },
                 {
@@ -1299,11 +1292,7 @@
                   "icon": "mdi:receipt-text",
                   "color": "deep-orange",
                   "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "/energy-cost"
+                    "columns": 4
                   }
                 },
                 {
@@ -1313,11 +1302,7 @@
                   "icon": "mdi:chart-timeline-variant",
                   "color": "blue",
                   "grid_options": {
-                    "columns": 6
-                  },
-                  "tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "/energy-cost"
+                    "columns": 4
                   }
                 },
                 {
@@ -1327,11 +1312,7 @@
                   "icon": "mdi:check-decagram",
                   "color": "red",
                   "grid_options": {
-                    "columns": 12
-                  },
-                  "tap_action": {
-                    "action": "navigate",
-                    "navigation_path": "/energy-cost"
+                    "columns": 8
                   },
                   "visibility": [
                     {
@@ -1344,7 +1325,7 @@
                 {
                   "type": "custom:apexcharts-card",
                   "grid_options": {
-                    "columns": 18
+                    "columns": 24
                   },
                   "header": {
                     "show": true,
@@ -1357,10 +1338,7 @@
                   },
                   "apex_config": {
                     "chart": {
-                      "height": 220,
-                      "events": {
-                        "click": "EVAL:function() { history.pushState(null, '', '/energy-cost'); window.dispatchEvent(new CustomEvent('location-changed')); }"
-                      }
+                      "height": 220
                     },
                     "legend": {
                       "position": "bottom",
