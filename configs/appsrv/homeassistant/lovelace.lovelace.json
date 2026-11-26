@@ -886,7 +886,7 @@
                     "pv2_current": "sensor.luxpower_inverter_pv_pv2_current"
                   },
                   "co2_factor": 0.68,
-                  "currency": "₫",
+                  "currency": "\u20ab",
                   "pv_capacity": 5.145,
                   "colors": {
                     "solar": "#ffc107",
@@ -1188,7 +1188,7 @@
                   "wide": true,
                   "show_insights": true,
                   "co2_factor": 0.68,
-                  "currency": "₫",
+                  "currency": "\u20ab",
                   "periods": [
                     "today",
                     "3d",
@@ -1329,7 +1329,7 @@
                   },
                   "header": {
                     "show": true,
-                    "title": "Cost per month this year (₫)",
+                    "title": "Cost per month this year (\u20ab)",
                     "show_states": false
                   },
                   "graph_span": "1y",
@@ -1342,11 +1342,11 @@
                     },
                     "legend": {
                       "position": "bottom",
-                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' · ' + Math.round(s).toLocaleString('en-US') + ' ₫'; }"
+                      "formatter": "EVAL:function(name, opts) { var d = (opts.w.config.series[opts.seriesIndex] || {}).data || []; var y = new Date().getFullYear(); var s = 0; d.forEach(function(p) { var x = Array.isArray(p) ? p[0] : (p && p.x); var v = Array.isArray(p) ? p[1] : (p && p.y); if (v != null && new Date(x).getFullYear() === y) s += v; }); return name + ' \u00b7 ' + Math.round(s).toLocaleString('en-US') + ' \u20ab'; }"
                     },
                     "tooltip": {
                       "y": {
-                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
+                        "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' \u20ab'; }"
                       }
                     }
                   },
@@ -1356,7 +1356,7 @@
                       "decimals": 0,
                       "apex_config": {
                         "labels": {
-                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' ₫'; }"
+                          "formatter": "EVAL:function(v) { return v == null ? '' : Math.round(v).toLocaleString('en-US') + ' \u20ab'; }"
                         }
                       }
                     }
@@ -1456,23 +1456,83 @@
                   }
                 },
                 {
-                  "type": "statistics-graph",
-                  "title": "Charge, last 7 days",
-                  "entities": [
-                    "sensor.luxpower_inverter_battery_battery_soc"
+                  "type": "custom:apexcharts-card",
+                  "header": {
+                    "show": true,
+                    "title": "Battery Performance (Power, Voltage & SoC)",
+                    "show_states": true
+                  },
+                  "graph_span": "24h",
+                  "span": {
+                    "start": "day"
+                  },
+                  "apex_config": {
+                    "chart": {
+                      "height": 260
+                    },
+                    "stroke": {
+                      "width": [
+                        2,
+                        2,
+                        2
+                      ]
+                    },
+                    "tooltip": {
+                      "shared": true
+                    }
+                  },
+                  "series": [
+                    {
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "name": "SoC",
+                      "type": "line",
+                      "color": "#2196F3",
+                      "unit": "%",
+                      "yaxis_id": "soc"
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_battery_battery_flow",
+                      "name": "Power",
+                      "type": "area",
+                      "color": "#4CAF50",
+                      "unit": "W",
+                      "yaxis_id": "power",
+                      "transform": "return x;"
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_battery_battery_voltage",
+                      "name": "Voltage",
+                      "type": "line",
+                      "color": "#FF9800",
+                      "unit": "V",
+                      "yaxis_id": "volt"
+                    }
                   ],
-                  "days_to_show": 7,
-                  "period": "hour",
-                  "stat_types": [
-                    "mean",
-                    "min",
-                    "max"
-                  ],
-                  "chart_type": "line",
-                  "hide_legend": true,
-                  "grid_options": {
-                    "columns": "full"
-                  }
+                  "yaxis": [
+                    {
+                      "id": "soc",
+                      "min": 0,
+                      "max": 100,
+                      "decimals": 0,
+                      "title": {
+                        "text": "SoC (%)"
+                      }
+                    },
+                    {
+                      "id": "power",
+                      "opposite": true,
+                      "decimals": 0,
+                      "title": {
+                        "text": "Power (W)"
+                      }
+                    },
+                    {
+                      "id": "volt",
+                      "show": false,
+                      "min": 40,
+                      "max": 60
+                    }
+                  ]
                 },
                 {
                   "type": "heading",
@@ -1491,7 +1551,7 @@
                 {
                   "type": "tile",
                   "entity": "sensor.luxpower_inverter_battery_bms_battery_current",
-                  "name": "Current (−: out)",
+                  "name": "Current (\u2212: out)",
                   "icon": "mdi:current-dc",
                   "grid_options": {
                     "columns": 6
@@ -2333,7 +2393,7 @@
                   "grid_options": {
                     "columns": "full"
                   },
-                  "content": "[Automations](/config/automation/dashboard) · [Devices](/config/devices/dashboard) · [Logs](/config/logs) · [Backups](/config/backup) · [Energy setup](/config/energy) · [Energy Cost](/energy-cost) · [Energy Cost Manager](/config/integrations/integration/energy_cost_manager)"
+                  "content": "[Automations](/config/automation/dashboard) \u00b7 [Devices](/config/devices/dashboard) \u00b7 [Logs](/config/logs) \u00b7 [Backups](/config/backup) \u00b7 [Energy setup](/config/energy) \u00b7 [Energy Cost](/energy-cost) \u00b7 [Energy Cost Manager](/config/integrations/integration/energy_cost_manager)"
                 }
               ]
             }
