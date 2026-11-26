@@ -1456,18 +1456,31 @@
                   }
                 },
                 {
-                  "type": "statistics-graph",
-                  "title": "Battery Performance (SoC & Power)",
-                  "days_to_show": 7,
-                  "period": "hour",
-                  "stat_types": [
-                    "mean",
-                    "min",
-                    "max"
-                  ],
-                  "entities": [
-                    "sensor.luxpower_inverter_battery_battery_soc",
-                    "sensor.luxpower_inverter_battery_battery_flow"
+                  "type": "custom:apexcharts-card",
+                  "header": {
+                    "show": true,
+                    "title": "Battery Performance (SoC & Power)",
+                    "show_states": true
+                  },
+                  "graph_span": "24h",
+                  "span": {
+                    "start": "day"
+                  },
+                  "series": [
+                    {
+                      "entity": "sensor.luxpower_inverter_battery_battery_soc",
+                      "name": "SoC",
+                      "type": "line",
+                      "color": "#2196F3",
+                      "unit": "%"
+                    },
+                    {
+                      "entity": "sensor.luxpower_inverter_battery_battery_flow",
+                      "name": "Power",
+                      "type": "area",
+                      "color": "#4CAF50",
+                      "unit": "W"
+                    }
                   ]
                 },
                 {
